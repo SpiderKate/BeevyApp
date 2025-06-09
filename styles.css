@@ -1,0 +1,17 @@
+body{
+    background-color: #8860cc;
+}
+#placeholder_Beevy{
+    color:rgb(247, 235, 78);
+    font-family: Brush Script MT;
+    font-size: 300px;
+    text-align: center;
+    margin-top: 10%;
+    margin-bottom: 1%;
+}
+#about{
+    color:rgb(247, 235, 78);
+    padding-left: 30%;
+    padding-right: 30%;
+    text-align: center;
+}

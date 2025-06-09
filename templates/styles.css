@@ -1,0 +1,36 @@
+body{
+    background-color: #8860cc;
+}
+#placeholder_Beevy{
+    color:rgb(247, 235, 78);
+    font-family: Brush Script MT;
+    font-size: 300px;
+    text-align: center;
+    margin-top: 10%;
+    margin-bottom: 1%;
+}
+#about{
+    color:rgb(247, 235, 78);
+    padding-left: 30%;
+    padding-right: 30%;
+    text-align: center;
+}
+#password{
+    color: rgb(247, 235, 78);
+    background-color: rgb(231, 216, 150);
+}
+#username{
+    background-color: rgb(231, 216, 150);
+}
+#logIn{
+    background-color: rgb(197, 166, 65);
+    font-size: medium;
+}
+label{
+    color: rgb(231, 200, 59);
+    font-family: Arial;
+}
+form{
+    text-align: center;
+    padding-top: 10%;
+}

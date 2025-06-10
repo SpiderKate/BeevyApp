@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beevy🐝</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <p id="placeholder_Beevy">Beevy</p>
     <p id="about">Beevy is a playful, welcoming art platform where creators can upload their work, collaborate on canvases, and even stream their drawing sessions. Whether you're a hobbyist or pro, there's a spot in the hive for you!</p>
-<footer>
+    <a href="/login" class="link">Login</a>
+    <a href="/register" class="link">Register</a>
+    <footer>
     footer :>
 </footer>
 </body>

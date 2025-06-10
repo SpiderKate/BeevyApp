@@ -15,14 +15,11 @@ body{
     padding-right: 30%;
     text-align: center;
 }
-#password{
-    color: rgb(247, 235, 78);
+.input{
+    color: black;
     background-color: rgb(231, 216, 150);
 }
-#username{
-    background-color: rgb(231, 216, 150);
-}
-#logIn{
+.submit{
     background-color: rgb(197, 166, 65);
     font-size: medium;
 }
@@ -33,4 +30,12 @@ label{
 form{
     text-align: center;
     padding-top: 10%;
+}
+.linkText{
+    color: rgb(231, 216, 150);
+    font-family: Arial;
+}
+.link{
+    color: rgb(211, 178, 30);
+    font-family: Arial;
 }

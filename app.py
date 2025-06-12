@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_bcrypt import bcrypt
+import bcrypt
 import sqlite3
 import sys
 
@@ -15,16 +15,30 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        usEm = request.form['username']
         password = request.form['password']
-        print('login_test')
-        return redirect(url_for("index"))
-        
-          
+        user_bytes = password.encode('utf-8')
+        try:
+            conn = sqlite3.connect('users.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT password FROM users WHERE email=? OR username=?",(usEm, usEm))
+            result = cursor.fetchone()
+            if result:
+                db_pass = result[0]
+                if bcrypt.checkpw(user_bytes, db_pass):
+                    return redirect(url_for('index'))
+                else:
+                    return render_template("login.html", error="Incorrect password.")
+            else:
+                return render_template("login.html", error="Invalid username or e-mail.")
+        except Exception as e:
+            return f"Something went wrong: {e}"
+        finally:
+            conn.close()
     else:
         return render_template("login.html")
     
-@app.route('/register', methods=['GET','POST'])
+@app.route('/register', methods = ['GET','POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
@@ -33,9 +47,11 @@ def register():
         surname = request.form['surname']
         email = request.form['email']
         dob = request.form['dob']
-        bytes = password.encode('utf-8')
+
+        #hash hesla
+        password_bytes = password.encode('utf-8')
         salt = bcrypt.gensalt()
-        hash = bcrypt.hashpw(bytes, salt)
+        hash = bcrypt.hashpw(password_bytes, salt)
         try:
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
@@ -43,18 +59,25 @@ def register():
             existing_user = cursor.fetchone()
             cursor.execute("SELECT email FROM users WHERE email=?", (email,))
             existing_email = cursor.fetchone()
+
+            errors = []
             if existing_user:
                 print('username in use')
-                return render_template("register.html")
-            elif existing_email:
+                errors.append("Username is already taken.")
+            if existing_email:
                 print('email in use')
-                return render_template("register.html")
+                errors.append("Email is already in use.")
+            if errors:
+                return render_template("register.html", errors = errors)
             else:
                 cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
                 conn.commit()
+                
                 return redirect(url_for("login"))
         except sqlite3.IntegrityError:
             return "User already exists!"
+        finally:
+            conn.close()
     return render_template("register.html")
     
 

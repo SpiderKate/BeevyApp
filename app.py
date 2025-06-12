@@ -36,13 +36,20 @@ def register():
         bytes = password.encode('utf-8')
         salt = bcrypt.gensalt()
         hash = bcrypt.hashpw(bytes, salt)
-    #need to complete import to db and controle on login
         try:
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
+            cursor.execute("SELECT username FROM users WHERE username=?", (username))
+            existing_user = cursor.fetchone()
+            if existing_user is None:
+                cursor.execute("INSERT OR IGNORE INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
+                conn.commit()
+                return render_template("login.html")
+            else: 
+                print('username in use')
+                return render_template("register.html", message="Username is already taken.")
             conn.commit()
-            print('regoster_test')
+            print('register_test')
             conn.close()
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:

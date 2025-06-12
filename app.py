@@ -39,19 +39,20 @@ def register():
         try:
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
-            cursor.execute("SELECT username FROM users WHERE username=?", (username))
+            cursor.execute("SELECT username FROM users WHERE username=?", (username,))
             existing_user = cursor.fetchone()
-            if existing_user is None:
-                cursor.execute("INSERT OR IGNORE INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
-                conn.commit()
-                return render_template("login.html")
-            else: 
+            cursor.execute("SELECT email FROM users WHERE email=?", (email,))
+            existing_email = cursor.fetchone()
+            if existing_user:
                 print('username in use')
-                return render_template("register.html", message="Username is already taken.")
-            conn.commit()
-            print('register_test')
-            conn.close()
-            return redirect(url_for("login"))
+                return render_template("register.html")
+            elif existing_email:
+                print('email in use')
+                return render_template("register.html")
+            else:
+                cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
+                conn.commit()
+                return redirect(url_for("login"))
         except sqlite3.IntegrityError:
             return "User already exists!"
     return render_template("register.html")

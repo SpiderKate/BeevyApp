@@ -26,7 +26,7 @@ def login():
             if result:
                 db_pass = result[0]
                 if bcrypt.checkpw(user_bytes, db_pass):
-                    return redirect(url_for('index'))
+                    return redirect(url_for("userPage"))
                 else:
                     return render_template("login.html", login_errors="Incorrect password.")
             else:
@@ -79,6 +79,10 @@ def register():
         finally:
             conn.close()
     return render_template("register.html")
+
+@app.route('/userPage')
+def userPage():
+    return render_template('userPage.html')
     
 
 if __name__ == "__main__":

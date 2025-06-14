@@ -7,14 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+    {% if login_errors %}
+        <ul class="error-list">
+            {% for error in login_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
     <form method="POST" action="/login">
-        {% if errors %}
-            <ul class="error-list">
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        
         <label for="username">Username or E-mail:</label><br>
         <input type="text" id="username" name="username" class="input" required><br><br>
         <label for="password">Password:</label><br>

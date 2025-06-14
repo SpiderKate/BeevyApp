@@ -28,9 +28,9 @@ def login():
                 if bcrypt.checkpw(user_bytes, db_pass):
                     return redirect(url_for('index'))
                 else:
-                    return render_template("login.html", error="Incorrect password.")
+                    return render_template("login.html", login_errors="Incorrect password.")
             else:
-                return render_template("login.html", error="Invalid username or e-mail.")
+                return render_template("login.html", login_errors="Invalid username or e-mail.")
         except Exception as e:
             return f"Something went wrong: {e}"
         finally:
@@ -60,15 +60,15 @@ def register():
             cursor.execute("SELECT email FROM users WHERE email=?", (email,))
             existing_email = cursor.fetchone()
 
-            errors = []
+            reg_errors = []
             if existing_user:
                 print('username in use')
-                errors.append("Username is already taken.")
+                reg_errors.append("Username is already taken.")
             if existing_email:
                 print('email in use')
-                errors.append("Email is already in use.")
-            if errors:
-                return render_template("register.html", errors = errors)
+                reg_errors.append("Email is already in use.")
+            if reg_errors:
+                return render_template("register.html", reg_errors = reg_errors)
             else:
                 cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
                 conn.commit()

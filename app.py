@@ -93,6 +93,17 @@ def register():
 def userPage():
     return render_template('userPage.html')
     
+@app.route('/streaming')
+def streaming():
+    return render_template('stream.html')
+
+@app.route('/chatting')
+def chatting():
+    return render_template('chat.html')
+
+@app.route('/sell')
+def sell():
+    return render_template('sell.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -39,3 +39,11 @@ form{
     color: rgb(211, 178, 30);
     font-family: Arial;
 }
+.errorH{
+    color:rgb(247, 235, 78);
+    font-family: Trebuchet MS;
+    font-size: 1000%;
+    text-align: center;
+    margin-top: 10%;
+    margin-bottom: 1%;
+}

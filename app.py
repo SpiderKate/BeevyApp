@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import bcrypt
 import sqlite3
 import sys
@@ -6,6 +6,8 @@ import sys
 print('some debug', file=sys.stderr)
 
 app = Flask(__name__)
+
+app.secret_key = "/,z}i't\9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
 
 @app.route('/')
 def index():
@@ -27,12 +29,17 @@ def login():
             cursor.execute("SELECT password FROM users WHERE email=? OR username=?",(usEm, usEm))
             #vysledek se popripadne ulozi sem
             result = cursor.fetchone()
+            cursor.execute("SELECT username FROM users WHERE email=? OR username=?",(usEm,usEm))
+            username = cursor.fetchone()
             #a kdyz to najde heslo k danému username ci email tak ho zkontroluje
             if result:
                 db_pass = result[0]
+                if isinstance(db_pass, str):
+                    db_pass = db_pass.encode('utf-8')
                 #kdyz je spravne posle uzivatele na userPage
                 if bcrypt.checkpw(user_bytes, db_pass):
-                    return redirect(url_for("userPage"))
+                    session['username'] = username[0]
+                    return redirect(url_for("userPage", username = session['username']))
                 else:
                     return render_template("login.html", login_errors="Incorrect password.")
             else:
@@ -89,10 +96,20 @@ def register():
             conn.close()
     return render_template("register.html")
 
-@app.route('/userPage')
-def userPage():
-    return render_template('userPage.html')
-    
+@app.route('/user/<username>')
+def userPage(username):
+    if 'username' not in session:
+        return redirect(url_for(login))
+    if session['username'] != username:
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE username=?", (username,))
+    user_data = cursor.fetchone()
+    conn.close()
+    return render_template('userPage.html', user_data=user_data)
+
 @app.route('/streaming')
 def streaming():
     return render_template('stream.html')

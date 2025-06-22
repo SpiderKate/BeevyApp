@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your hive cell</title>
+    <title>Error🐝</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    {% if user_data %}
-        <ul class="user_data">
-            {% for data in user_data %}
-                <li>{{ data }}</li>
+    {% if errorH %}
+        <p class = "errorH">
+            {% for error in errorH %}
+                {{ error }}
             {% endfor %}
-        </ul>
+        </p>
     {% endif %}
-    
+    <a href="/login" class="link">Login</a>
+    <a href="/register" class="link">Register</a>
+</body>
+</body>
 </body>
 </html>

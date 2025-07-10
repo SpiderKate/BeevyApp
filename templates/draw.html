@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/draw.css') }}">
+    <title>Draw</title>
+</head>
+<body>
+    <canvas id="drawCanvas" width=1200 height=800 style="border:1px solid #000"></canvas>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const socket = io();  // connect to WebSocket
+
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mousemove', (e) => {
+            if (!drawing) return;
+            const x = e.offsetX;
+            const y = e.offsetY;
+            socket.emit('draw', {x, y});
+            draw(x, y);
+        });
+
+        socket.on('draw', ({x, y}) => draw(x, y));
+
+        function draw(x, y) {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(x, y, 2, 2);
+        }
+    </script>
+
+</body>
+</html>

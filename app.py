@@ -2,10 +2,12 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import bcrypt
 import sqlite3
 import sys
+from flask_socketio import SocketIO, emit
 
 print('some debug', file=sys.stderr)
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 app.secret_key = "/,z}i't\9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
 
@@ -99,7 +101,7 @@ def register():
 @app.route('/user/<username>')
 def userPage(username):
     if 'username' not in session:
-        return redirect(url_for(login))
+        return redirect(url_for("login"))
     if session['username'] != username:
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
@@ -122,5 +124,13 @@ def chatting():
 def sell():
     return render_template('sell.html')
 
+@app.route('/draw')
+def draw():
+    return render_template('draw.html')
+
+@socketio.on('draw')
+def handle_draw(data):
+    emit('draw', data, broadcast=True)
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)

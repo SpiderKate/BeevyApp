@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/draw.css') }}">
+    <link rel="stylesheet" href="/static/css/draw.css">
+    <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
     <title>Draw</title>
 </head>
 <body>
@@ -52,15 +53,17 @@
                 <label class="title">Colors</label> 
                 <ul class =options>
                     <li class="option"></li>
+                    <li class="option selected"></li>
                     <li class="option"></li>
                     <li class="option"></li>
                     <li class="option"></li>
-                    <li class="option"></li>
-                    <li class="option"></li>
+                    <li class="option">
+                        <input type="color" value="rgb(255, 0, 170)" id="colorPicker">
+                    </li>
                 </ul>
             </div>
 
-            <div class="row">
+            <div class="row buttons">
                 <button class="clearCanvas">Clear canvas</button>
                 <button class="saveImg">Save as image</button>
             </div>

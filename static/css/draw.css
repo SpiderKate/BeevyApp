@@ -140,7 +140,7 @@ section{
     border-color: #ccc;
 }
 
-.option #colorPicker{
+.option #colorPickers{
     opacity: 0%;
     cursor: pointer;
 }

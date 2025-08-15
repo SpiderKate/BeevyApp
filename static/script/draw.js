@@ -21,12 +21,24 @@ const canvas = document.getElementById('drawCanvas');
             lastX = x;
             lastY = y;
         });
-
+        let currentColor = '#000';
         socket.on('draw', ({fromX, fromY, toX, toY}) => {
             draw(fromX, fromY, toX, toY);
         });
+        const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color picker
+                        width: 150,
+                        color: "#000" //default barva
+                    });
+
+                    colorPicker.on('color:change', function(color) {
+                        console.log("Hex:",color.hexString); // Use this to set your canvas drawing color
+                        currentColor = color.hexString;
+                    });
+                    
+
         function draw(fromX, fromY, toX, toY) {
-            ctx.strokeStyle = 'black';
+            ctx.strokeStyle = currentColor;
+            ctx.fillStyle = currentColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(fromX, fromY);

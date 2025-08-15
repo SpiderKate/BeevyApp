@@ -1,18 +1,6 @@
 import sqlite3
-
-conn = sqlite3.connect('users.db')
+conn = sqlite3.connect('rooms.db')
 cursor = conn.cursor()
-
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        surname TEXT,
-        username TEXT NOT NULL,
-        email TEXT NOT NULL,
-        password TEXT NOT NULL,
-        dob TEXT NOT NULL
-)
-''') 
-conn.commit()
+cursor.execute("SELECT * FROM rooms;")
+print(cursor.fetchall())
 conn.close()

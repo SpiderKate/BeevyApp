@@ -2,7 +2,9 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import bcrypt
 import sqlite3
 import sys
-from flask_socketio import SocketIO, emit
+import secrets
+import string
+from flask_socketio import SocketIO, emit, join_room
 
 print('some debug', file=sys.stderr)
 
@@ -67,7 +69,7 @@ def register():
         #hash hesla
         password_bytes = password.encode('utf-8')
         salt = bcrypt.gensalt()
-        hash = bcrypt.hashpw(password_bytes, salt)
+        hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
         
         #zapsani do db pokud user neexistuje (username ci email)
         try:
@@ -124,13 +126,63 @@ def chatting():
 def sell():
     return render_template('sell.html')
 
-@app.route('/draw')
-def draw():
-    return render_template('draw.html')
+@app.route('/draw/<room_ID>')
+def draw(room_ID):
+    return render_template('draw.html', room_ID=room_ID)
+
+draw_history = {}
+@app.route('/create',methods=['GET','POST'])
+def create():
+    if request.method == 'POST':
+    #input ze stranky
+        name = request.form['name']
+        password = request.form['password']
+    #hash hesla
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+    #generuje room_ID
+        def generate_roomID(length=8):
+            chars = string.ascii_uppercase + string.digits  # ABC... + 0-9
+            return ''.join(secrets.choice(chars) for _ in range(length))
+        room_ID = generate_roomID()
+        try:
+            conn = sqlite3.connect('rooms.db')
+            cursor = conn.cursor()
+            
+            cursor.execute("INSERT INTO rooms (name, password, room_ID) VALUES (?, ?, ?)", (name, hash, room_ID))
+            conn.commit()
+            print(f"Room created: {name} / {room_ID}")
+            
+        finally:
+            conn.close()
+        return redirect(url_for("draw", room_ID=room_ID))
+    return render_template("drawCreate.html")
+
+@app.route('/join', methods=['GET'])
+def join():
+    return render_template('drawJoin.html')
+
+@app.route('/option')
+def option():
+    return render_template('drawOption.html')
+
+@socketio.on('join_room')
+def handle_join(data):
+    room = data['room']
+    join_room(room)
+    print(f"Client joined room {room}")
+    if room in draw_history:
+        emit('draw_history', draw_history[room], to=request.sid)
+
 
 @socketio.on('draw')
 def handle_draw(data):
-    emit('draw', data, broadcast=True)
+    room = data['room']
+    if room not in draw_history:
+        draw_history[room] = []
+    draw_history[room].append(data)
+    emit('draw', data, to=room, skip_sid=request.sid) #odelar ostatnim lidem
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

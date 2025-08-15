@@ -1,7 +1,7 @@
 const canvas = document.getElementById('drawCanvas');
 const ctx = canvas.getContext('2d');
 const room_ID = canvas.dataset.roomId;
-const socket = io();  //pripoji se k WebSocket
+const socket = io("https://c85432c98e12.ngrok-free.app");  //pripoji se k WebSocket
 socket.emit('join_room', { room: room_ID });
 
 //posila drawdata na server

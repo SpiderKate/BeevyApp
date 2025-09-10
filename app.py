@@ -137,6 +137,10 @@ def create():
     #input ze stranky
         name = request.form['name']
         password = request.form['password']
+        if not password:
+            is_public = True
+        else:
+            is_public = False
     #hash hesla
         password_bytes = password.encode('utf-8')
         salt = bcrypt.gensalt()
@@ -150,7 +154,7 @@ def create():
             conn = sqlite3.connect('rooms.db')
             cursor = conn.cursor()
             
-            cursor.execute("INSERT INTO rooms (name, password, room_ID) VALUES (?, ?, ?)", (name, hash, room_ID))
+            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public) VALUES (?, ?, ?, ?)", (name, hash, room_ID, is_public))
             conn.commit()
             print(f"Room created: {name} / {room_ID}")
             
@@ -162,6 +166,30 @@ def create():
 @app.route('/join', methods=['GET'])
 def join():
     return render_template('drawJoin.html')
+
+@app.route('/join/public')
+def public():
+    try:
+        conn = sqlite3.connect('rooms.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM rooms WHERE is_public = TRUE")
+        room_name = cursor.fetchall()
+        conn.commit()
+    finally:
+        conn.close()
+    return render_template("drawJoinPublic.html", room_name=room_name)
+
+@app.route('/join/private')
+def private():
+    try:
+        conn = sqlite3.connect('rooms.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM rooms WHERE is_public = FALSE")
+        room_name = cursor.fetchall()
+        conn.commit()
+    finally:
+        conn.close()
+    return render_template("drawJoinPrivate.html", room_name=room_name)
 
 @app.route('/option')
 def option():

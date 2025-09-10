@@ -4,18 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beevy🐝</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/styles_test.css">
     <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
 </head>
 <body>
-    <p id="placeholder_Beevy">Beevy</p>
+     <div class="hex-bg-container">
+        <div class="hex-bg" style="--x:10%; --y:20%; --delay:0s;"></div>
+        <div class="hex-bg" style="--x:50%; --y:30%; --delay:1s;"></div>
+        <div class="hex-bg" style="--x:80%; --y:60%; --delay:2s;"></div>
+        <div class="hex-bg" style="--x:20%; --y:70%; --delay:3s;"></div>
+        <div class="hex-bg" style="--x:70%; --y:10%; --delay:4s;"></div>
+        <!-- Add more for variety -->
+    </div>
+    <h1 id="title-container">
+        <div id="placeholder_Beevy">Beevy</div> 
+        <img src="/static/images/beee.svg" id="bee" width="40">
+    </h1>
     <p id="about">Beevy is a playful, welcoming art platform where creators can upload their work, collaborate on canvases, and even stream their drawing sessions. Whether you're a hobbyist or pro, there's a spot in the hive for you!</p>
-    <img src="/static/images/beee.svg" width="5%" >
-    <a href="/login" class="link">Login</a>
-    <a href="/register" class="link">Register</a>
-    <footer>
-    footer :>
-</footer>
+
+    <div class="hex-grid">
+        <div class="hex">
+            <a href="/login" class="hex-content">Login</a>
+        </div>
+        <div class="hex">
+            <a href="/register" class="hex-content">Register</a>
+        </div>
+        <div class="hex">
+            <a href="/option" class="hex-content">Draw</a>
+        </div>
+        <div class="hex">
+            <span class="hex-content">Gallery</span>
+        </div>
+        <div class="hex">
+            <span class="hex-content">Community</span>
+        </div>
+    </div>
+
+    <footer>footer :></footer>
 </body>
+
 
 </html>

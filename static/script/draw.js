@@ -51,8 +51,7 @@ socket.on('draw', ({fromX, fromY, toX, toY, color}) => {
 function draw(fromX, fromY, toX, toY, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = brushSize;
-    //print circle?
-    //ctx.brushSize= brushSize;
+    ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(fromX, fromY);
     ctx.lineTo(toX, toY);

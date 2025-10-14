@@ -8,12 +8,10 @@
     <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
 </head>
 <body>
-    {% if user_data %}
-        <ul class="user_data">
-            {% for data in user_data %}
-                <li>{{ data }}</li>
+    {% if username_data %}
+            {% for data in username_data %}
+                {{ data }}
             {% endfor %}
-        </ul>
     {% endif %}
     <a href="/option" class="link">Draw</a>
 </body>

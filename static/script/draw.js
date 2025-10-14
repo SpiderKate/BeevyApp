@@ -14,7 +14,10 @@ let drawing = false;
 let lastX = 0;
 let lastY = 0;
 let currentColor = '#000';
-
+let slider = document.getElementById("sizeSlider");
+let brushSize = slider.value;
+console.log(brushSize);
+slider.addEventListener("change", (e)=>brushSize=e.target.value);
 //mopuse events
 canvas.addEventListener('mousedown', (e) =>{
     drawing = true;
@@ -45,7 +48,9 @@ socket.on('draw', ({fromX, fromY, toX, toY, color}) => {
 
 function draw(fromX, fromY, toX, toY, color) {
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = brushSize;
+    //print circle?
+    //ctx.brushSize= brushSize;
     ctx.beginPath();
     ctx.moveTo(fromX, fromY);
     ctx.lineTo(toX, toY);

@@ -109,10 +109,10 @@ def userPage(username):
         return render_template("error.html", errorH = errorH) , 403
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username=?", (username,))
-    user_data = cursor.fetchone()
+    cursor.execute("SELECT username FROM users WHERE username=?", (username,))
+    username_data = cursor.fetchone()
     conn.close()
-    return render_template('userPage.html', user_data=user_data)
+    return render_template('userPage.html', username_data=username_data)
 
 @app.route('/streaming')
 def streaming():

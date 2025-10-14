@@ -16,8 +16,10 @@ let lastY = 0;
 let currentColor = '#000';
 let slider = document.getElementById("sizeSlider");
 let brushSize = slider.value;
-console.log(brushSize);
-slider.addEventListener("change", (e)=>brushSize=e.target.value);
+
+slider.addEventListener("change", (e)=>{brushSize=e.target.value
+    console.log(brushSize);
+});
 //mopuse events
 canvas.addEventListener('mousedown', (e) =>{
     drawing = true;

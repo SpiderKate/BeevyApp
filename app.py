@@ -174,7 +174,15 @@ def public():
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM rooms WHERE is_public = TRUE")
         room_name = cursor.fetchall()
+        cursor.execute("SELECT room_ID FROM rooms WHERE is_public = TRUE")
+        room_ID = cursor.fetchall()
         conn.commit()
+        for x in range(len(room_name)):
+            room_link_name = room_name[x]
+            print(room_link_name)
+            
+            #room_link1 = "<a href=" + "/draw/" + str(room_ID[x])[2:-3] + "></a>"
+
     finally:
         conn.close()
     return render_template("drawJoinPublic.html", room_name=room_name)

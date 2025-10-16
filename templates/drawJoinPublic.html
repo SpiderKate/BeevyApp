@@ -7,6 +7,10 @@
     <title>Join a public room🐝</title>
 </head>
 <body>
-    {{room_name}}
+    {% if room_name %}
+            {% for data in room_name %}
+                {{ data }}
+            {% endfor %}
+    {% endif %}
 </body>
 </html>

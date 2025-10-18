@@ -3,10 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/styles_test.css">
     <title>Join a private room🐝</title>
 </head>
 <body>
-    {{room_name}}
+    <h2>Seznam místností:</h2>
+<ul>
+    {% for name, room_id in rooms %}
+        <li>
+            <a href="{{ url_for('draw', room_ID=room_id) }}">{{ name }}</a>
+        </li>
+    {% endfor %}
+    <a href="/join" class="link">Back</a>
+</ul>
 </body>
 </html>

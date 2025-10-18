@@ -7,10 +7,10 @@
     <title>Join a public room🐝</title>
 </head>
 <body>
-    {% if room_name %}
-            {% for data in room_name %}
-                {{ data }}
-            {% endfor %}
-    {% endif %}
+    <h2>Seznam místností:</h2>
+    {% for name, room_id in rooms %}
+            <a href="{{ url_for('draw', room_ID=room_id) }}">{{ name }}</a>
+    {% endfor %}
+<a href="/join" class="link">Back</a>
 </body>
 </html>

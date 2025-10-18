@@ -172,32 +172,24 @@ def public():
     try:
         conn = sqlite3.connect('rooms.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM rooms WHERE is_public = TRUE")
-        room_name = cursor.fetchall()
-        cursor.execute("SELECT room_ID FROM rooms WHERE is_public = TRUE")
-        room_ID = cursor.fetchall()
+        cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = TRUE")
+        rooms = cursor.fetchall()
         conn.commit()
-        for x in range(len(room_name)):
-            room_link_name = room_name[x]
-            print(room_link_name)
-            
-            #room_link1 = "<a href=" + "/draw/" + str(room_ID[x])[2:-3] + "></a>"
-
     finally:
         conn.close()
-    return render_template("drawJoinPublic.html", room_name=room_name)
+    return render_template("drawJoinPublic.html", rooms=rooms)
 
 @app.route('/join/private')
 def private():
     try:
         conn = sqlite3.connect('rooms.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM rooms WHERE is_public = FALSE")
-        room_name = cursor.fetchall()
+        cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = FALSE")
+        rooms = cursor.fetchall()
         conn.commit()
     finally:
         conn.close()
-    return render_template("drawJoinPrivate.html", room_name=room_name)
+    return render_template("drawJoinPrivate.html", rooms=rooms)
 
 @app.route('/option')
 def option():

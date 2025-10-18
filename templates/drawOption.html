@@ -9,5 +9,6 @@
 <body>
         <a href="/create" class="link">Create a room</a>
         <a href="/join" class="link">Join a room</a>
+        <a href="{{url_for('userPage', username=session['username'])}}" class="link">Back</a>
 </body>
 </html>

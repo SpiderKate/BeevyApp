@@ -161,6 +161,67 @@ body::before {
     box-shadow: 0 0 15px rgba(247, 235, 78, 0.7);
 }
 
+/* Base link style (for normal text links) */
+a {
+  color: rgb(247, 235, 78); /* your golden yellow */
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+
+/* On hover: lighter glow and gentle enlargement */
+a:hover {
+  color: #fff6a3; /* lighter yellow */
+  text-shadow: 0 0 10px rgba(255, 255, 200, 0.7);
+  transform: scale(1.05);
+}
+
+/* --- Room list styling --- */
+.room-list {
+  list-style: none;
+  padding: 0;
+  margin: 50px auto;
+  text-align: center;
+  max-width: 400px;
+}
+
+/* Each room link styled like a button */
+.room-list li a {
+  display: block;
+  background-color: #a17cf4; /* slightly lighter purple for contrast */
+  color: rgb(247, 235, 78);
+  padding: 12px 20px;
+  border-radius: 12px;
+  margin: 10px 0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  transition: all 0.25s ease-in-out;
+}
+
+/* Hover effect for the room buttons */
+.room-list li a:hover {
+  background-color: #b391ff;
+  color: white;
+  text-shadow: 0 0 6px rgba(255,255,255,0.6);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+
+/* Optional: add subtle fade animation when page loads */
+.room-list li {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+.room-list li:nth-child(1) { animation-delay: 0.1s; }
+.room-list li:nth-child(2) { animation-delay: 0.2s; }
+.room-list li:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
 /* Hex Content */
 .hex-content {
     color: var(--primary-bg);

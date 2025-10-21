@@ -15,7 +15,8 @@ let lastX = 0;
 let lastY = 0;
 let currentColor = '#000';
 let slider = document.getElementById("sizeSlider");
-let brushSize = slider.value;
+let brushSize
+
 
 slider.addEventListener("change", (e)=>{brushSize=e.target.value
     console.log(brushSize);
@@ -31,26 +32,18 @@ canvas.addEventListener('mousemove', (e) => {
     if (!drawing) return;
     const x = e.offsetX;
     const y = e.offsetY;
-    sendDrawData({fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor});
-    draw(lastX, lastY, x, y, currentColor);
+    let brushSize = slider.value;
+    sendDrawData({fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize});
+    draw(lastX, lastY, x, y, currentColor, brushSize);
     lastX = x;
     lastY = y;
 });
 
-socket.on('draw_history', (history) => {
-    history.forEach(({fromX, fromY, toX, toY, color}) => {
-        draw(fromX, fromY, toX, toY, color);
-    });
-});
 
-//prijima data od ostatnich uzivatelu
-socket.on('draw', ({fromX, fromY, toX, toY, color}) => {
-    draw(fromX, fromY, toX, toY, color);
-}); 
 
-function draw(fromX, fromY, toX, toY, color) {
+function draw(fromX, fromY, toX, toY, color, width) {
     ctx.strokeStyle = color;
-    ctx.lineWidth = brushSize;
+    ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(fromX, fromY);
@@ -63,6 +56,16 @@ const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color p
     color: "#000" //default barva
 });
 
+socket.on('draw_history', (history) => {
+    history.forEach(({fromX, fromY, toX, toY, color, width}) => {
+        draw(fromX, fromY, toX, toY, color, width);
+    });
+});
+
+//prijima data od ostatnich uzivatelu
+socket.on('draw', ({fromX, fromY, toX, toY, color, width}) => {
+    draw(fromX, fromY, toX, toY, color, width);
+}); 
 colorPicker.on('color:change', function(color) {
     currentColor = color.hexString;
 });

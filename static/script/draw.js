@@ -17,7 +17,7 @@ let currentColor = '#000';
 let slider = document.getElementById("sizeSlider");
 let brushSize
 
-
+//odposlouchava slider a meni velikost stetce
 slider.addEventListener("change", (e)=>{brushSize=e.target.value
     console.log(brushSize);
 });
@@ -40,7 +40,7 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 
-
+//styl kresby
 function draw(fromX, fromY, toX, toY, color, width) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
@@ -55,7 +55,7 @@ const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color p
     width: 150,
     color: "#000" //default barva
 });
-
+//posila historii mistnosti pro nove pripojene uzivatele
 socket.on('draw_history', (history) => {
     history.forEach(({fromX, fromY, toX, toY, color, width}) => {
         draw(fromX, fromY, toX, toY, color, width);
@@ -66,9 +66,7 @@ socket.on('draw_history', (history) => {
 socket.on('draw', ({fromX, fromY, toX, toY, color, width}) => {
     draw(fromX, fromY, toX, toY, color, width);
 }); 
+//meni barvu podle vyberu na color pickeru
 colorPicker.on('color:change', function(color) {
     currentColor = color.hexString;
 });
-                    
-
-       

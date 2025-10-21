@@ -100,11 +100,12 @@ def register():
             conn.close()
     return render_template("register.html")
 
+#userpage
 @app.route('/user/<username>')
 def userPage(username):
-    if 'username' not in session:
+    if 'username' not in session: #kontroluje jestli je vytvorena session
         return redirect(url_for("login"))
-    if session['username'] != username:
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
     conn = sqlite3.connect('users.db')
@@ -167,6 +168,7 @@ def create():
 def join():
     return render_template('drawJoin.html')
 
+#vypisuje vytvorene public rooms linky
 @app.route('/join/public')
 def public():
     try:
@@ -179,6 +181,7 @@ def public():
         conn.close()
     return render_template("drawJoinPublic.html", rooms=rooms)
 
+#vypisuje vytvorene private rooms jako linky
 @app.route('/join/private')
 def private():
     try:

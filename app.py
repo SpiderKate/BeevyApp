@@ -128,7 +128,7 @@ def sell():
     return render_template('sell.html')
 
 @app.route('/join/<room_ID>')
-def draw(room_ID):
+def join_room_page(room_ID):
     try:
         conn = sqlite3.connect("rooms.db")
         cursor.conn.cursor()
@@ -167,7 +167,7 @@ def draw(room_ID):
 
     room_type = result[0]
     if room_type == 'private' and room_ID not in verified_rooms:
-        return redirect(url_for('join'), room_ID=room_ID)
+        return redirect(url_for('join_room_page'), room_ID=room_ID)
     return render_template('draw.html',room_ID=room_ID)
 
 draw_history = {}

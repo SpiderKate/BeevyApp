@@ -149,7 +149,7 @@ def join_room_page(room_ID):
             return redirect(url_for('draw', room_ID=room_ID))
         else:
             return render_template('roomPassword.html', error="Wrong password!", room_ID=room_ID)
-    return render_template('roomPassword,html', room_ID=room_ID)
+    return render_template('roomPassword.html', room_ID=room_ID)
 
 @app.route('/draw/<room_ID>')
 def draw(room_ID):

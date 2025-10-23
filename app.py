@@ -127,7 +127,7 @@ def chatting():
 def sell():
     return render_template('sell.html')
 
-@app.route('/join/<room_ID>')
+@app.route('/join/<room_ID>', methods=['GET','POST'])
 def join_room_page(room_ID):
     try:
         conn = sqlite3.connect("rooms.db")

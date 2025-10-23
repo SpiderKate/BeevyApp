@@ -11,6 +11,8 @@
     {% for name, room_id in rooms %}
             <a href="{{ url_for('draw', room_ID=room_id) }}">{{ name }}</a>
     {% endfor %}
+    <br>
+
 <a href="/join" class="link">Back</a>
 </body>
 </html>

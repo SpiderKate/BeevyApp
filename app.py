@@ -131,15 +131,15 @@ def sell():
 def join_room_page(room_ID):
     try:
         conn = sqlite3.connect("rooms.db")
-        cursor.conn.cursor()
-        cursor.execute("SELECT name, password_bates, type FROM rooms WHERE room_ID =?",(room_ID,))
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, password, is_public FROM rooms WHERE room_ID =?",(room_ID,))
         room = cursor.fetchone()
     finally:
         conn.close()
     if not room:
         return "Room not found", 404
     room_name, password_hash, room_type = room
-    if room_type == "public":
+    if room_type == True:
         session.setdefault('verified_rooms', []).append(room_ID)
         return redirect(url_for('draw', room_ID=room_ID))
     if request.method == 'POST':
@@ -156,8 +156,8 @@ def draw(room_ID):
     verified_rooms = session.get('verified_rooms', [])
     try:
         conn = sqlite3.connect("rooms.db")
-        cursor.conn.cursor()
-        cursor.execute("SELECT type FROM rooms WHERE room_ID =?",(room_ID,))
+        cursor = conn.cursor()
+        cursor.execute("SELECT is_public FROM rooms WHERE room_ID =?",(room_ID,))
         result = cursor.fetchone()
     finally:
         conn.close()

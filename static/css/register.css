@@ -1,0 +1,127 @@
+:root {
+    --primary-bg: #8860cc;
+    --primary-text: rgb(247, 235, 78);
+    --accent-color: #f7eb4e;
+    --transition-speed: 0.3s;
+}
+
+/* Background & layout */
+body {
+    background: radial-gradient(circle at top left, #c683ec, #7060cc 70%);
+    color: var(--primary-text);
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Subtle honeycomb background lines */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: 
+        repeating-linear-gradient(30deg, rgba(247,235,78,0.03) 0, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(-30deg, rgba(247,235,78,0.03) 0, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px);
+    pointer-events: none;
+}
+
+/* Form container */
+form {
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(247, 235, 78, 0.6);
+    border-radius: 15px;
+    padding: 30px 40px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 0 15px rgba(247, 235, 78, 0.1);
+    backdrop-filter: blur(6px);
+    position: relative;
+    z-index: 1;
+}
+
+/* Labels and inputs */
+label {
+    color: var(--primary-text);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    outline: none;
+    margin-bottom: 15px;
+}
+
+.input:focus {
+    box-shadow: 0 0 10px rgba(247, 235, 78, 0.7);
+}
+
+/* Submit button */
+.submit {
+    background: linear-gradient(90deg, #a77bff, #8860cc);
+    color: var(--primary-text);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition-speed);
+    font-weight: bold;
+}
+
+.submit:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #b391ff, #9c7cff);
+    box-shadow: 0 0 10px rgba(247, 235, 78, 0.6);
+}
+
+/* Error message list */
+.error-list {
+    list-style: none;
+    padding: 10px;
+    background: rgba(255, 150, 50, 0.1);
+    border: 1px solid #ff944d;
+    color: #ff944d;
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 15px auto;
+}
+
+/* Links */
+.link, .linkText {
+    color: var(--primary-text);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.link:hover {
+    color: #fff6a3;
+    text-shadow: 0 0 8px rgba(247, 235, 78, 0.6);
+}
+
+a {
+  color: rgb(247, 235, 78); /* your golden yellow */
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+
+/* On hover: lighter glow and gentle enlargement */
+a:hover {
+  color: #fff6a3; /* lighter yellow */
+  text-shadow: 0 0 10px rgba(255, 255, 200, 0.7);
+  transform: scale(1.05);
+}

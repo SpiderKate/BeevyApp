@@ -11,7 +11,7 @@ print('some debug', file=sys.stderr)
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-app.secret_key = "/,z}i't\9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
+app.secret_key = "/,z}it9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
 
 @app.route('/')
 def index():
@@ -127,9 +127,48 @@ def chatting():
 def sell():
     return render_template('sell.html')
 
+@app.route('/join/<room_ID>')
+def draw(room_ID):
+    try:
+        conn = sqlite3.connect("rooms.db")
+        cursor.conn.cursor()
+        cursor.execute("SELECT name, password_bates, type FROM rooms WHERE room_ID =?",(room_ID,))
+        room = cursor.fetchone()
+    finally:
+        conn.close()
+    if not room:
+        return "Room not found", 404
+    room_name, password_hash, room_type = room
+    if room_type == "public":
+        session.setdefault('verified_rooms', []).append(room_ID)
+        return redirect(url_for('draw', room_ID=room_ID))
+    if request.method == 'POST':
+        entered_password = request.form['password']
+        if password_hash and bcrypt.checkpw(entered_password.encode('utf-8'), password_hash.encode('utf-8')):
+            session.setdefault('verified_rooms', []).append(room_ID)
+            return redirect(url_for('draw', room_ID=room_ID))
+        else:
+            return render_template('roomPassword.html', error="Wrong password!", room_ID=room_ID)
+    return render_template('roomPassword,html', room_ID=room_ID)
+
 @app.route('/draw/<room_ID>')
 def draw(room_ID):
-    return render_template('draw.html', room_ID=room_ID)
+    verified_rooms = session.get('verified_rooms', [])
+    try:
+        conn = sqlite3.connect("rooms.db")
+        cursor.conn.cursor()
+        cursor.execute("SELECT type FROM rooms WHERE room_ID =?",(room_ID,))
+        result = cursor.fetchone()
+    finally:
+        conn.close()
+    
+    if not result:
+        return "Room not found", 404
+
+    room_type = result[0]
+    if room_type == 'private' and room_ID not in verified_rooms:
+        return redirect(url_for('join'), room_ID=room_ID)
+    return render_template('draw.html',room_ID=room_ID)
 
 draw_history = {}
 @app.route('/create',methods=['GET','POST'])

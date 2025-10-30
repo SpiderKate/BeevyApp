@@ -37,14 +37,17 @@
                 <ul class="options">
                     <li class="option active">
                         <img src="{{ url_for('static', filename='images/icons/brush.svg') }}">
-                        <span>Brush</span>
+                        <span id="brush">Brush</span>
                     </li>
                     <li class="option">
                         <img src="{{ url_for('static', filename='images/icons/eraser.svg') }}">
-                        <span>Eraser</span>
+                        <span id="eraser">Eraser</span>
                     </li>
                     <li class="option">
-                        <input type="range" id="sizeSlider" min="0" max="100">
+                        <div id="size">150</div>
+                    </li>
+                    <li class="option">
+                        <input type="range" id="sizeSlider" min="0" max="300">
                     </li>
                 </ul>
             </div>

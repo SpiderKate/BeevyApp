@@ -11,23 +11,30 @@ function sendDrawData(drawData) {
 }
 
 let drawing = false;
+let erasing = false;
+let brushing = false;
 let lastX = 0;
 let lastY = 0;
 let currentColor = '#000';
 let slider = document.getElementById("sizeSlider");
+let eraser = document.getElementById("eraser");
+let brush = document.getElementById("brush")
 let brushSize
 
 //odposlouchava slider a meni velikost stetce
 slider.addEventListener("change", (e)=>{brushSize=e.target.value
     console.log(brushSize);
+    document.getElementById("size").innerHTML=brushSize;
+
 });
+
 //mopuse events
 canvas.addEventListener('mousedown', (e) =>{
     drawing = true;
     lastX = e.offsetX;
     lastY = e.offsetY;
 });
-canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseup', () => drawing = false, erasing = false);
 canvas.addEventListener('mousemove', (e) => {
     if (!drawing) return;
     const x = e.offsetX;
@@ -68,5 +75,19 @@ socket.on('draw', ({fromX, fromY, toX, toY, color, width}) => {
 }); 
 //meni barvu podle vyberu na color pickeru
 colorPicker.on('color:change', function(color) {
-    currentColor = color.hexString;
+    currentColor=color.hexString;
+});
+let colorB;
+eraser.addEventListener("click", () =>{
+    colorB=currentColor;
+    erasing=true;
+    brushing=false;
+    currentColor = "#fff";
+    console.log("erasing True,listener");
+});
+brush.addEventListener("click", () => {
+    brushing=true;
+    erasing=false;
+    currentColor=colorB;
+    console.log("brushing True,listener");
 });

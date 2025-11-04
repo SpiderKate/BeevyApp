@@ -21,6 +21,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     #bere input ze stranky
+    login_errors = []
     if request.method == 'POST':
         usEm = request.form['username']
         password = request.form['password']
@@ -45,15 +46,18 @@ def login():
                     session['username'] = username[0]
                     return redirect(url_for("userPage", username = session['username']))
                 else:
-                    return render_template("login.html", login_errors="Incorrect password.")
+                    login_errors.append("Incorrect password")
             else:
-                return render_template("login.html", login_errors="Invalid username or e-mail.")
+                login_errors.append("Invalid username or e-mail")
         except Exception as e:
             return f"Something went wrong: {e}"
         finally:
             conn.close()
     else:
         return render_template("login.html")
+    if login_errors:
+        return render_template("login.html", login_errors=login_errors)
+    
     
 @app.route('/register', methods = ['GET','POST'])
 def register():
@@ -115,18 +119,6 @@ def userPage(username):
     conn.close()
     return render_template('userPage.html', username_data=username_data)
 
-@app.route('/streaming')
-def streaming():
-    return render_template('stream.html')
-
-@app.route('/chatting')
-def chatting():
-    return render_template('chat.html')
-
-@app.route('/sell')
-def sell():
-    return render_template('sell.html')
-
 @app.route('/join/<room_ID>', methods=['GET','POST'])
 def join_room_page(room_ID):
     try:
@@ -137,7 +129,8 @@ def join_room_page(room_ID):
     finally:
         conn.close()
     if not room:
-        return "Room not found", 404
+        errorH = ["Room not found"]
+        return render_template("error.html", errorH = errorH) , 404
     room_name, password_hash, room_type = room
     if room_type == True:
         session.setdefault('verified_rooms', []).append(room_ID)
@@ -163,7 +156,8 @@ def draw(room_ID):
         conn.close()
     
     if not result:
-        return "Room not found", 404
+        errorH = ["Room not found"]
+        return render_template("error.html", errorH = errorH) , 404
 
     room_type = result[0]
     if room_type == 'private' and room_ID not in verified_rooms:

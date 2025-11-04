@@ -20,6 +20,7 @@ let slider = document.getElementById("sizeSlider");
 let eraser = document.getElementById("eraser");
 let brush = document.getElementById("brush")
 let brushSize
+let clearcanvas = document.getElementById("clearCanvas");
 
 //odposlouchava slider a meni velikost stetce
 slider.addEventListener("change", (e)=>{brushSize=e.target.value
@@ -62,6 +63,12 @@ const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color p
     width: 150,
     color: "#000" //default barva
 });
+
+/*clearcanvas.addEventListener("click", () =>{
+    draw_history[room] = [];
+    
+});*/
+
 //posila historii mistnosti pro nove pripojene uzivatele
 socket.on('draw_history', (history) => {
     history.forEach(({fromX, fromY, toX, toY, color, width}) => {
@@ -91,3 +98,4 @@ brush.addEventListener("click", () => {
     currentColor=colorB;
     console.log("brushing True,listener");
 });
+

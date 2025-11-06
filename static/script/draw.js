@@ -21,6 +21,7 @@ let eraser = document.getElementById("eraser");
 let brush = document.getElementById("brush")
 let brushSize
 let clearcanvas = document.getElementById("clearCanvas");
+let fillColor = document.getElementById("fillColor");
 
 //odposlouchava slider a meni velikost stetce
 slider.addEventListener("change", (e)=>{brushSize=e.target.value
@@ -47,6 +48,9 @@ canvas.addEventListener('mousemove', (e) => {
     lastY = y;
 });
 
+fillColor.addEventListener("change", () => {
+    
+});
 
 //styl kresby
 function draw(fromX, fromY, toX, toY, color, width) {

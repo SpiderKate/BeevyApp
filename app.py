@@ -185,10 +185,14 @@ def create():
             return ''.join(secrets.choice(chars) for _ in range(length))
         room_ID = generate_roomID()
         try:
+            conn = sqlite3.connect('users.db')
+            cursor = conn.cursor()
+            User_ID = cursor.lastrowid
+            conn.commit()
+            conn.close()
             conn = sqlite3.connect('rooms.db')
             cursor = conn.cursor()
-            
-            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public) VALUES (?, ?, ?, ?)", (name, hash, room_ID, is_public))
+            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public, id) VALUES (?, ?, ?, ?, ?)", (name, hash, room_ID, is_public, User_ID))
             conn.commit()
             print(f"Room created: {name} / {room_ID}")
             

@@ -5,6 +5,7 @@ import sys
 import secrets
 import string
 from flask_socketio import SocketIO, emit, join_room
+from datetime import timedelta
 
 print('some debug', file=sys.stderr)
 
@@ -12,6 +13,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 app.secret_key = "/,z}it9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
+app.permanent_session_lifetime = timedelta(days=7)
 
 @app.route('/')
 def index():
@@ -28,7 +30,7 @@ def login():
         #heslo ze starnky => bytes
         user_bytes = password.encode('utf-8')
         try:
-            conn = sqlite3.connect('users.db')
+            conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
             #hleda heslo bud pro username ci email
             cursor.execute("SELECT password FROM users WHERE email=? OR username=?",(usEm, usEm))
@@ -43,6 +45,7 @@ def login():
                     db_pass = db_pass.encode('utf-8')
                 #kdyz je spravne posle uzivatele na userPage
                 if bcrypt.checkpw(user_bytes, db_pass):
+                    session.permanent = True
                     session['username'] = username[0]
                     return redirect(url_for("userPage", username = session['username']))
                 else:
@@ -77,7 +80,7 @@ def register():
         
         #zapsani do db pokud user neexistuje (username ci email)
         try:
-            conn = sqlite3.connect('users.db')
+            conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
             cursor.execute("SELECT username FROM users WHERE username=?", (username,))
             existing_user = cursor.fetchone()
@@ -105,6 +108,7 @@ def register():
     return render_template("register.html")
 
 #userpage
+User_ID = None
 @app.route('/user/<username>')
 def userPage(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
@@ -112,7 +116,7 @@ def userPage(username):
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('beevy.db')
     cursor = conn.cursor()
     cursor.execute("SELECT username FROM users WHERE username=?", (username,))
     username_data = cursor.fetchone()
@@ -122,7 +126,7 @@ def userPage(username):
 @app.route('/join/<room_ID>', methods=['GET','POST'])
 def join_room_page(room_ID):
     try:
-        conn = sqlite3.connect("rooms.db")
+        conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
         cursor.execute("SELECT name, password, is_public FROM rooms WHERE room_ID =?",(room_ID,))
         room = cursor.fetchone()
@@ -148,7 +152,7 @@ def join_room_page(room_ID):
 def draw(room_ID):
     verified_rooms = session.get('verified_rooms', [])
     try:
-        conn = sqlite3.connect("rooms.db")
+        conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
         cursor.execute("SELECT is_public FROM rooms WHERE room_ID =?",(room_ID,))
         result = cursor.fetchone()
@@ -171,6 +175,7 @@ def create():
     #input ze stranky
         name = request.form['name']
         password = request.form['password']
+        username = session["username"]
         if not password:
             is_public = True
         else:
@@ -185,14 +190,11 @@ def create():
             return ''.join(secrets.choice(chars) for _ in range(length))
         room_ID = generate_roomID()
         try:
-            conn = sqlite3.connect('users.db')
+            conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
-            User_ID = cursor.lastrowid
-            conn.commit()
-            conn.close()
-            conn = sqlite3.connect('rooms.db')
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public, id) VALUES (?, ?, ?, ?, ?)", (name, hash, room_ID, is_public, User_ID))
+            cursor.execute("SELECT id FROM users WHERE username = ?;",(username,))
+            User_ID = cursor.fetchone()
+            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public, User_ID) VALUES (?, ?, ?, ?, ?)", (name, hash, room_ID, is_public, User_ID[0]))
             conn.commit()
             print(f"Room created: {name} / {room_ID}")
             
@@ -209,7 +211,7 @@ def join():
 @app.route('/join/public')
 def public():
     try:
-        conn = sqlite3.connect('rooms.db')
+        conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
         cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = TRUE")
         rooms = cursor.fetchall()
@@ -222,7 +224,7 @@ def public():
 @app.route('/join/private')
 def private():
     try:
-        conn = sqlite3.connect('rooms.db')
+        conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
         cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = FALSE")
         rooms = cursor.fetchall()

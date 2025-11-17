@@ -1,14 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beevy🐝</title>
-    <link rel="stylesheet" href="/static/css/styles_test.css">
-    <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
-</head>
-<body>
-     <div class="hex-bg-container">
+{% extends "base.html" %}
+
+{% block title %}Beevy🐝{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/styles_test.css">
+{% endblock %}
+
+{% block content %}
+    <div class="hex-bg-container">
         <div class="hex-bg" style="--x:10%; --y:20%; --delay:0s;"></div>
         <div class="hex-bg" style="--x:50%; --y:30%; --delay:1s;"></div>
         <div class="hex-bg" style="--x:80%; --y:60%; --delay:2s;"></div>
@@ -41,7 +40,4 @@
     </div>
 
     <footer>footer :></footer>
-</body>
-
-
-</html>
+{% endblock %}

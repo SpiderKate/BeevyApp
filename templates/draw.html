@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/draw.css">
-    <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
-    <title>Draw</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Draw🐝{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/draw.css">
+{% endblock %}
+
+{% block content %} 
     <div class="container">
         <section class="toolsBoard">
             <div class="row">
@@ -82,5 +81,4 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
         
         <script src="{{ url_for('static', filename='script/draw.js') }}"></script>
-</body>
-</html>
+{% endblock %}

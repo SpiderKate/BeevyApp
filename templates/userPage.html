@@ -3,17 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your hive cell</title>
     <link rel="stylesheet" href="/static/css/styles_test.css">
     <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
+    <title>Your hive cell🐝</title>
 </head>
-<body>
-    {% if username_data %}
-            {% for data in username_data %}
-                {{ data }}
-            {% endfor %}
-    {% endif %}
-    
+<body>   
+    <h2>Welcome, {{ username_data[0] }}</h2>
     <a href="/option" class="link">Draw</a><br>
     <a href="/" class="link">Back</a>
 </body>

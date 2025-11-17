@@ -1,16 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/styles_test.css">
-    <title>Join a room🐝</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Join a room🐝{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/styles_test.css">
+{% endblock %}
+
+{% block content %}
     <a href="/join/public">Join a public room🐝</a>
     <a href="/join/private">Join a private room🐝</a>
     <br>
 
     <a href="/option" class="link">Back</a>
-</body>
-</html>
+{% endblock %}

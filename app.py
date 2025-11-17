@@ -108,8 +108,7 @@ def register():
     return render_template("register.html")
 
 #userpage
-User_ID = None
-@app.route('/user/<username>')
+@app.route('/<username>')
 def userPage(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
         return redirect(url_for("login"))
@@ -215,7 +214,6 @@ def public():
         cursor = conn.cursor()
         cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = TRUE")
         rooms = cursor.fetchall()
-        conn.commit()
     finally:
         conn.close()
     return render_template("drawJoinPublic.html", rooms=rooms)
@@ -228,7 +226,6 @@ def private():
         cursor = conn.cursor()
         cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = FALSE")
         rooms = cursor.fetchall()
-        conn.commit()
     finally:
         conn.close()
     return render_template("drawJoinPrivate.html", rooms=rooms)

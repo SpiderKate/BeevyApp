@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <title>Create a room🐝</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Create a room🐝{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/styles_test.css">
+{% endblock %}
+
+{% block content %}
     <form action="/create" method="post">
         <label>Name for the room</label>
         <input type="text" name="name" id="name" required>
@@ -14,5 +14,4 @@
         <input type="password" name="password" id="password">
         <button type="submit">Create</button>
     </form>
-</body>
-</html>
+{% endblock %}

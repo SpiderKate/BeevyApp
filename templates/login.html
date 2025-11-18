@@ -8,6 +8,13 @@
     <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
 </head>
 <body>
+    {% if errorH %}
+        <p class = "errorH">
+            {% for error in errorH %}
+                {{ error }}
+            {% endfor %}
+        </p>
+    {% endif %}
     {% if login_errors %}
         <ul class="error-list">
             {% for error in login_errors %}

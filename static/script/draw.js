@@ -48,9 +48,10 @@ canvas.addEventListener('mousemove', (e) => {
     lastY = y;
 });
 
-fillColor.addEventListener("change", () => {
-    
-});
+if (fillColor.onclick){
+    console.log("fC")
+    canvas.style.backgroundColor = "red";
+}
 
 //styl kresby
 function draw(fromX, fromY, toX, toY, color, width) {

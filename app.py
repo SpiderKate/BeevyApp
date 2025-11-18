@@ -124,6 +124,10 @@ def userPage(username):
 
 @app.route('/join/<room_ID>', methods=['GET','POST'])
 def join_room_page(room_ID):
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in is needed to draw."]
+        return render_template("error.html",errorH=errorH), 403
     try:
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
@@ -150,6 +154,10 @@ def join_room_page(room_ID):
 @app.route('/draw/<room_ID>')
 def draw(room_ID):
     verified_rooms = session.get('verified_rooms', [])
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in first to draw."]
+        return render_template("login.html",errorH=errorH)
     try:
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
@@ -170,11 +178,16 @@ def draw(room_ID):
 draw_history = {}
 @app.route('/create',methods=['GET','POST'])
 def create():
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in first to draw."]
+        return render_template("login.html",errorH=errorH)
     if request.method == 'POST':
-    #input ze stranky
+    #input ze stranky 
         name = request.form['name']
         password = request.form['password']
-        username = session["username"]
+        
+
         if not password:
             is_public = True
         else:
@@ -204,11 +217,19 @@ def create():
 
 @app.route('/join', methods=['GET'])
 def join():
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in first to draw."]
+        return render_template("login.html",errorH=errorH)
     return render_template('drawJoin.html')
 
 #vypisuje vytvorene public rooms linky
 @app.route('/join/public')
 def public():
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in first to draw."]
+        return render_template("login.html",errorH=errorH)
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
@@ -221,6 +242,10 @@ def public():
 #vypisuje vytvorene private rooms jako linky
 @app.route('/join/private')
 def private():
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in first to draw."]
+        return render_template("login.html",errorH=errorH)
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
@@ -232,6 +257,10 @@ def private():
 
 @app.route('/option')
 def option():
+    errorH = []
+    if 'username' not in session: #kontroluje user je prihlasen
+        errorH = ["Log in first to draw."]
+        return render_template("login.html",errorH=errorH)
     return render_template('drawOption.html')
 
 @socketio.on('join_room')

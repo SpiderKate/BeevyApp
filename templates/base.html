@@ -11,17 +11,37 @@
 
 <body>
 
-    <!-- horní profil -->
+    <!-- horni profil -->
+    
+        
+            
     {% if session.username %}
-    <div class="user-badge">
-        <a href="/{{ session.get('username') }}">
+    <div class="user-menu">
+        <div class="user-menu-button" onclick=toggleMenu()>
             {{ session.get('username') }}
-        </a>
+        </div>
+        <div id="user-dropdown" class="dropdown hidden">
+            <a href="/{{ session.get('username') }}">Profile</a>
+            <a href="/{{ session.get('username') }}/settings">Settings</a>
+            <!--   <a href="/{{ url_for('settings', username = session.get('username')) }}">Settings</a>   -->
+        </div>
     </div>
     {% endif %}
 
-    <!-- obsah každé stránky -->
+    <!-- obsah kazdé stranky -->
     {% block content %}{% endblock %}
-
+    
+    <script>
+        function toggleMenu(){
+            document.getElementById("user-dropdown").classList.toggle("hidden");
+        };
+        document.addEventListener("click", function(e){
+            const menu = document.getElementById("user-dropdown");
+            const button = document.querySelector(".user-menu-button");
+            if (!button.contains(e.target) && !menu.contains(e.target)){
+                menu.classList.add("hidden");
+            }
+        });
+    </script>
 </body>
 </html>

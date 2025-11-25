@@ -1,24 +1,47 @@
-
-.user-badge {
-    position: fixed;
+.user-menu{
+    position: absolute;
     top: 20px;
-    right: 25px;
-    background: rgba(255, 255, 255, 0.15);
+    right: 20px;
+    text-align: right;
+    z-index: 100;
+}
+.user-menu-button{
+    background: #a17cf4;
+    color: rgb(247, 235, 78);
     padding: 10px 15px;
     border-radius: 12px;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1000;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    user-select: none;   
 }
-
-.user-badge a {
-    color: rgb(247, 235, 78);
-    font-weight: bold;
-    text-decoration: none;
-    font-size: 1.1rem;
-}
-
-.user-badge a:hover {
+.user-menu-button:hover{
+    background: #b391ff;
     color: white;
-    text-shadow: 0 0 6px rgba(255,255,255,0.6);
+}
+.dropdown{
+    background: #8860cc;
+    padding: 10px 0;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    margin-top: 8px;
+    position: absolute;
+    right: 0;
+    width: 150px;
+    text-align: center;
+}
+.dropdown a{
+    display: block;
+    padding: 10px 15px;
+    color: rgb(247, 235, 78);
+    text-decoration: none;
+    transition: 0.2s;
+}
+.dropdown a:hover{
+    background: #b391ff;
+    color: white;
+    border-radius: 10px;
+}
+.hidden{
+    display: none;
 }

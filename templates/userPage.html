@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/styles_test.css">
-    <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
-    <title>Your hive cell🐝</title>
-</head>
-<body>   
+{% extends "base.html" %}
+
+{% block title %}Your hive cell🐝{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/styles_test.css">
+{% endblock %}
+
+{% block content %}
     <h2>Welcome, {{ username_data[0] }}</h2>
     <span id="logout">Log out</span>
     <a href="/option" class="link">Draw</a><br>
     <a href="/" class="link">Back</a>
-</body>
-</html>
+{% endblock %}

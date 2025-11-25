@@ -263,6 +263,15 @@ def option():
         return render_template("login.html",errorH=errorH)
     return render_template('drawOption.html')
 
+@app.route('/<username>/settings')
+def settings(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    return render_template("settings.html")
+
 @socketio.on('join_room')
 def handle_join(data):
     room = data['room']

@@ -108,7 +108,7 @@ def register():
     return render_template("register.html")
 
 #userpage
-@app.route('/<username>')
+@app.route('/<username>',methods=["","POST"])
 def userPage(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
         return redirect(url_for("login"))
@@ -271,6 +271,15 @@ def settings(username):
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
     return render_template("settings.html")
+
+@app.route('/<username>/logout')
+def logout(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    return render_template("logout.html")
 
 @socketio.on('join_room')
 def handle_join(data):

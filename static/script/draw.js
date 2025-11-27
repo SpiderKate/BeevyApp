@@ -1,4 +1,5 @@
 const canvas = document.getElementById('drawCanvas');
+toolBtns = document.querySelectorAll(".tool");
 const ctx = canvas.getContext('2d');
 const room_ID = canvas.dataset.roomId;
 const socket = io();  //pripoji se k WebSocket
@@ -11,15 +12,11 @@ function sendDrawData(drawData) {
 }
 
 let drawing = false;
-let erasing = false;
-let brushing = false;
 let lastX = 0;
 let lastY = 0;
 let currentColor = '#000';
+let brushSize;
 let slider = document.getElementById("sizeSlider");
-let eraser = document.getElementById("eraser");
-let brush = document.getElementById("brush")
-let brushSize
 let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
 
@@ -28,6 +25,12 @@ slider.addEventListener("change", (e)=>{brushSize=e.target.value
     console.log(brushSize);
     document.getElementById("size").innerHTML=brushSize;
 
+});
+
+toolBtns.forEach(btn => {
+    btn.addEventListener("click", () => {//pridava click event na vsechny tool
+        console.log(btn.id);
+    });
 });
 
 //mopuse events
@@ -48,19 +51,14 @@ canvas.addEventListener('mousemove', (e) => {
     lastY = y;
 });
 
-if (fillColor.onclick){
-    console.log("fC")
-    canvas.style.backgroundColor = "red";
-}
-
 //styl kresby
 function draw(fromX, fromY, toX, toY, color, width) {
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = color; //kresli/vyplnuje line barvou 
     ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY);
+    ctx.lineTo(toX, toY); //tvori line pomoci mouse event
     ctx.stroke();
 }
 
@@ -68,11 +66,6 @@ const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color p
     width: 150,
     color: "#000" //default barva
 });
-
-/*clearcanvas.addEventListener("click", () =>{
-    draw_history[room] = [];
-    
-});*/
 
 //posila historii mistnosti pro nove pripojene uzivatele
 socket.on('draw_history', (history) => {
@@ -88,19 +81,5 @@ socket.on('draw', ({fromX, fromY, toX, toY, color, width}) => {
 //meni barvu podle vyberu na color pickeru
 colorPicker.on('color:change', function(color) {
     currentColor=color.hexString;
-});
-let colorB;
-eraser.addEventListener("click", () =>{
-    colorB=currentColor;
-    erasing=true;
-    brushing=false;
-    currentColor = "#fff";
-    console.log("erasing True,listener");
-});
-brush.addEventListener("click", () => {
-    brushing=true;
-    erasing=false;
-    currentColor=colorB;
-    console.log("brushing True,listener");
 });
 

@@ -177,7 +177,7 @@ def draw(room_ID):
 
 draw_history = {}
 @app.route('/create',methods=['GET','POST'])
-def create():
+def create(username):
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]

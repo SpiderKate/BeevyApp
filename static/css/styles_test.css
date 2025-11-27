@@ -237,3 +237,20 @@ footer {
     font-size: 0.9rem;
     color: var(--accent-color);
 }
+
+button {
+    background: linear-gradient(90deg, #a77bff, #8860cc);
+    color: var(--primary-text);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition-speed);
+    font-weight: bold;
+    z-index: 5;
+}
+button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #b391ff, #9c7cff);
+    box-shadow: 0 0 10px rgba(247, 235, 78, 0.6);
+}

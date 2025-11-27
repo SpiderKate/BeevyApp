@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import bcrypt
 import sqlite3
 import sys
@@ -108,7 +108,7 @@ def register():
     return render_template("register.html")
 
 #userpage
-@app.route('/<username>',methods=["","POST"])
+@app.route('/<username>',methods=["GET","POST"])
 def userPage(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
         return redirect(url_for("login"))
@@ -272,13 +272,16 @@ def settings(username):
         return render_template("error.html", errorH = errorH) , 403
     return render_template("settings.html")
 
-@app.route('/<username>/logout')
+@app.route('/<username>/logout',methods=["GET","POST"])
 def logout(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
+    if request.method == "POST":
+        session.clear()
+        return redirect(url_for("index"))
     return render_template("logout.html")
 
 @socketio.on('join_room')

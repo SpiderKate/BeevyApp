@@ -19,6 +19,8 @@ let brushSize;
 let slider = document.getElementById("sizeSlider");
 let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
+let canvasSnapshot = null;
+
 
 //odposlouchava slider a meni velikost stetce
 slider.addEventListener("change", (e)=>{brushSize=e.target.value
@@ -27,29 +29,71 @@ slider.addEventListener("change", (e)=>{brushSize=e.target.value
 
 });
 
+let currentTool = "brush";
+
 toolBtns.forEach(btn => {
-    btn.addEventListener("click", () => {//pridava click event na vsechny tool
-        console.log(btn.id);
+    btn.addEventListener("click", () => {
+        currentTool = btn.id; // ulozi aktivni nastroj
+        console.log("Selected tool:", currentTool);
     });
 });
 
-//mopuse events
-canvas.addEventListener('mousedown', (e) =>{
+canvas.addEventListener("mousedown", (e) => {
     drawing = true;
     lastX = e.offsetX;
     lastY = e.offsetY;
+
+    if (currentTool === "rectangle") {
+        saveCanvasState();
+    }
 });
-canvas.addEventListener('mouseup', () => drawing = false, erasing = false);
-canvas.addEventListener('mousemove', (e) => {
+
+canvas.addEventListener("mouseup", (e) => {
+    if (currentTool === "rectangle") {
+        restoreCanvasState();
+        rectangle(lastX, lastY, e.offsetX, e.offsetY, currentColor, brushSize);
+    }
+    drawing = false;
+});
+
+canvas.addEventListener("mousemove", (e) => {
     if (!drawing) return;
+
     const x = e.offsetX;
     const y = e.offsetY;
     let brushSize = slider.value;
-    sendDrawData({fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize});
-    draw(lastX, lastY, x, y, currentColor, brushSize);
-    lastX = x;
-    lastY = y;
+
+    if (currentTool === "brush") {
+        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize });
+        draw(lastX, lastY, x, y, currentColor, brushSize);
+    }
+
+    else if (currentTool === "eraser") {
+        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: "#ffffff", width: brushSize });
+        draw(lastX, lastY, x, y, "#ffffff", brushSize);
+    }
+
+    else if (currentTool === "rectangle") {
+        restoreCanvasState();
+        rectangle(lastX, lastY, x, y, currentColor, brushSize);
+    }
+
+    if (currentTool === "brush" || currentTool === "eraser") {
+        lastX = x;
+        lastY = y;
+}
 });
+
+function saveCanvasState() {
+    canvasSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+function restoreCanvasState() {
+    if (canvasSnapshot) {
+        ctx.putImageData(canvasSnapshot, 0, 0);
+    }
+}
+
 
 //styl kresby
 function draw(fromX, fromY, toX, toY, color, width) {
@@ -61,6 +105,21 @@ function draw(fromX, fromY, toX, toY, color, width) {
     ctx.lineTo(toX, toY); //tvori line pomoci mouse event
     ctx.stroke();
 }
+
+function rectangle(fromX, fromY, toX, toY, color, width) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+
+    const rectX = Math.min(fromX, toX);
+    const rectY = Math.min(fromY, toY);
+    const rectW = Math.abs(toX - fromX);
+    const rectH = Math.abs(toY - fromY);
+
+    ctx.beginPath();
+    ctx.rect(rectX, rectY, rectW, rectH);
+    ctx.stroke();
+};
+
 
 const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color picker
     width: 150,

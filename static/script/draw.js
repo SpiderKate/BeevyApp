@@ -43,7 +43,7 @@ canvas.addEventListener("mousedown", (e) => {
     lastX = e.offsetX;
     lastY = e.offsetY;
 
-    if (currentTool === "rectangle") {
+    if (currentTool === "rectangle" || currentTool === "triangle") {
         saveCanvasState();
     }
 });
@@ -53,35 +53,54 @@ canvas.addEventListener("mouseup", (e) => {
         restoreCanvasState();
         rectangle(lastX, lastY, e.offsetX, e.offsetY, currentColor, brushSize);
     }
+    else if (currentTool === "triangle") {
+        triangle(lastX, lastY, e.offsetX, e.offsetY, currentColor, brushSize);
+    }
     drawing = false;
 });
 
 canvas.addEventListener("mousemove", (e) => {
     if (!drawing) return;
 
-    const x = e.offsetX;
-    const y = e.offsetY;
+    let x = e.offsetX;
+    let y = e.offsetY;
     let brushSize = slider.value;
 
     if (currentTool === "brush") {
+        x = e.offsetX;
+        y = e.offsetY;
         sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize });
         draw(lastX, lastY, x, y, currentColor, brushSize);
+        lastX = x;
+        lastY = y;
     }
-
     else if (currentTool === "eraser") {
+        x = e.offsetX;
+        y = e.offsetY;
+        lastX = x;
+        lastY = y;
+        
         sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: "#ffffff", width: brushSize });
         draw(lastX, lastY, x, y, "#ffffff", brushSize);
     }
-
     else if (currentTool === "rectangle") {
         restoreCanvasState();
         rectangle(lastX, lastY, x, y, currentColor, brushSize);
     }
-
-    if (currentTool === "brush" || currentTool === "eraser") {
+    else if (currentTool === "triangle") {
+        restoreCanvasState();
+        triangle(lastX, lastY, x, y, currentColor, brushSize);
+    }
+    else if (currentTool === "brush" || currentTool === "eraser") {
         lastX = x;
         lastY = y;
-}
+    }
+    
+    if (currentTool === "circle") {
+        restoreCanvasState();
+        circle(lastX, lastY, x, y, currentColor, brushSize);
+    }
+    
 });
 
 function saveCanvasState() {
@@ -120,6 +139,27 @@ function rectangle(fromX, fromY, toX, toY, color, width) {
     ctx.stroke();
 };
 
+function triangle(fromX, fromY, toX, toY, color, width) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    const triW = Math.abs(toX - fromX);
+    const triH = Math.abs(toY - fromY);
+//chyba!!
+    ctx.beginPath();
+    ctx.moveTo(fromX,fromY);
+    ctx.lineTo(toX,toY);
+    if(toY<fromY || toX < fromX){
+        ctx.lineTo(toX+triW,toY-triH);
+    }
+    else if (fromY<toY || toX > fromX) {
+        ctx.lineTo(toX+triW,toY+triH)
+    }
+    ctx.stroke();
+};
+
+function circle(){
+    console.log("weeeee");
+};
 
 const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color picker
     width: 150,

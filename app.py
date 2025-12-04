@@ -68,8 +68,8 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        name = request.form['name']
-        surname = request.form['surname']
+        name = request.form['name'].capitalize()
+        surname = request.form['surname'].capitalize()
         email = request.form['email']
         dob = request.form['dob']
 

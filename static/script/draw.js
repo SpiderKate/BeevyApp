@@ -49,17 +49,28 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mouseup", (e) => {
+    const data = { 
+            fromX: lastX,
+            fromY: lastY,
+            toX: e.offsetX,
+            toY: e.offsetY,
+            color: currentColor,
+            width: brushSize
+        };
     if (currentTool === "rectangle") {
         restoreCanvasState();
-        rectangle(lastX, lastY, e.offsetX, e.offsetY, currentColor, brushSize);
+        sendDrawData({ type:"rect", ...data});
+        rectangle(data);
     }
     else if (currentTool === "triangle") {
         restoreCanvasState();
-        triangle(lastX, lastY, e.offsetX, e.offsetY, currentColor, brushSize);
+        sendDrawData({ type:"tri", ...data});
+        triangle(data);
     }
     else if (currentTool === "circle") {
         restoreCanvasState();
-        circle(lastX, lastY, e.offsetX, e.offsetY, currentColor, brushSize);
+        sendDrawData({ type:"circ", ...data});
+        circle(data);
     }
     drawing = false;
 });
@@ -70,42 +81,75 @@ canvas.addEventListener("mousemove", (e) => {
     let x = e.offsetX;
     let y = e.offsetY;
     let brushSize = slider.value;
-
+    
     if (currentTool === "brush") {
+        const data = { 
+            fromX: lastX,
+            fromY: lastY,
+            toX: e.offsetX,
+            toY: e.offsetY,
+            color: currentColor,
+            width: brushSize
+        };
         x = e.offsetX;
         y = e.offsetY;
-        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize });
-        draw(lastX, lastY, x, y, currentColor, brushSize);
+        sendDrawData({ type:"line", ...data});
+        draw(data);
         lastX = x;
         lastY = y;
     }
     else if (currentTool === "eraser") {
+         const data = { 
+            fromX: lastX,
+            fromY: lastY,
+            toX: e.offsetX,
+            toY: e.offsetY,
+            color: '#ffffff',
+            width: brushSize
+        };
         x = e.offsetX;
         y = e.offsetY;
-        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: "#ffffff", width: brushSize });
-        draw(lastX, lastY, x, y, "#ffffff", brushSize);
+        sendDrawData({ type:"line",  ...data});
+        draw(data);
         lastX = x;
-        lastY = y;
-        
-        
+        lastY = y;      
     }
     else if (currentTool === "rectangle") {
         restoreCanvasState();
-        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize });
-        rectangle(lastX, lastY, x, y, currentColor, brushSize);
+        const data = { 
+            fromX: lastX,
+            fromY: lastY,
+            toX: x,
+            toY: y,
+            color: currentColor,
+            width: brushSize
+        };
+        rectangle(data);
     }
     else if (currentTool === "triangle") {
         restoreCanvasState();
-        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize });
-        triangle(lastX, lastY, x, y, currentColor, brushSize);
+        const data = { 
+            fromX: lastX,
+            fromY: lastY,
+            toX: x,
+            toY: y,
+            color: currentColor,
+            width: brushSize
+        };
+        triangle(data);
     }
-    
     if (currentTool === "circle") {
         restoreCanvasState();
-        sendDrawData({ fromX: lastX, fromY: lastY, toX: x, toY: y, color: currentColor, width: brushSize });
-        circle(lastX, lastY, x, y, currentColor, brushSize);
+        const data = { 
+            fromX: lastX,
+            fromY: lastY,
+            toX: x,
+            toY: y,
+            color: currentColor,
+            width: brushSize
+        };
+        circle(data);
     }
-    
 });
 
 function saveCanvasState() {
@@ -120,31 +164,32 @@ function restoreCanvasState() {
 
 
 //styl kresby
-function draw(fromX, fromY, toX, toY, color, width) {
-    ctx.strokeStyle = color; //kresli/vyplnuje line barvou 
-    ctx.lineWidth = width;
+function draw(data) {
+    ctx.strokeStyle = data.color; //kresli/vyplnuje line barvou 
+    ctx.lineWidth = data.width;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY); //tvori line pomoci mouse event
+    ctx.moveTo(data.fromX, data.fromY);
+    ctx.lineTo(data.toX, data.toY); //tvori line pomoci mouse event
     ctx.stroke();
 }
 
-function rectangle(fromX, fromY, toX, toY, color, width) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
+function rectangle(data) {
+    ctx.strokeStyle = data.color;
+    ctx.lineWidth = data.width;
 
-    const rectX = Math.min(fromX, toX);
-    const rectY = Math.min(fromY, toY);
-    const rectW = Math.abs(toX - fromX);
-    const rectH = Math.abs(toY - fromY);
+    const rectX = Math.min(data.fromX, data.toX);
+    const rectY = Math.min(data.fromY, data.toY);
+    const rectW = Math.abs(data.toX - data.fromX);
+    const rectH = Math.abs(data.toY - data.fromY);
 
     ctx.beginPath();
     ctx.rect(rectX, rectY, rectW, rectH);
     ctx.stroke();
 };
 
-function triangle(fromX, fromY, toX, toY, color, width) {
+function triangle(data) {
+    const { fromX, fromY, toX, toY, color, width } = data;
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     const triW = Math.abs(toX - fromX);
@@ -172,10 +217,12 @@ function triangle(fromX, fromY, toX, toY, color, width) {
         ctx.moveTo(fromX,fromY);
         ctx.lineTo(toX-triW,fromY);
     }
+    ctx.closePath();
     ctx.stroke();
 };
 
-function circle(fromX,fromY,toX,toY,color,width){
+function circle(data){
+    const { fromX, fromY, toX, toY, color, width } = data;
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     a = Math.abs(toX-fromX);
@@ -193,14 +240,32 @@ const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color p
 
 //posila historii mistnosti pro nove pripojene uzivatele
 socket.on('draw_history', (history) => {
-    history.forEach(({fromX, fromY, toX, toY, color, width}) => {
-        draw(fromX, fromY, toX, toY, color, width);
+    history.forEach((data) => {
+        switch (data.type){
+        case "line": draw(data);
+        break;
+        case "rect": rectangle(data);
+        break;
+        case "tri": triangle(data);
+        break;
+        case "circ": circle(data);
+        break;
+    }
     });
 });
 
 //prijima data od ostatnich uzivatelu
-socket.on('draw', ({fromX, fromY, toX, toY, color, width}) => {
-    draw(fromX, fromY, toX, toY, color, width);
+socket.on('draw', (data) => {
+    switch (data.type){
+        case "line": draw(data);
+        break;
+        case "rect": rectangle(data);
+        break;
+        case "tri": triangle(data);
+        break;
+        case "circ": circle(data);
+        break;
+    }
 }); 
 //meni barvu podle vyberu na color pickeru
 colorPicker.on('color:change', function(color) {

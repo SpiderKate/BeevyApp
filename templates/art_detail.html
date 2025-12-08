@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Art Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/art_detail.css">
+{% endblock %}
+
+{% block content %}
+<div class="art-detail">
+
+<h2>{{ item[1] }}</h2>
+<p>By {{ item[-1] }}</p>
+<p>Price: {{ item[3] }}</p>
+<p>Description: {{ item[2] }}</p>
+<p>Turnaround time: {{ item[4] }}</p>
+
+<h3>Thumbnail</h3>
+{% if item[7] %}
+    <img src="{{ url_for('static', filename=item[7].split('static/')[1]) }}" alt="Thumbnail" style="max-width:300px;">
+{% endif %}
+
+{% if examples_list %}
+    <h3>Example images</h3>
+    {% for ex in examples_list %}
+        <img src="{{ url_for('static', filename=ex.split('static/')[1]) }}" alt="Example" style="max-width:300px; margin:5px;">
+    {% endfor %}
+{% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Create Art / Commission 🐝{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/register.css">
+{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Create New Art / Commission</h1>
+
+<form action="/create_art" method="POST" enctype="multipart/form-data" class="create-form">
+
+    <!-- Title -->
+    <label class="form-label">Title</label>
+    <input type="text" name="title" required class="form-input">
+
+    <!-- Description -->
+    <label class="form-label">Description</label>
+    <textarea name="description" rows="4" class="form-input"></textarea>
+
+    <!-- TAT -->
+    <label class="form-label">Turnaround Time (days)</label>
+    <input type="number" name="tat" min="1" required class="form-input">
+
+    <!-- Price -->
+    <label class="form-label">Price (Beevy Points)</label>
+    <input type="number" name="price" min="1" required class="form-input">
+
+    <!-- Type -->
+    <label class="form-label">Type</label>
+    <select name="type" class="form-input" required>
+        <option value="art">Art</option>
+        <option value="commission">Commission</option>
+    </select>
+
+    <!-- Slots -->
+    <label class="form-label">Slots (optional)</label>
+    <input type="number" name="slots" min="1" class="form-input">
+
+   <!-- Thumbnail -->
+<label class="form-label">Thumbnail (cover image)</label>
+<input type="file" name="thumbnail" accept="image/*" required class="form-input">
+<img id="thumbPreview" class="preview-img" style="display:none; width:150px; height:auto;">
+
+<!-- Examples -->
+<label class="form-label">Example images (optional)</label>
+<input type="file" name="examples" accept="image/*" multiple class="form-input">
+<div id="examplesPreview" class="preview-container"></div>
+
+    <button type="submit" class="submit" id="submit">Create</button>
+
+</form>
+
+<script>
+// Thumbnail preview (fixed to display at shop size)
+const thumbInput = document.querySelector("input[name='thumbnail']");
+const thumbPreview = document.getElementById("thumbPreview");
+
+thumbInput.addEventListener("change", () => {
+    if (thumbInput.files && thumbInput.files[0]) {
+        thumbPreview.src = URL.createObjectURL(thumbInput.files[0]);
+        thumbPreview.style.display = "block";
+        thumbPreview.style.width = "150px";  // match shop thumbnail width
+        thumbPreview.style.height = "auto";  // maintain aspect ratio
+    }
+});
+
+// Example images preview
+const examplesInput = document.querySelector("input[name='examples']");
+const examplesPreview = document.getElementById("examplesPreview");
+
+examplesInput.addEventListener("change", () => {
+    examplesPreview.innerHTML = ""; // clear previous previews
+    Array.from(examplesInput.files).forEach(file => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.style.maxWidth = "150px";
+        img.style.margin = "5px";
+        examplesPreview.appendChild(img);
+    });
+});
+</script>
+
+
+{% endblock %}

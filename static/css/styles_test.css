@@ -82,7 +82,7 @@ body::before {
     gap: 10px; /* space between text and bee */
     font-size: 3rem;
     font-weight: bold;
-     position: relative;
+    position: relative;
     z-index: 1;
 }
 

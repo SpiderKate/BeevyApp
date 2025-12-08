@@ -4,6 +4,9 @@ import sqlite3
 import sys
 import secrets
 import string
+import os
+import uuid
+from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
 from datetime import timedelta
 
@@ -181,7 +184,7 @@ def create(username):
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]
-        return render_template("login.html",errorH=errorH)
+        return render_template("login.html",errorH=errorH), 403
     if request.method == 'POST':
     #input ze stranky 
         name = request.form['name']
@@ -220,7 +223,7 @@ def join():
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]
-        return render_template("login.html",errorH=errorH)
+        return render_template("login.html",errorH=errorH), 403
     return render_template('drawJoin.html')
 
 #vypisuje vytvorene public rooms linky
@@ -229,7 +232,7 @@ def public():
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]
-        return render_template("login.html",errorH=errorH)
+        return render_template("login.html",errorH=errorH), 403
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
@@ -245,7 +248,7 @@ def private():
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]
-        return render_template("login.html",errorH=errorH)
+        return render_template("login.html",errorH=errorH), 403
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
@@ -260,7 +263,7 @@ def option():
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]
-        return render_template("login.html",errorH=errorH)
+        return render_template("login.html",errorH=errorH), 403
     return render_template('drawOption.html')
 
 @app.route('/<username>/settings')
@@ -283,6 +286,118 @@ def logout(username):
         session.clear()
         return redirect(url_for("index"))
     return render_template("logout.html")
+
+
+@app.route('/shop')
+def shop():
+    errorH = []
+    if 'username' not in session:  # kontroluje user je prihlasen
+        errorH = ["Log in first to visit shop."]
+        return render_template("login.html", errorH=errorH), 403
+
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT art.id, art.title, art.price, art.thumbnail_path, users.username
+        FROM art
+        JOIN users ON art.user_ID = users.id
+    """)
+    items = cursor.fetchall()
+    conn.close()
+
+    # items now include the thumbnail path as item[3]
+    return render_template("shop.html", items=items)
+
+
+@app.route('/shop/<int:art_id>')
+def art_detail(art_id):
+    errorH = []
+    if 'username' not in session:  # kontroluje user je prihlasen
+        errorH = ["Log in first to visit shop."]
+        return render_template("login.html", errorH=errorH), 403
+
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT art.*, users.username
+        FROM art
+        JOIN users ON art.user_ID = users.id
+        WHERE art.id = ?
+    """, (art_id,))
+    item = cursor.fetchone()
+    print(f"Item: {item}")
+    conn.close()
+
+    if not item:
+        return "Item not found", 404
+
+    # split examples_path into a list for HTML display
+    examples_list = item[7].split(",") if item[7] else []
+
+    return render_template("art_detail.html", item=item, examples_list=examples_list)
+
+
+import os
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route("/create_art", methods=["GET", "POST"])
+def create_art():
+    errorH = []
+    if 'username' not in session:  # kontroluje user je prihlasen
+        errorH = ["Log in first to create commissions/art."]
+        return render_template("login.html", errorH=errorH), 403
+
+    if request.method == "POST":
+        title = request.form["title"]
+        description = request.form["description"]
+        tat = request.form["tat"]
+        price = request.form["price"]
+        art_type = request.form["type"]
+        slots = request.form.get("slots")
+        thumb = request.files["thumbnail"]
+        examples = request.files.getlist("examples")
+        username = session.get("username")
+
+        # uloží thumbnail
+        thumb_filename = f"{uuid.uuid4().hex}_{secure_filename(thumb.filename)}"
+        thumb_path = os.path.join(UPLOAD_FOLDER, thumb_filename)
+        thumb.save(thumb_path)
+
+        # save example files with unique prefix each
+        examples_paths = []
+        for ex in examples:
+            ex_filename = f"{uuid.uuid4().hex}_{secure_filename(ex.filename)}"
+            ex_path = os.path.join(UPLOAD_FOLDER, ex_filename)
+            ex.save(ex_path)
+            examples_paths.append(ex_path)
+
+        examples_paths_str = ",".join(examples_paths)
+
+        try:
+            conn = sqlite3.connect("beevy.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE username = ?;", (username,))
+            User_ID = cursor.fetchone()
+
+            cursor.execute("""
+                INSERT INTO art 
+                (title, description, tat, price, type, slots, thumbnail_path, examples_path, user_ID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, User_ID[0]))
+            conn.commit()
+        finally:
+            conn.close()
+
+        return redirect("/shop")
+
+    return render_template("create_art.html")
+
+
+
+
 
 @socketio.on('join_room')
 def handle_join(data):

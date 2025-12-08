@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Shop🐝{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/shop.css">
+{% endblock %}
+
+{% block content %}
+<h1 class="shop-title">Beevy Shop</h1>
+
+<div class="shop-grid">
+    {% for item in items %}
+    <a href="{{ url_for('art_detail', art_id=item[0]) }}" class="art-link">
+        <div class="art-item">
+            <h3>{{ item[1] }}</h3>
+            <p>By {{ item[4] }}</p>
+            <p>Price: {{ item[2] }}</p>
+            <img src="{{ item[3] }}" alt="Thumbnail" style="max-width:150px;">
+        </div>
+    </a>
+    {% endfor %}
+</div>
+<a href="/" id="link">Back</a>
+{% endblock %}

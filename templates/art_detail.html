@@ -17,7 +17,7 @@
 
 <h3>Thumbnail</h3>
 {% if item[7] %}
-    <img src="{{ url_for('static', filename=item[7].split('static/')[1]) }}" alt="Thumbnail" style="max-width:300px;">
+    <img src="{{ url_for('static', filename=item[6].split('static/')[1]) }}" alt="Thumbnail" style="max-width:300px;">
 {% endif %}
 
 {% if examples_list %}

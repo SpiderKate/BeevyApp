@@ -180,7 +180,8 @@ def draw(room_ID):
 
 draw_history = {}
 @app.route('/create',methods=['GET','POST'])
-def create(username):
+def create():
+    username = session.get('username')
     errorH = []
     if 'username' not in session: #kontroluje user je prihlasen
         errorH = ["Log in first to draw."]
@@ -266,6 +267,7 @@ def option():
         return render_template("login.html",errorH=errorH), 403
     return render_template('drawOption.html')
 
+#settings
 @app.route('/<username>/settings')
 def settings(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
@@ -274,6 +276,43 @@ def settings(username):
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
     return render_template("settings.html")
+
+@app.route("/<username>/settings/profile")
+def settingsProfile(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    return render_template("settingsProfile.html")
+
+@app.route("/<username>/settings/account")
+def settingsAccount(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    return render_template("settingsAccount.html")
+
+@app.route("/<username>/settings/security")
+def settingsSecurity(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    return render_template("settingsSecurity.html")
+
+@app.route("/<username>/settings/delete")
+def settingsDelete(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    return render_template("settingsDelete.html")
+
 
 @app.route('/<username>/logout',methods=["GET","POST"])
 def logout(username):
@@ -336,10 +375,6 @@ def art_detail(art_id):
 
     return render_template("art_detail.html", item=item, examples_list=examples_list)
 
-
-import os
-from werkzeug.utils import secure_filename
-
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -364,13 +399,16 @@ def create_art():
         # uloží thumbnail
         thumb_filename = f"{uuid.uuid4().hex}_{secure_filename(thumb.filename)}"
         thumb_path = os.path.join(UPLOAD_FOLDER, thumb_filename)
+        thumb_path = thumb_path.replace("\\", "/")
         thumb.save(thumb_path)
+        print(f"thumb_path: { thumb_path }")
 
         # save example files with unique prefix each
         examples_paths = []
         for ex in examples:
             ex_filename = f"{uuid.uuid4().hex}_{secure_filename(ex.filename)}"
             ex_path = os.path.join(UPLOAD_FOLDER, ex_filename)
+            ex_path = ex_path.replace("\\", "/")
             ex.save(ex_path)
             examples_paths.append(ex_path)
 

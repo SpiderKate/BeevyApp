@@ -1,11 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Settings🐝{% endblock %}
-
 {% block extra_css %}
-<link rel="stylesheet" href="/static/css/styles_test.css">
+<link rel="stylesheet" href="/static/css/settings.css">
 {% endblock %}
 
-{% block content %}¨
-   weee
+{% block content %}
+<div class="settings-container">
+
+    <div class="settings-sidebar">
+        <a href="/{{ session.get('username') }}/settings/profile" class="settings-link">Profile</a>
+        <a href="/{{ session.get('username') }}/settings/account" class="settings-link">Account</a>
+        <a href="/{{ session.get('username') }}/settings/security" class="settings-link">Security</a>
+        <a href="/{{ session.get('username') }}/settings/delete" class="settings-link danger">Delete Account</a>
+    </div>
+
+    <div class="settings-content">
+        {% block settings_page %}
+        Select a category from the left.
+        {% endblock %}
+    </div>
+
+</div>
 {% endblock %}

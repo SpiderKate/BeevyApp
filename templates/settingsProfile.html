@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/settings.css">
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+
+   
+
+    <div class="settings-content">
+        {% block settings_page %}
+        
+        {% endblock %}
+    </div>
+
+</div>
+{% endblock %}

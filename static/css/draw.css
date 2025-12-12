@@ -8,14 +8,13 @@
 
 body{
     display: flex;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
-    background-color: #8860cc;
 }
 
 .container{
     display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     gap: 10px;
     padding: 10px;
@@ -23,8 +22,13 @@ body{
 }
 
 section{
-    background: #fff;
     border-radius: 7px;
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border-radius: 15px;
+    text-align: left;
+    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    z-index: 20;
 }
 
 .toolsBoard{
@@ -187,4 +191,5 @@ section{
 
 canvas{
     background-color: white;
+    z-index: 20;
 }

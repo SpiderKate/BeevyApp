@@ -17,8 +17,9 @@
     <input type="file" name="avatar">
 
     {% if user[3] %}
-        <img src="{{ url_for('static', filename=user[3].split('static/')[1]) }}"
-             class="avatar-preview">
+        <img src="{{ url_for('static', filename=user[3]) }}" class="avatar-preview">
+    {% else %}
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" class="avatar-preview">
     {% endif %}
 
     <button type="submit">Save</button>

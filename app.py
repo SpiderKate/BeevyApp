@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 import bcrypt
 import sqlite3
 import sys
@@ -9,6 +9,20 @@ import uuid
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
 from datetime import timedelta
+
+STATIC_ROOT = "static"
+AVATAR_UPLOAD_FOLDER = "uploads/avatar"
+UPLOAD_FOLDER = "uploads/shop"
+def save_uploaded_file(file, subfolder):
+    filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+
+    relative_path = os.path.join(subfolder, filename).replace("\\", "/")
+    full_path = os.path.join(STATIC_ROOT, relative_path)
+
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    file.save(full_path)
+
+    return relative_path
 
 print('some debug', file=sys.stderr)
 
@@ -271,19 +285,19 @@ def option():
 @app.route('/<username>/settings')
 def settings(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        return redirect(url_for("login"))
+        errorH = ["Login first to access settings"]
+        return render_template("login.html",errorH=errorH), 403
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
     return render_template("settings.html")
 
-UPLOAD_FOLDER = "static/uploads/avatar"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/<username>/settings/profile", methods=["GET", "POST"])
 def settings_profile(username):
     if "username" not in session:
-        return redirect(url_for("login"))
+        errorH = ["Login first to access settings"]
+        return render_template("login.html", errorH=errorH), 403
 
     if session["username"] != username:
         return render_template("error.html", errorH=["Unauthorized"]), 403
@@ -296,7 +310,6 @@ def settings_profile(username):
         (username,)
     )
     user = cursor.fetchone()
-
     if not user:
         conn.close()
         return "User not found", 404
@@ -306,12 +319,11 @@ def settings_profile(username):
         new_bio = request.form.get("bio")
         avatar = request.files.get("avatar")
 
-        avatar_path = user[3]  # keep old avatar by default
+        avatar_path = user[3]  # default: keep old avatar
 
         if avatar and avatar.filename:
-            avatar_filename = f"{uuid.uuid4().hex}_{secure_filename(avatar.filename)}"
-            avatar_path = os.path.join(UPLOAD_FOLDER, avatar_filename).replace("\\", "/")
-            avatar.save(avatar_path)
+            # Save avatar in AVATAR_UPLOAD_FOLDER
+            avatar_path = save_uploaded_file(avatar, AVATAR_UPLOAD_FOLDER)
 
         cursor.execute(
             """
@@ -321,11 +333,10 @@ def settings_profile(username):
             """,
             (new_username, new_bio, avatar_path, user[0])
         )
-
         conn.commit()
         conn.close()
 
-        # VERY IMPORTANT
+        # Update session username if changed
         session["username"] = new_username
 
         return redirect(url_for("settings_profile", username=new_username))
@@ -334,19 +345,53 @@ def settings_profile(username):
     return render_template("settingsProfile.html", user=user)
 
 
-@app.route("/<username>/settings/account")
+
+@app.route("/<username>/settings/account", methods=["GET","POST"])
 def settingsAccount(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        return redirect(url_for("login"))
+        errorH = ["Login first to access settings"]
+        return render_template("login.html",errorH=errorH), 403
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
-        return render_template("error.html", errorH = errorH) , 403
-    return render_template("settingsAccount.html")
+        return render_template("error.html", errorH = errorH) , 
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id, email, language, theme, default_brush_size, notifications FROM users WHERE username=?",
+        (username,)
+    )
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        return "User not found", 404
+    
+    if request.method == "POST":
+        new_email = request.form.get("email")
+        new_language = request.form.get("language")
+        new_theme = request.form.get("theme")
+        new_brush = request.form.get("brush")
+        new_not = request.form.get("not")
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET email = ?, language = ?, theme = ?, default_brush_size = ?, notifications = ?
+            WHERE id = ?
+            """,
+            (new_email, new_language, new_theme, new_brush, new_not, user[0])
+        )
+        conn.commit()
+        conn.close()
+
+    return render_template("settingsAccount.html", user=user)
 
 @app.route("/<username>/settings/security")
 def settingsSecurity(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        return redirect(url_for("login"))
+        errorH = ["Login first to access settings"]
+        return render_template("login.html",errorH=errorH), 403
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
@@ -355,7 +400,8 @@ def settingsSecurity(username):
 @app.route("/<username>/settings/delete")
 def settingsDelete(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        return redirect(url_for("login"))
+        errorH = ["Login first to access settings"]
+        return render_template("login.html",errorH=errorH), 403
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
@@ -373,24 +419,6 @@ def logout(username):
         session.clear()
         return redirect(url_for("index"))
     return render_template("logout.html")
-
-@app.context_processor
-def inject_user_avatar():
-    if "username" not in session:
-        return {}
-
-    conn = sqlite3.connect("beevy.db")
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT avatar_path FROM users WHERE username = ?",
-        (session["username"],)
-    )
-    row = cursor.fetchone()
-    conn.close()
-
-    return {
-        "avatar_path": row[0] if row else None
-    }
 
 
 @app.route('/shop')
@@ -441,8 +469,6 @@ def art_detail(art_id):
 
     return render_template("art_detail.html", item=item, examples_list=examples_list)
 
-UPLOAD_FOLDER = "static/uploads/shop"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/create_art", methods=["GET", "POST"])
 def create_art():
@@ -465,21 +491,18 @@ def create_art():
 
         # uloží thumbnail
         thumb_filename = f"{uuid.uuid4().hex}_{secure_filename(thumb.filename)}"
-        thumb_path = os.path.join(UPLOAD_FOLDER, thumb_filename)
-        thumb_path = thumb_path.replace("\\", "/")
-        thumb.save(thumb_path)
-        print(f"thumb_path: { thumb_path }")
+        thumb_path = save_uploaded_file(thumb, UPLOAD_FOLDER)
 
-        # save example files with unique prefix each
         examples_paths = []
         for ex in examples:
-            ex_filename = f"{uuid.uuid4().hex}_{secure_filename(ex.filename)}"
-            ex_path = os.path.join(UPLOAD_FOLDER, ex_filename)
-            ex_path = ex_path.replace("\\", "/")
-            ex.save(ex_path)
-            examples_paths.append(ex_path)
+            if ex.filename:
+                ex_path = save_uploaded_file(ex, UPLOAD_FOLDER)
+                examples_paths.append(ex_path)
 
         examples_paths_str = ",".join(examples_paths)
+
+        print(f"thumb_path: { thumb_path }")
+
 
         try:
             conn = sqlite3.connect("beevy.db")
@@ -503,6 +526,20 @@ def create_art():
 
     return render_template("create_art.html")
 
+@app.before_request
+def load_logged_in_user():
+    g.avatar_path = None
+    username = session.get('username')
+    if username:
+        conn = sqlite3.connect('beevy.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT avatar_path FROM users WHERE username=?", (username,))
+        row = cursor.fetchone()
+        conn.close()
+        if row and row[0]:
+            g.avatar_path = row[0]
+
+
 
 
 
@@ -525,4 +562,4 @@ def handle_draw(data):
     emit('draw', data, to=room, skip_sid=request.sid) #odelar ostatnim lidem
 
 if __name__ == "__main__":
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, debug=True, use_reloader=False)

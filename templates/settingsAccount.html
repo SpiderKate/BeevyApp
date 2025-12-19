@@ -1,19 +1,20 @@
-{% extends "base.html" %}
+{% extends "settings.html" %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/settings.css">
-{% endblock %}
+{% block title %}Profile Settings{% endblock %}
 
-{% block content %}
-<div class="settings-container">
+{% block settings_page %}
+<h2>Profile Settings</h2>
 
-   
+<form method="POST">
 
-    <div class="settings-content">
-        {% block settings_page %}
-        
-        {% endblock %}
-    </div>
+    <label>E-mail</label>
+    <input type="text" name="email" value="{{ user[1] if user else '' }}">
 
-</div>
+    <label>Language</label>
+    <select name="language">
+        <option>Czech/Češina</option>
+        <option>English/Angličtina</option>
+    </select>
+    <button type="submit">Save</button>
+</form>
 {% endblock %}

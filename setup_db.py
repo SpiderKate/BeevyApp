@@ -11,10 +11,14 @@ cursor.execute("DELETE FROM art;")
 #cursor.execute("DROP table art;")
 #cursor.execute("CREATE table art (id INTEGER PRIMARY KEY AUTOINCREMENT, title VARCHAR(50) NOT NULL, description VARCHAR(300),tat INT NOT NULL, price INT NOT NULL, type VARCHAR(10) NOT NULL, thumbnail_path VARCHAR, examples_path VARCHAR, slots INT, user_ID INT, FOREIGN KEY(user_ID) REFERENCES users(id));")
 #cursor.execute("CREATE table rooms (id INTEGER PRIMARY KEY AUTOINCREMENT, room_ID INT, name VARCHAR(100), password VARCHAR(100), is_public BOOLEAN, user_ID INT, FOREIGN KEY(user_ID) REFERENCES users(id));")
-#cursor.execute("""
-#    ALTER TABLE users ADD COLUMN social_links TEXT;
-#""")
+cursor.execute("""
+    ALTER TABLE users ADD COLUMN notifications BOOLEAN DEFAULT 1;
+""")
 
+
+#
+#default_brush_size INTEGER DEFAULT 5,
+#notifications BOOLEAN DEFAULT 1
 
 conn.commit()
 conn.close()

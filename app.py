@@ -277,14 +277,62 @@ def settings(username):
         return render_template("error.html", errorH = errorH) , 403
     return render_template("settings.html")
 
-@app.route("/<username>/settings/profile")
-def settingsProfile(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
+UPLOAD_FOLDER = "static/uploads/avatar"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route("/<username>/settings/profile", methods=["GET", "POST"])
+def settings_profile(username):
+    if "username" not in session:
         return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        errorH = ["Unauthorized"]
-        return render_template("error.html", errorH = errorH) , 403
-    return render_template("settingsProfile.html")
+
+    if session["username"] != username:
+        return render_template("error.html", errorH=["Unauthorized"]), 403
+
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id, username, bio, avatar_path FROM users WHERE username=?",
+        (username,)
+    )
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        return "User not found", 404
+
+    if request.method == "POST":
+        new_username = request.form.get("username")
+        new_bio = request.form.get("bio")
+        avatar = request.files.get("avatar")
+
+        avatar_path = user[3]  # keep old avatar by default
+
+        if avatar and avatar.filename:
+            avatar_filename = f"{uuid.uuid4().hex}_{secure_filename(avatar.filename)}"
+            avatar_path = os.path.join(UPLOAD_FOLDER, avatar_filename).replace("\\", "/")
+            avatar.save(avatar_path)
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET username = ?, bio = ?, avatar_path = ?
+            WHERE id = ?
+            """,
+            (new_username, new_bio, avatar_path, user[0])
+        )
+
+        conn.commit()
+        conn.close()
+
+        # VERY IMPORTANT
+        session["username"] = new_username
+
+        return redirect(url_for("settings_profile", username=new_username))
+
+    conn.close()
+    return render_template("settingsProfile.html", user=user)
+
 
 @app.route("/<username>/settings/account")
 def settingsAccount(username):
@@ -325,6 +373,24 @@ def logout(username):
         session.clear()
         return redirect(url_for("index"))
     return render_template("logout.html")
+
+@app.context_processor
+def inject_user_avatar():
+    if "username" not in session:
+        return {}
+
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT avatar_path FROM users WHERE username = ?",
+        (session["username"],)
+    )
+    row = cursor.fetchone()
+    conn.close()
+
+    return {
+        "avatar_path": row[0] if row else None
+    }
 
 
 @app.route('/shop')
@@ -375,12 +441,13 @@ def art_detail(art_id):
 
     return render_template("art_detail.html", item=item, examples_list=examples_list)
 
-UPLOAD_FOLDER = "static/uploads"
+UPLOAD_FOLDER = "static/uploads/shop"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/create_art", methods=["GET", "POST"])
 def create_art():
     errorH = []
+    username = session.get("username")
     if 'username' not in session:  # kontroluje user je prihlasen
         errorH = ["Log in first to create commissions/art."]
         return render_template("login.html", errorH=errorH), 403
@@ -417,14 +484,17 @@ def create_art():
         try:
             conn = sqlite3.connect("beevy.db")
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE username = ?;", (username,))
-            User_ID = cursor.fetchone()
+            cursor.execute("SELECT id FROM users WHERE username = ?",(username,))
+            user_row = cursor.fetchone()
+            if not user_row:
+                return "User not found", 400
+            user_id = user_row[0]
 
             cursor.execute("""
                 INSERT INTO art 
                 (title, description, tat, price, type, slots, thumbnail_path, examples_path, user_ID)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, User_ID[0]))
+            """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, user_id))
             conn.commit()
         finally:
             conn.close()

@@ -16,21 +16,31 @@
         
             
     {% if session.username %}
-    <div class="user-menu">
-        <div class="user-menu-button" onclick=toggleMenu()>
-            {{ session.get('username') }}
-        </div>
-        <div id="user-dropdown" class="dropdown hidden">
-            <a href="/">Home</a>
-            <a href="/{{ session.get('username') }}">Profile</a>
-            <a href="/create_art">Create a commission/art</a>
-            <a href="">Your commissions/art</a>
-            <a href="/{{ session.get('username') }}/settings">Settings</a>
-            <a href="/{{ session.get('username') }}/logout">Log Out</a>
-            <!--   <a href="/{{ url_for('settings', username = session.get('username')) }}">Settings</a>   -->
-        </div>
+<div class="user-menu">
+    <div class="user-menu-button" onclick="toggleMenu()">
+
+        {% if avatar_path %}
+            <img src="{{ url_for('static', filename=avatar_path.split('static/')[1]) }}"
+                 class="user-avatar">
+        {% else %}
+            <img src="{{ url_for('static', filename='images/default_avatar.png') }}"
+                 class="user-avatar">
+        {% endif %}
+
+        {{ session.get('username') }}
     </div>
-    {% endif %}
+
+    <div id="user-dropdown" class="dropdown hidden">
+        <a href="/">Home</a>
+        <a href="/{{ session.get('username') }}">Profile</a>
+        <a href="/create_art">Create a commission/art</a>
+        <a href="">Your commissions/art</a>
+        <a href="/{{ session.get('username') }}/settings">Settings</a>
+        <a href="/{{ session.get('username') }}/logout">Log Out</a>
+    </div>
+</div>
+{% endif %}
+
 
     <!-- obsah kazdé stranky -->
     {% block content %}{% endblock %}

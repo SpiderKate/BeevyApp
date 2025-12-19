@@ -1,19 +1,26 @@
-{% extends "base.html" %}
+{% extends "settings.html" %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/settings.css">
-{% endblock %}
+{% block title %}Profile Settings{% endblock %}
 
-{% block content %}
-<div class="settings-container">
+{% block settings_page %}
+<h2>Profile Settings</h2>
 
-   
+<form method="POST" enctype="multipart/form-data">
 
-    <div class="settings-content">
-        {% block settings_page %}
-        
-        {% endblock %}
-    </div>
+    <label>Username</label>
+    <input type="text" name="username" value="{{ user[1] }}">
 
-</div>
+    <label>Bio</label>
+    <textarea name="bio">{{ user[2] }}</textarea>
+
+    <label>Avatar</label>
+    <input type="file" name="avatar">
+
+    {% if user[3] %}
+        <img src="{{ url_for('static', filename=user[3].split('static/')[1]) }}"
+             class="avatar-preview">
+    {% endif %}
+
+    <button type="submit">Save</button>
+</form>
 {% endblock %}

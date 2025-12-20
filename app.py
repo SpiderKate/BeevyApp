@@ -91,9 +91,7 @@ def register():
         dob = request.form['dob']
 
         #hash hesla
-        password_bytes = password.encode('utf-8')
-        salt = bcrypt.gensalt()
-        hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+        hash = None if not password else bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
         #zapsani do db pokud user neexistuje (username ci email)
         try:
@@ -189,7 +187,7 @@ def draw(room_ID):
 
     room_type = result[0]
     if room_type == 'private' and room_ID not in verified_rooms:
-        return redirect(url_for('join_room_page'), room_ID=room_ID)
+        return redirect(url_for('join_room_page', room_ID=room_ID))
     return render_template('draw.html',room_ID=room_ID)
 
 draw_history = {}
@@ -211,9 +209,7 @@ def create():
         else:
             is_public = False
     #hash hesla
-        password_bytes = password.encode('utf-8')
-        salt = bcrypt.gensalt()
-        hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+        hash = None if not password else bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     #generuje room_ID
         def generate_roomID(length=8):
             chars = string.ascii_uppercase + string.digits  # ABC... + 0-9
@@ -339,7 +335,7 @@ def settings_profile(username):
         # Update session username if changed
         session["username"] = new_username
 
-        return redirect(url_for("settings_profile", username=new_username))
+        return {"avatar_path": avatar_path}, 200
 
     conn.close()
     return render_template("settingsProfile.html", user=user)
@@ -353,7 +349,7 @@ def settingsAccount(username):
         return render_template("login.html",errorH=errorH), 403
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
-        return render_template("error.html", errorH = errorH) , 
+        return render_template("error.html", errorH = errorH) , 403
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
 
@@ -365,14 +361,15 @@ def settingsAccount(username):
 
     if not user:
         conn.close()
-        return "User not found", 404
+        return "User not found", 
+    
     
     if request.method == "POST":
         new_email = request.form.get("email")
         new_language = request.form.get("language")
         new_theme = request.form.get("theme")
         new_brush = request.form.get("brush")
-        new_not = request.form.get("not")
+        new_not = 1 if request.form.get("not") else 0  # handle checkbox
 
         cursor.execute(
             """
@@ -385,7 +382,16 @@ def settingsAccount(username):
         conn.commit()
         conn.close()
 
+        return {
+            "email": new_email,
+            "language": new_language,
+            "theme": new_theme,
+            "brush": new_brush,
+            "notifications": new_not
+        }, 200
+    conn.close()
     return render_template("settingsAccount.html", user=user)
+
 
 @app.route("/<username>/settings/security")
 def settingsSecurity(username):
@@ -490,7 +496,6 @@ def create_art():
         username = session.get("username")
 
         # uloží thumbnail
-        thumb_filename = f"{uuid.uuid4().hex}_{secure_filename(thumb.filename)}"
         thumb_path = save_uploaded_file(thumb, UPLOAD_FOLDER)
 
         examples_paths = []
@@ -500,8 +505,6 @@ def create_art():
                 examples_paths.append(ex_path)
 
         examples_paths_str = ",".join(examples_paths)
-
-        print(f"thumb_path: { thumb_path }")
 
 
         try:

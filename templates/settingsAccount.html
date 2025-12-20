@@ -5,16 +5,62 @@
 {% block settings_page %}
 <h2>Profile Settings</h2>
 
-<form method="POST">
+<form id="accountForm" method="POST">
 
     <label>E-mail</label>
-    <input type="text" name="email" value="{{ user[1] if user else '' }}">
+    <input type="email" name="email" value="{{ user[1] }}">
 
     <label>Language</label>
     <select name="language">
-        <option>Czech/Češina</option>
-        <option>English/Angličtina</option>
+        <option value="en" {% if user[2] == 'en' %}selected{% endif %}>English</option>
+        <option value="cz" {% if user[2] == 'cz' %}selected{% endif %}>Čeština</option>
+        <option value="sk" {% if user[2] == 'sk' %}selected{% endif %}>Slovenčina</option>
     </select>
+    <br><br>
+    <label>Theme</label>
+    <select name="theme">
+        <option value="dark" {% if user[3] == 'dark' %}selected{% endif %}>Dark</option>
+        <option value="light" {% if user[3] == 'light' %}selected{% endif %}>Light</option>
+        <option value="bee" {% if user[3] == 'bee' %}selected{% endif %}>Bee</option>
+    </select>
+    <br><br>
+    <label>Default brush size</label>
+    <input type="number" name="brush" min="1" max="100" value="{{ user[4] }}">
+    
+    <label>Notifications</label>
+    <input type="checkbox" name="not" value="1" {% if user[5] %}checked{% endif %} >
+
     <button type="submit">Save</button>
+
 </form>
+<div id="statusMessage" style="color: green; margin-top: 10px;"></div>
+
+<script>
+    document.getElementById('accountForm').addEventListener('submit', async function(e){
+    e.preventDefault(); // prevent full page refresh
+
+    const formData = new FormData(this);
+    const username = "{{ session['username'] }}"; // dynamically from Flask session
+
+    const response = await fetch(`/${username}/settings/account`, {
+        method: 'POST',
+        body: formData
+    });
+
+    const statusMessage = document.getElementById('statusMessage');
+
+    if (response.ok){
+        const data = await response.json();
+        statusMessage.innerText = "Settings updated successfully!";
+        console.log("Updated account data:", data);
+        // optionally update theme dynamically
+        document.body.className = data.theme;
+    } else {
+        const error = await response.json();
+        statusMessage.innerText = `Error: ${error.error}`;
+        statusMessage.style.color = "red";
+    }
+});
+
+</script>
 {% endblock %}

@@ -5,7 +5,7 @@
 {% block settings_page %}
 <h2>Profile Settings</h2>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" id="profileForm" enctype="multipart/form-data">
 
     <label>Username</label>
     <input type="text" name="username" value="{{ user[1] }}">
@@ -14,14 +14,65 @@
     <textarea name="bio">{{ user[2] }}</textarea>
 
     <label>Avatar</label>
-    <input type="file" name="avatar">
+    <input type="file" name="avatar" id="avatarInput">
 
-    {% if user[3] %}
-        <img src="{{ url_for('static', filename=user[3]) }}" class="avatar-preview">
-    {% else %}
-        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" class="avatar-preview">
-    {% endif %}
+    <img id="avatarPreview" 
+     src="{{ url_for('static', filename=user[3]) if user[3] else url_for('static', filename='images/default_avatar.png') }}" 
+     class="avatar-preview">
+
+    <script>
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarPreview = document.getElementById('avatarPreview');
+
+    avatarInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarPreview.src = e.target.result; // show preview
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
 
     <button type="submit">Save</button>
 </form>
+<div id="statusMessage" style="color: green; margin-top: 10px;"></div>
+<script>
+    document.getElementById('accountForm').addEventListener('submit', async function(e){
+    e.preventDefault(); // prevent full page refresh
+
+    
+    const username = "{{ session['username'] }}"; // dynamically from Flask session
+
+    
+    const formData = new FormData(document.getElementById('avatarForm'));
+     response = await fetch(`/username/settings/profile`, {
+    method: 'POST',
+    body: formData
+    });
+     data = await response.json();
+    document.querySelector('.user-avatar').src = `/static/${data.avatar_path}`;
+
+    
+
+    
+
+    const statusMessage = document.getElementById('statusMessage');
+
+    if (response.ok){
+        const data = await response.json();
+        statusMessage.innerText = "Settings updated successfully!";
+        console.log("Updated account data:", data);
+        // optionally update theme dynamically
+        document.body.className = data.theme;
+    } else {
+        const error = await response.json();
+        statusMessage.innerText = `Error: ${error.error}`;
+        statusMessage.style.color = "red";
+    }
+});
+</script>
 {% endblock %}

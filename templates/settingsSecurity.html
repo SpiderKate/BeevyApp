@@ -1,19 +1,66 @@
-{% extends "base.html" %}
+{% extends "settings.html" %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/settings.css">
-{% endblock %}
+{% block title %}Security Settings{% endblock %}
 
-{% block content %}
-<div class="settings-container">
+{% block settings_page %}
+<h2>Security Settings</h2>
+{% if error %}
+        <p class = "error">
+            {% for error in error %}
+                {{ error }}
+            {% endfor %}
+        </p>
+    {% endif %}
 
-   
+<form method="POST" id="securityForm">
 
-    <div class="settings-content">
-        {% block settings_page %}
-        
-        {% endblock %}
-    </div>
+    <label>Current Password</label>
+    <input type="password" name="curPassword" placeholder="Please type your current password." required>
 
-</div>
+    <label>New Password</label>
+    <input type="password" name="newPassword" placeholder="Please type your new password." required>
+
+    <label>New Password Again</label>
+    <input type="password" name="newPassword2" placeholder="Please type your new password again." required>
+
+    <button type="submit">Save</button>
+</form>
+<div id="statusMessage" style="color: green; margin-top: 10px;"></div>
+<!--
+<script>
+    document.getElementById('accountForm').addEventListener('submit', async function(e){
+    e.preventDefault(); // prevent full page refresh
+
+    
+    const username = "{{ session['username'] }}"; // dynamically from Flask session
+
+    
+    const formData = new FormData(document.getElementById('avatarForm'));
+     response = await fetch(`/username/settings/security`, {
+    method: 'POST',
+    body: formData
+    });
+     data = await response.json();
+    document.querySelector('.user-avatar').src = `/static/${data.avatar_path}`;
+
+    
+
+    
+
+    const statusMessage = document.getElementById('statusMessage');
+
+    if (response.ok){
+        const data = await response.json();
+        statusMessage.innerText = "Settings updated successfully!";
+        console.log("Updated account data:", data);
+        // optionally update theme dynamically
+        document.body.className = data.theme;
+    } else {
+        const error = await response.json();
+        statusMessage.innerText = `Error: ${error.error}`;
+        statusMessage.style.color = "red";
+    }
+});
+</script>
+-->
 {% endblock %}

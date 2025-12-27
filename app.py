@@ -353,10 +353,7 @@ def settingsAccount(username):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT id, email, language, theme, default_brush_size, notifications FROM users WHERE username=?",
-        (username,)
-    )
+    cursor.execute("SELECT id, email, language, theme, default_brush_size, notifications FROM users WHERE username=?",(username,))
     user = cursor.fetchone()
 
     if not user:
@@ -393,14 +390,42 @@ def settingsAccount(username):
     return render_template("settingsAccount.html", user=user)
 
 
-@app.route("/<username>/settings/security")
+@app.route("/<username>/settings/security", methods=["GET","POST"])
 def settingsSecurity(username):
+    error = []
     if 'username' not in session: #kontroluje jestli je vytvorena session
         errorH = ["Login first to access settings"]
         return render_template("login.html",errorH=errorH), 403
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         errorH = ["Unauthorized"]
         return render_template("error.html", errorH = errorH) , 403
+    
+    conn = sqlite3.connect('beevy.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, email, password FROM users WHERE username=?",(username,))
+    user = cursor.fetchone()
+    if not user:
+        conn.close()
+        return "User not found", 404
+
+    if request.method == "POST":
+        curPassword = request.form.get('curPassword')
+        newPassword = request.form.get('newPassword')
+        newPassword2 = request.form.get('newPassword2')
+
+        if not bcrypt.checkpw(curPassword.encode('utf-8'),user[3].encode('utf-8')):
+            error = ["Current password is incorrect."]
+            return render_template("settingsSecurity.html", error=error)
+        if (newPassword!=newPassword2):
+            error = ["Passwords do not match."]
+            return render_template("settingsSecurity.html",error=error)
+        
+        newHash = None if not newPassword else bcrypt.hashpw(newPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cursor.execute("UPDATE users SET password=? WHERE id=?",(newHash,user[0]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("settingsSecurity", username=username))
+    conn.close()
     return render_template("settingsSecurity.html")
 
 @app.route("/<username>/settings/delete")

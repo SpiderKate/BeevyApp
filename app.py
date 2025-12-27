@@ -8,7 +8,10 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
-from datetime import timedelta
+from datetime import timedelta, datetime
+
+now = datetime.now()
+
 
 STATIC_ROOT = "static"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
@@ -50,11 +53,9 @@ def login():
             conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
             #hleda heslo bud pro username ci email
-            cursor.execute("SELECT password FROM users WHERE email=? OR username=?",(usEm, usEm))
+            cursor.execute("SELECT password,username,last_login_at,id FROM users WHERE email=? OR username=?",(usEm, usEm))
             #vysledek se popripadne ulozi sem
             result = cursor.fetchone()
-            cursor.execute("SELECT username FROM users WHERE email=? OR username=?",(usEm,usEm))
-            username = cursor.fetchone()
             #a kdyz to najde heslo k danému username ci email tak ho zkontroluje
             if result:
                 db_pass = result[0]
@@ -63,7 +64,13 @@ def login():
                 #kdyz je spravne posle uzivatele na userPage
                 if bcrypt.checkpw(user_bytes, db_pass):
                     session.permanent = True
-                    session['username'] = username[0]
+                    session['username'] = result[1]
+                    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("UPDATE users SET last_login_at=? WHERE id=?",(now,result[3]))
+                    print("Rows updated:", cursor.rowcount)
+
+                    conn.commit()
+                    
                     return redirect(url_for("userPage", username = session['username']))
                 else:
                     login_errors.append("Incorrect password")
@@ -402,7 +409,7 @@ def settingsSecurity(username):
     
     conn = sqlite3.connect('beevy.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, email, password FROM users WHERE username=?",(username,))
+    cursor.execute("SELECT id, username, email, password, last_login_at FROM users WHERE username=?",(username,))
     user = cursor.fetchone()
     if not user:
         conn.close()
@@ -413,20 +420,36 @@ def settingsSecurity(username):
         newPassword = request.form.get('newPassword')
         newPassword2 = request.form.get('newPassword2')
 
+        if not newPassword:
+            error = ["New password cannot be empty."]
+            return render_template("settingsSecurity.html", error=error, user=user)
         if not bcrypt.checkpw(curPassword.encode('utf-8'),user[3].encode('utf-8')):
             error = ["Current password is incorrect."]
-            return render_template("settingsSecurity.html", error=error)
+            return render_template("settingsSecurity.html", error=error, user=user)
         if (newPassword!=newPassword2):
             error = ["Passwords do not match."]
-            return render_template("settingsSecurity.html",error=error)
+            return render_template("settingsSecurity.html",error=error,user=user)
         
-        newHash = None if not newPassword else bcrypt.hashpw(newPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        newHash = bcrypt.hashpw(newPassword.encode('utf-8'),bcrypt.gensalt()).decode('utf-8')
+
         cursor.execute("UPDATE users SET password=? WHERE id=?",(newHash,user[0]))
         conn.commit()
         conn.close()
-        return redirect(url_for("settingsSecurity", username=username))
+        return render_template("settingsSecurity.html", user=user)
     conn.close()
-    return render_template("settingsSecurity.html")
+    return render_template("settingsSecurity.html", user=user)
+
+@app.route('/<username>/settings/logout',methods=["GET","POST"])
+def settingsLogout(username):
+    if 'username' not in session: #kontroluje jestli je vytvorena session
+        return redirect(url_for("login"))
+    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
+        errorH = ["Unauthorized"]
+        return render_template("error.html", errorH = errorH) , 403
+    if request.method == "POST":
+        session.clear()
+        return redirect(url_for("index"))
+    return render_template("settingsLogout.html")
 
 @app.route("/<username>/settings/delete")
 def settingsDelete(username):
@@ -438,18 +461,6 @@ def settingsDelete(username):
         return render_template("error.html", errorH = errorH) , 403
     return render_template("settingsDelete.html")
 
-
-@app.route('/<username>/logout',methods=["GET","POST"])
-def logout(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        errorH = ["Unauthorized"]
-        return render_template("error.html", errorH = errorH) , 403
-    if request.method == "POST":
-        session.clear()
-        return redirect(url_for("index"))
-    return render_template("logout.html")
 
 
 @app.route('/shop')

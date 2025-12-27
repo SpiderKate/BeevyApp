@@ -6,11 +6,11 @@
 <h2>Security Settings</h2>
 {% if error %}
         <p class = "error">
-            {% for error in error %}
-                {{ error }}
+            {% for msg in error %}
+                {{ msg }}
             {% endfor %}
         </p>
-    {% endif %}
+{% endif %}
 
 <form method="POST" id="securityForm">
 
@@ -23,8 +23,14 @@
     <label>New Password Again</label>
     <input type="password" name="newPassword2" placeholder="Please type your new password again." required>
 
-    <button type="submit">Save</button>
+    <label>Last Login</label>
+    {{ user[4] }}
+    <br>
+
+    <button type="submit" style="margin-left: 40%;">Save</button>
 </form>
+
+
 <div id="statusMessage" style="color: green; margin-top: 10px;"></div>
 <!--
 <script>

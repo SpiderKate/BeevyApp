@@ -14,7 +14,7 @@
             <h3>{{ item[1] }}</h3>
             <p>By {{ item[4] }}</p>
             <p>Price: {{ item[2] }}</p>
-            <img src="{{ item[3] }}" alt="Thumbnail" style="max-width:150px;">
+            <img src="{{ url_for('static', filename=item[3]) }}" alt="Thumbnail" style="max-width:150px;">
         </div>
     </a>
     {% endfor %}

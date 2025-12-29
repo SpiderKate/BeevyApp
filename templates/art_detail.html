@@ -16,7 +16,7 @@
 <p>Turnaround time: {{ item[3] }}</p>
 
 <h3>Thumbnail</h3>
-{% if item[7] %}
+{% if item[6] %}
     <img src="{{ url_for('static', filename=item[6]) }}" alt="Thumbnail" style="max-width:300px;">
 {% endif %}
 

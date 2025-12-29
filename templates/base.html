@@ -24,23 +24,7 @@
             </div>
         {% endif %}
     {% endwith %}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const msgs = document.querySelectorAll('.msg'); // select all messages
-            msgs.forEach(msg => {
-                //fade in
-                setTimeout(() => msg.classList.add('show'), 150); // fade in each after 0.3s
-                 // close on click
-                const closeBtn = msg.querySelector('.close-btn');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => {
-                        msg.style.opacity = '0';
-                        setTimeout(() => msg.remove(), 500); // remove after fade-out
-                    });
-                }
-            });
-        });
-</script>
+    
 
         
     {% if session.username %}
@@ -80,6 +64,23 @@
                 menu.classList.add("hidden");
             }
         });
-    </script>
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('close-btn')) {
+        const msg = e.target.closest('.msg');
+        if (msg) {
+            msg.style.opacity = '0';
+            setTimeout(() => msg.remove(), 500);
+        }
+    }
+});
+
+// optional fade-in
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.msg').forEach(msg => {
+        setTimeout(() => msg.classList.add('show'), 150);
+    });
+});
+
+</script>
 </body>
 </html>

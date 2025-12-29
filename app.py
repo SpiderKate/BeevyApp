@@ -509,15 +509,18 @@ def art_detail(art_id):
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
-    print(f"Item: {item}")
+    
     conn.close()
 
     if not item:
         return "Item not found", 404
 
     # split examples_path into a list for HTML display
-    examples_list = item[7].split(",") if item[7] else []
-
+    if item[7]:
+        examples_list = item[7].split(",")
+    else:
+        examples_list = []
+    print(f"Item: {item}")
     return render_template("art_detail.html", item=item, examples_list=examples_list)
 
 

@@ -140,6 +140,7 @@ a:hover {
          1px  1px 0 var(--text-outline);
     opacity: 0;
     transition: opacity 0.15s ease-in;
+    z-index: 20;
 }
 
 .msg.show {
@@ -178,4 +179,12 @@ a:hover {
 }
 .msg .close-btn:hover {
     color: #1b1817;
+}
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
 }

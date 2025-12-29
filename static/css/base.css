@@ -1,8 +1,10 @@
 :root {
     --primary-bg: #8860cc;
+    --details: #bea4e7;
     --primary-text: rgb(247, 235, 78);
     --accent-color: #f7eb4e;
     --transition-speed: 0.3s;
+    --text-outline: transparent;
 }
 
 body {
@@ -121,4 +123,59 @@ a:hover {
     object-fit: cover;
     margin-right: 8px;
     vertical-align: middle;
+}
+
+.msg {
+    padding: 12px 14px;
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 15px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border: 1px solid transparent;
+    font-weight: 500;
+    text-shadow:
+        -1px -1px 0 var(--text-outline),
+         1px -1px 0 var(--text-outline),
+        -1px  1px 0 var(--text-outline),
+         1px  1px 0 var(--text-outline);
+    opacity: 0;
+    transition: opacity 0.15s ease-in;
+}
+
+.msg.show {
+    opacity: 1;
+}
+
+/* Info messages */
+.msg.info {
+    --text-outline: rgba(147, 197, 253, 0.5);
+    background: rgba(219, 234, 254, 0.18);
+    color: #305dda;
+    border-color: var(--text-outline);
+}
+
+/* Success messages */
+.msg.success {
+    --text-outline: rgba(111, 207, 151, 0.5);
+    background: rgba(200, 241, 209, 0.18);
+    color: #145a32;
+    border-color: var(--text-outline);
+}
+
+/* Error messages */
+.msg.error {
+    --text-outline: rgba(248, 113, 113, 0.5);
+    background: rgba(253, 226, 226, 0.18);
+    color: #7f1d1d;
+    border-color: var(--text-outline);
+}
+
+.msg .close-btn {
+    float: right;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+}
+.msg .close-btn:hover {
+    color: #1b1817;
 }

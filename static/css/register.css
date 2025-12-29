@@ -87,18 +87,6 @@ label {
     box-shadow: 0 0 10px rgba(247, 235, 78, 0.6);
 }
 
-/* Error message list */
-.error-list {
-    list-style: none;
-    padding: 10px;
-    background: rgba(255, 150, 50, 0.1);
-    border: 1px solid #ff944d;
-    color: #ff944d;
-    border-radius: 8px;
-    max-width: 400px;
-    margin: 15px auto;
-}
-
 /* Links */
 .link, .linkText {
     color: var(--primary-text);

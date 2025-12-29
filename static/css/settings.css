@@ -77,14 +77,3 @@ button:hover {
     margin-bottom: 15px;
     object-fit: cover;
 }
-
-.error {
-    list-style: none;
-    padding: 10px;
-    background: rgba(255, 150, 50, 0.1);
-    border: 1px solid #ff944d;
-    color: #ff944d;
-    border-radius: 8px;
-    max-width: 400px;
-    margin: 15px auto;
-}

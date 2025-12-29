@@ -12,7 +12,36 @@
 <body>
 
     <!-- horni profil -->
-    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, msg in messages %}
+                    <p class="msg {{ category }}">
+                        {{ msg }}
+                        <span class="close-btn">&times;</span>
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const msgs = document.querySelectorAll('.msg'); // select all messages
+            msgs.forEach(msg => {
+                //fade in
+                setTimeout(() => msg.classList.add('show'), 150); // fade in each after 0.3s
+                 // close on click
+                const closeBtn = msg.querySelector('.close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        msg.style.opacity = '0';
+                        setTimeout(() => msg.remove(), 500); // remove after fade-out
+                    });
+                }
+            });
+        });
+</script>
+
         
     {% if session.username %}
 <div class="user-menu">

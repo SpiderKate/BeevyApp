@@ -39,40 +39,9 @@
 
     <button type="submit">Save</button>
 </form>
-<div id="statusMessage" style="color: green; margin-top: 10px;"></div>
 <script>
-    document.getElementById('accountForm').addEventListener('submit', async function(e){
-    e.preventDefault(); // prevent full page refresh
-
-    
-    const username = "{{ session['username'] }}"; // dynamically from Flask session
-
-    
-    const formData = new FormData(document.getElementById('avatarForm'));
-     response = await fetch(`/username/settings/profile`, {
-    method: 'POST',
-    body: formData
-    });
-     data = await response.json();
-    document.querySelector('.user-avatar').src = `/static/${data.avatar_path}`;
-
-    
-
-    
-
-    const statusMessage = document.getElementById('statusMessage');
-
     if (response.ok){
-        const data = await response.json();
-        statusMessage.innerText = "Settings updated successfully!";
-        console.log("Updated account data:", data);
-        // optionally update theme dynamically
-        document.body.className = data.theme;
-    } else {
-        const error = await response.json();
-        statusMessage.innerText = `Error: ${error.error}`;
-        statusMessage.style.color = "red";
+        location.reload(); // flash messages now appear normally
     }
-});
 </script>
 {% endblock %}

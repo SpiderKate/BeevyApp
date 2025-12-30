@@ -140,7 +140,7 @@ body::before {
 }
 
 
-.page-content {
+.art-detail{
   position: relative;
   z-index: 10;
 }   

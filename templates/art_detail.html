@@ -27,6 +27,15 @@
     {% endfor %}
 {% endif %}
 
+<!-- TODO: Buy / Edit / Owned buttons -->
+{% if session.username == item[-1] %}
+        <!-- AUTHOR -->
+        <button>Edit artwork</button>
+{% else %}
+        <!-- BUYER -->
+        <button>Buy for {{ item[4] }} BP</button>
+{% endif %}
+
 </div>
 
 {% endblock %}

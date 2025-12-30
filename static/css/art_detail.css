@@ -42,7 +42,7 @@ body::before {
     width: 100%;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     position: relative;
-    z-index: 2;
+    z-index: 5;
     animation: fadeIn 0.5s ease-out;
 }
 
@@ -138,3 +138,9 @@ body::before {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+
+.page-content {
+  position: relative;
+  z-index: 10;
+}   

@@ -18,6 +18,7 @@ body {
     text-align: center;
     overflow-x: hidden;
     position: relative;
+    z-index: 0;
     
 }
 
@@ -42,7 +43,7 @@ body::before {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    z-index: 0;
+    z-index: 1;
 }
 
 .hex-bg {
@@ -59,7 +60,7 @@ body::before {
     left: var(--x);
     animation: floatHex 6s ease-in-out infinite alternate;
     animation-delay: var(--delay);
-    z-index: 0;
+    z-index: 1;
 }
 
 @keyframes floatHex {
@@ -69,12 +70,6 @@ body::before {
 }
 
 /* Title & Description */
-#placeholder_Beevy {
-    font-size: 3rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-    animation: float 6s ease-in-out infinite;
-}
 
 #title-container {
     display: inline-flex;
@@ -83,11 +78,12 @@ body::before {
     font-size: 3rem;
     font-weight: bold;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 #bee {
     animation: bee-fly 3s ease-in-out infinite alternate;
+    z-index: 2;
 }
 
 @keyframes bee-fly {
@@ -108,6 +104,7 @@ body::before {
     max-width: 600px;
     font-size: 1.2rem;
     margin-bottom: 40px;
+    z-index: 2;
 }
 
 /* HEX GRID / HONEYCOMB */
@@ -116,6 +113,7 @@ body::before {
     flex-wrap: wrap;
     justify-content: center;
     gap: -15px; /* overlap for honeycomb effect */
+    z-index: 5;
 }
 
 .hex {
@@ -135,6 +133,7 @@ body::before {
     cursor: pointer;
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
     animation: buzz 4s ease-in-out infinite alternate;
+    z-index: 5;
 }
 
 .hex:nth-child(odd) {

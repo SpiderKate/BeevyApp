@@ -37,7 +37,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template("index.html", page="index")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -84,13 +84,13 @@ def login():
                 login_errors.append("Invalid username or e-mail")
             for err in login_errors:
                 flash(err,"error")
-            return redirect(url_for("login"))
+            return redirect(url_for("login", page="login"))
         except Exception as e:
             return f"Something went wrong: {e}"
         finally:
             conn.close()
     else:
-        return render_template("login.html")
+        return render_template("login.html", page="login")
     
     
 @app.route('/register', methods = ['GET','POST'])
@@ -125,7 +125,7 @@ def register():
                 cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
                 conn.commit()
                 flash("Registration was successful.","success")
-                return redirect(url_for("login"))
+                return redirect(url_for("login", page="login"))
             if existing_user:
                 print('username in use')
                 flash("Username is already taken.","error")
@@ -136,25 +136,63 @@ def register():
                 a = 1
             #kdyz nejsou zadne chyby tak input ze stranky zapise do db
             if a==1:
-                return redirect(url_for("register"))
+                return redirect(url_for("register", page="register"))
         finally:
             conn.close()
-    return render_template("register.html")        
+    return render_template("register.html", page="register")        
 
 #userpage
-@app.route('/<username>',methods=["GET","POST"])
+@app.route('/<username>')
 def userPage(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
+    viewer = session.get('username')
+    is_owner = viewer == username
+
     conn = sqlite3.connect('beevy.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT username FROM users WHERE username=?", (username,))
-    username_data = cursor.fetchone()
+
+    # fetch user
+    cursor.execute("""
+        SELECT id, username, bio, avatar_path
+        FROM users
+        WHERE username = ?
+    """, (username,))
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        return "User not found", 404
+
+    # fetch selling art
+    cursor.execute("""
+        SELECT id, title, price, thumbnail_path
+        FROM art
+        WHERE user_ID = ?
+    """, (user[0],))
+    selling = cursor.fetchall()
+
+    # fetch owned art ONLY if owner
+    owned = []
+    if is_owner:
+        cursor.execute("""
+            SELECT art.id, art.title, art.thumbnail_path
+            FROM art
+            JOIN art_ownership ON art.id = art_ownership.art_id
+            WHERE art_ownership.owner_id = ?
+        """, (user[0],))
+        
+        owned = cursor.fetchall()
+        print(f"Art: {owned}")
+
     conn.close()
-    return render_template('userPage.html', username_data=username_data)
+
+    return render_template(
+        'userPage.html',
+        user=user,
+        selling=selling,
+        owned=owned,
+        is_owner=is_owner
+    )
+
 
 @app.route('/join/<room_ID>', methods=['GET','POST'])
 def join_room_page(room_ID):
@@ -174,12 +212,12 @@ def join_room_page(room_ID):
     room_name, password_hash, room_type = room
     if room_type == True:
         session.setdefault('verified_rooms', []).append(room_ID)
-        return redirect(url_for('draw', room_ID=room_ID))
+        return redirect(url_for('draw', room_ID=room_ID, page="draw"))
     if request.method == 'POST':
         entered_password = request.form['password']
         if password_hash and bcrypt.checkpw(entered_password.encode('utf-8'), password_hash.encode('utf-8')):
             session.setdefault('verified_rooms', []).append(room_ID)
-            return redirect(url_for('draw', room_ID=room_ID))
+            return redirect(url_for('draw', room_ID=room_ID, page="draw"))
         else:
             return render_template('roomPassword.html', error="Wrong password!", room_ID=room_ID)
     return render_template('roomPassword.html', room_ID=room_ID)
@@ -191,10 +229,13 @@ def draw(room_ID):
         flash("Log in is first to draw.","error")
         return redirect(url_for("login"))
     try:
+        username = session.get("username")
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
         cursor.execute("SELECT is_public FROM rooms WHERE room_ID =?",(room_ID,))
         result = cursor.fetchone()
+        cursor.execute("SELECT default_brush_size FROM users WHERE username=?",(username,))
+        brush = cursor.fetchone()
     finally:
         conn.close()
     
@@ -205,7 +246,7 @@ def draw(room_ID):
     room_type = result[0]
     if room_type == 'private' and room_ID not in verified_rooms:
         return redirect(url_for('join_room_page', room_ID=room_ID))
-    return render_template('draw.html',room_ID=room_ID)
+    return render_template('draw.html',room_ID=room_ID, page="draw", brush=brush)
 
 draw_history = {}
 @app.route('/create',methods=['GET','POST'])
@@ -293,7 +334,7 @@ def option():
 @app.route('/<username>/settings')
 def settings(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Login first to access settings")
+        flash("Log in first to access settings")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         flash("You shall not trespass in other's property.", "error")
@@ -305,7 +346,7 @@ def settings(username):
 def settingsProfile(username):
     
     if "username" not in session:
-        flash("Login first to access settings.","error")
+        flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
 
     if session["username"] != username:
@@ -361,7 +402,7 @@ def settingsProfile(username):
 @app.route("/<username>/settings/account", methods=["GET","POST"])
 def settingsAccount(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Login first to access settings.","error")
+        flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         flash("You shall not trespass in other's property.", "error")
@@ -407,7 +448,7 @@ def settingsAccount(username):
 def settingsSecurity(username):
     error = []
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Login first to access settings.","error")
+        flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         flash("You shall not trespass in other's property.", "error")
@@ -453,7 +494,7 @@ def settingsSecurity(username):
 @app.route('/<username>/settings/logout',methods=["GET","POST"])
 def settingsLogout(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Login first to access settings.","error")
+        flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         flash("You shall not trespass in other's property.", "error")
@@ -466,7 +507,7 @@ def settingsLogout(username):
 @app.route("/<username>/settings/delete")
 def settingsDelete(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Login first to access settings.","error")
+        flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session)
         flash("You shall not trespass in other's property.", "error")
@@ -522,6 +563,107 @@ def art_detail(art_id):
         examples_list = []
     print(f"Item: {item}")
     return render_template("art_detail.html", item=item, examples_list=examples_list)
+
+@app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
+def buy_art(art_id):
+    # Must be logged in
+    if "username" not in session:
+        flash("Login first to buy artwork.", "error")
+        return redirect(url_for("login"))
+
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+
+    # Get user
+    cursor.execute(
+        "SELECT id, bee_points FROM users WHERE username=?",
+        (session["username"],)
+    )
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        flash("User not found.", "error")
+        return redirect(url_for("shop"))
+
+    user_id, user_points = user
+
+    # Get artwork
+    cursor.execute("""
+        SELECT id, price, user_ID, title
+        FROM art
+        WHERE id = ?
+    """, (art_id,))
+    art = cursor.fetchone()
+
+    if not art:
+        conn.close()
+        flash("Artwork not found.", "error")
+        return redirect(url_for("shop"))
+
+    art_id, price, author_id, title = art
+
+    # Prevent author buying own art
+    if user_id == author_id:
+        conn.close()
+        flash("You cannot buy your own artwork.", "error")
+        return redirect(url_for("art_detail", art_id=art_id))
+
+    #Check ownership
+    cursor.execute("""
+        SELECT 1 FROM art_ownership
+        WHERE art_id = ? AND owner_id = ?
+    """, (art_id, user_id))
+
+    if cursor.fetchone():
+        conn.close()
+        flash("You already own this artwork.", "info")
+        return redirect(url_for("art_detail", art_id=art_id))
+    
+    #GET -> Confirmation page
+   
+    if request.method == "GET":
+        conn.close()
+        return render_template(
+            "buy_confirm.html",
+            art_id=art_id,
+            title=title,
+            price=price,
+            user_points=user_points
+        )
+
+    #POST -> Perform purchase
+    if user_points < price:
+        conn.close()
+        flash("Not enough BeePoints.", "error")
+        return redirect(url_for("art_detail", art_id=art_id))
+
+    try:
+        # subtract points
+        cursor.execute("""
+            UPDATE users
+            SET bee_points = bee_points - ?
+            WHERE id = ?
+        """, (price, user_id))
+
+        # create ownership
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("""
+            INSERT INTO art_ownership (art_id, owner_id, acquired_at)
+            VALUES (?, ?, ?)
+        """, (art_id, user_id, now))
+
+        conn.commit()
+        flash("Artwork purchased successfully!", "success")
+
+    except Exception as e:
+        conn.rollback()
+        flash("Purchase failed. Try again.", "error")
+
+    finally:
+        conn.close()
+
+    return redirect(url_for("art_detail", art_id=art_id))
 
 
 @app.route("/create_art", methods=["GET", "POST"])

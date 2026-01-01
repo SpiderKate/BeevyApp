@@ -1,13 +1,72 @@
 {% extends "base.html" %}
-
-{% block title %}Your hive cell🐝{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/styles_test.css">
-{% endblock %}
+{% block title %}{{ user[1] }}{% endblock %}
 
 {% block content %}
-    <h2>Welcome, {{ username_data[0] }}</h2>
-    <a href="/option" class="link">Draw</a><br>
-    <a href="/" class="link">Back</a>
+<div class="profile">
+
+    <!-- HEADER -->
+    <div class="profile-header">
+        <img src="{{ url_for('static', filename=user[3] or 'images/default_avatar.png') }}"
+             class="profile-avatar" style="max-width:150px">
+
+        <div>
+            <h2>{{ user[1] }}</h2>
+            {% if user[2] %}
+                <p class="bio">{{ user[2] }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="profile-tabs">
+        <button onclick="showTab('selling')">Selling</button>
+
+        {% if is_owner %}
+            <button onclick="showTab('owned')">Owned</button>
+        {% endif %}
+    </div>
+
+    <!-- SELLING -->
+    <div id="selling" class="tab active">
+        {% if selling %}
+            <div class="art-grid">
+                {% for art in selling %}
+                    <a href="/shop/{{ art[0] }}" class="art-card">
+                        <img src="{{ url_for('static', filename=art[3]) }}" style="max-width:200px">
+                        <p>{{ art[1] }}</p>
+                        <span>{{ art[2] }} 🐝</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No artworks yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- OWNED -->
+    {% if is_owner %}
+    <div id="owned" class="tab">
+        {% if owned %}
+            <div class="art-grid">
+                {% for art in owned %}
+                    <a href="/shop/{{ art[0] }}" class="art-card">
+                        <img src="{{ url_for('static', filename=art[2]) }}" style="max-width:200px">
+                        <p>{{ art[1] }}</p>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You don’t own anything yet.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+}
+</script>
+
 {% endblock %}

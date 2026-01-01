@@ -5,64 +5,6 @@
     --transition-speed: 0.3s;
 }
 
-/* Global Styles */
-body {
-    background: radial-gradient(circle at top left, #c683ec, #7060cc 70%);
-    color: var(--primary-text);
-    font-family: 'Poppins', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    text-align: center;
-    overflow-x: hidden;
-    position: relative;
-    z-index: 0;
-    
-}
-
-body::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        repeating-linear-gradient(30deg, rgba(247,235,78,0.03) 0, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-30deg, rgba(247,235,78,0.03) 0, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px);
-    background-size: 40px 70px;
-    pointer-events: none;
-}
-
-.hex-bg-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.hex-bg {
-    position: absolute;
-    width: 60px;
-    height: 70px;
-    background-color: rgba(247, 235, 78, 0.1);
-    clip-path: polygon(
-        25% 6.7%, 75% 6.7%,
-        100% 50%, 75% 93.3%,
-        25% 93.3%, 0% 50%
-    );
-    top: var(--y);
-    left: var(--x);
-    animation: floatHex 6s ease-in-out infinite alternate;
-    animation-delay: var(--delay);
-    z-index: 1;
-}
-
 @keyframes floatHex {
     0% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
     50% { transform: translateY(-20px) rotate(20deg); opacity: 0.6; }
@@ -74,6 +16,7 @@ body::before {
 #title-container {
     display: inline-flex;
     align-items: center;
+    text-align: center;
     gap: 10px; /* space between text and bee */
     font-size: 3rem;
     font-weight: bold;
@@ -81,6 +24,12 @@ body::before {
     z-index: 2;
 }
 
+#Beevy {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    animation: float 6s ease-in-out infinite;
+}
 #bee {
     animation: bee-fly 3s ease-in-out infinite alternate;
     z-index: 2;
@@ -101,10 +50,11 @@ body::before {
 }
 
 #about {
-    max-width: 600px;
     font-size: 1.2rem;
-    margin-bottom: 40px;
+    margin: 0 auto;
     z-index: 2;
+    text-align: center;
+    max-width: 100vh;
 }
 
 /* HEX GRID / HONEYCOMB */
@@ -160,66 +110,6 @@ body::before {
     box-shadow: 0 0 15px rgba(247, 235, 78, 0.7);
 }
 
-/* Base link style (for normal text links) */
-a {
-  color: rgb(247, 235, 78); /* your golden yellow */
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-  font-family: "Trebuchet MS", Arial, sans-serif;
-}
-
-/* On hover: lighter glow and gentle enlargement */
-a:hover {
-  color: #fff6a3; /* lighter yellow */
-  text-shadow: 0 0 10px rgba(255, 255, 200, 0.7);
-  transform: scale(1.05);
-}
-
-/* --- Room list styling --- */
-.room-list {
-  list-style: none;
-  padding: 0;
-  margin: 50px auto;
-  text-align: center;
-  max-width: 400px;
-}
-
-/* Each room link styled like a button */
-.room-list li a {
-  display: block;
-  background-color: #a17cf4; /* slightly lighter purple for contrast */
-  color: rgb(247, 235, 78);
-  padding: 12px 20px;
-  border-radius: 12px;
-  margin: 10px 0;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-  transition: all 0.25s ease-in-out;
-}
-
-/* Hover effect for the room buttons */
-.room-list li a:hover {
-  background-color: #b391ff;
-  color: white;
-  text-shadow: 0 0 6px rgba(255,255,255,0.6);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-  transform: translateY(-2px);
-}
-
-/* Optional: add subtle fade animation when page loads */
-.room-list li {
-  opacity: 0;
-  animation: fadeInUp 0.6s ease forwards;
-}
-.room-list li:nth-child(1) { animation-delay: 0.1s; }
-.room-list li:nth-child(2) { animation-delay: 0.2s; }
-.room-list li:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 
 /* Hex Content */
 .hex-content {
@@ -230,26 +120,3 @@ a:hover {
     padding: 5px;
 }
 
-/* Footer */
-footer {
-    margin-top: 50px;
-    font-size: 0.9rem;
-    color: var(--accent-color);
-}
-
-button {
-    background: linear-gradient(90deg, #a77bff, #8860cc);
-    color: var(--primary-text);
-    border: none;
-    padding: 10px 25px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: var(--transition-speed);
-    font-weight: bold;
-    z-index: 5;
-}
-button:hover {
-    transform: scale(1.05);
-    background: linear-gradient(90deg, #b391ff, #9c7cff);
-    box-shadow: 0 0 10px rgba(247, 235, 78, 0.6);
-}

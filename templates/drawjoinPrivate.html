@@ -3,13 +3,16 @@
 {% block title %}Join a private room🐝{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="/static/css/room.css">
 {% endblock %}
 
 <!-- mistnostiPrivate -->
 {% block content %}
     <h2>Seznam místností:</h2>
     {% for name, room_id in rooms %}
+    <ul>
             <a href="{{ url_for('join_room_page', room_ID=room_id) }}">{{ name }}</a>
+        </ul>
     {% endfor %}
     <br>
 

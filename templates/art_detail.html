@@ -11,9 +11,9 @@
 
 <h2>{{ item[1] }}</h2>
 <p>By {{ item[-1] }}</p>
-<p>Price: {{ item[4] }}</p>
+<p>Price: {{ item[4] }} BP</p>
 <p>Description: {{ item[2] }}</p>
-<p>Turnaround time: {{ item[3] }}</p>
+<p>Turnaround time: {{ item[3] }} days</p>
 
 <h3>Thumbnail</h3>
 {% if item[6] %}
@@ -33,7 +33,9 @@
         <button>Edit artwork</button>
 {% else %}
         <!-- BUYER -->
-        <button>Buy for {{ item[4] }} BP</button>
+        <a href="/shop/{{ item[0] }}/buy" class="btn buy">
+            Buy for {{ item[4] }} BP
+        </a>
 {% endif %}
 
 </div>

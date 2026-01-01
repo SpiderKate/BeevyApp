@@ -8,8 +8,22 @@
     {% block extra_css %}{% endblock %}
     <title>{% block title %}Beevy{% endblock %}</title>
 </head>
+<div class="hex-bg-container">
+        <div class="hex-bg" style="--x:10%; --y:20%; --delay:0s;"></div>
+        <div class="hex-bg" style="--x:50%; --y:30%; --delay:1s;"></div>
+        <div class="hex-bg" style="--x:80%; --y:60%; --delay:2s;"></div>
+        <div class="hex-bg" style="--x:20%; --y:70%; --delay:3s;"></div>
+        <div class="hex-bg" style="--x:70%; --y:10%; --delay:4s;"></div>
+        <div class="hex-bg" style="--x:40%; --y:50%; --delay:5s;"></div>
+        <div class="hex-bg" style="--x:60%; --y:80%; --delay:6s;"></div>
+        <!-- Add more for variety -->
+    </div>
+<body class="{{ page }}">
+<!-- bee toggle -->
 
-<body>
+<img src="/static/images/beee.svg" id="bee-toggle" class="bee-toggle" onclick="toggleSidebar()" alt="bee toggle" title="Menu">
+<div class="menu-label">Menu</div>
+
 
     <!-- horni profil -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -39,19 +53,30 @@
         {{ session.get('username') }}
     </div>
     <div id="user-dropdown" class="dropdown hidden">
-        <a href="/">Home</a>
         <a href="/{{ session.get('username') }}">Profile</a>
         <a href="/create_art">Create a commission/art</a>
-        <a href="">Your commissions/art</a>
         <a href="/{{ session.get('username') }}/settings">Settings</a>
     </div>
 </div>
 {% endif %}
+<div class="app">
+{% if session.username %}
+    <aside class="sidebar">
+        <h2 class="logo">🐝 Beevy</h2>
 
+        <nav>
+            <a href="/">🏠 Home</a>
+            <a href="/shop">🛒 Shop</a>
+            <a href="/option">🎨 Draw</a>
+        </nav>
+    </aside>
+{% endif %}
+<!-- obsah jednotlivych stranky -->
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
 
-
-    <!-- obsah kazdé stranky -->
-    {% block content %}{% endblock %}
+</div>
     
     <script>
         function toggleMenu(){
@@ -64,22 +89,57 @@
                 menu.classList.add("hidden");
             }
         });
-document.addEventListener('click', function (e) {
-    if (e.target.classList.contains('close-btn')) {
-        const msg = e.target.closest('.msg');
-        if (msg) {
-            msg.style.opacity = '0';
-            setTimeout(() => msg.remove(), 500);
-        }
-    }
-});
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const bee = document.querySelector('.bee-toggle');
+            const menu = document.querySelector('.menu-label');
 
-// optional fade-in
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.msg').forEach(msg => {
-        setTimeout(() => msg.classList.add('show'), 150);
-    });
-});
+            if (!sidebar.classList.contains('visible')) {
+                // Remove any previous animation to restart
+                bee.style.animation = 'none';
+                void bee.offsetWidth; // trigger reflow
+                menu.style.animation = 'none';
+                void menu.offsetWidth;
+        // Animate bee to “grab” sidebar
+                bee.style.animation = 'bee-pull 1s forwards,  bee-flap 0.3s ease-in-out 5';
+                menu.style.animation = 'bee-pull 1s forwards';
+
+        // After animation, show sidebar and shift content
+                setTimeout(() => {
+                    sidebar.classList.add('visible');
+                }, 612);
+            } else {
+        // Hide sidebar
+                bee.style.animation = 'none';
+                void bee.offsetWidth;
+                menu.style.animation = 'none';
+                void menu.offsetWidth;
+                bee.style.animation = 'bee-pull 0.9s reverse,  bee-flap 0.3s ease-in-out 3';
+                menu.style.animation = 'bee-pull 0.9s reverse';
+                setTimeout(() => {
+                    sidebar.classList.remove('visible');
+                }, 180);
+                
+                
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('close-btn')) {
+                const msg = e.target.closest('.msg');
+                if (msg) {
+                    msg.style.opacity = '0';
+                    (() => msg.remove(), 500);
+                }
+            }
+        });
+
+// fade-in
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.msg').forEach(msg => {
+            setTimeout(() => msg.classList.add('show'), 150);
+            });
+        });
 
 </script>
 </body>

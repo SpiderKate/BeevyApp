@@ -43,42 +43,28 @@
                         <span>Eraser</span>
                     </li>
                     <li class="option">
-                        <div id="size">150</div>
+                        <div id="size">{{ brush[0] }}</div>
                     </li>
                     <li class="option">
-                        <input type="range" id="sizeSlider" min="0" max="300">
+                        <input type="range" id="sizeSlider" min="0" max="300" value="{{ brush[0] }}">
                     </li>
                 </ul>
             </div>
 
             <div id="colorPicker"></div>
                 <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
-                <script>
-                    
-                </script>
 
-            <div class="row colors">
-                <label class="title">Colors</label> 
-                <ul class =options>
-                    <li class="option"></li>
-                    <li class="option selected"></li>
-                    <li class="option"></li>
-                    <li class="option"></li>
-                    <li class="option"></li>
-                    <li class="option"></li>
-                </ul>
-            </div>
-
+<br>
             <div class="row buttons">
-                <button class="clearCanvas">Clear canvas</button>
+                <button class="clearCanvas">Clear canvas</button><br><br>
                 <button class="saveImg">Save as image</button>
             </div>
         </section>
     
 
-        <section class="drawingBoard"></section>
-        <canvas id="drawCanvas" width=1200 height=800 data-room-id="{{ room_ID }}" style="border:1px solid #000"></canvas>
-
+        <section class="drawingBoard">
+            <canvas id="drawCanvas" width=1000 height=800 data-room-id="{{ room_ID }}" style="border:1px solid #000"></canvas>
+        </section>
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
         
         <script src="{{ url_for('static', filename='script/draw.js') }}"></script>

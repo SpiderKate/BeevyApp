@@ -11,9 +11,7 @@ print(cursor.fetchone())
 #cursor.execute("DROP table art;")
 #cursor.execute("CREATE table art (id INTEGER PRIMARY KEY AUTOINCREMENT, title VARCHAR(50) NOT NULL, description VARCHAR(300),tat INT NOT NULL, price INT NOT NULL, type VARCHAR(10) NOT NULL, thumbnail_path VARCHAR, examples_path VARCHAR, slots INT, user_ID INT, FOREIGN KEY(user_ID) REFERENCES users(id));")
 #cursor.execute("CREATE table rooms (id INTEGER PRIMARY KEY AUTOINCREMENT, room_ID INT, name VARCHAR(100), password VARCHAR(100), is_public BOOLEAN, user_ID INT, FOREIGN KEY(user_ID) REFERENCES users(id));")
-#cursor.execute("""
-#    ALTER TABLE users ADD COLUMN last_login_at TEXT;
-#""")
+#cursor.execute("ALTER TABLE users ADD COLUMN bee_points INTEGER DEFAULT 5000;")
 #cursor.execute("CREATE table art_ownership (id INTEGER PRIMARY KEY AUTOINCREMENT, art_id INTEGER, owner_id INTEGER, acquired_at TEXT, source TEXT, is_exclusive BOOLEAN, FOREIGN KEY(art_id) REFERENCES art(id), FOREIGN KEY(owner_id) REFERENCES users(id));")
 
 

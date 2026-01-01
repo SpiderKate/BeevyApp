@@ -11,6 +11,24 @@ function sendDrawData(drawData) {
     socket.emit('draw', { room: room_ID, ...drawData });
 }
 
+function resizeCanvas() {
+    // save current drawing
+    const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // set canvas width and height to match its CSS size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // restore previous drawing
+    ctx.putImageData(temp, 0, 0);
+}
+
+// call on page load
+resizeCanvas();
+
+// call on window resize
+window.addEventListener('resize', resizeCanvas);
+
 let drawing = false;
 let lastX = 0;
 let lastY = 0;
@@ -35,6 +53,8 @@ toolBtns.forEach(btn => {
     btn.addEventListener("click", () => {
         currentTool = btn.id; // ulozi aktivni nastroj
         console.log("Selected tool:", currentTool);
+        //currentTool.classList.add('active');
+        //!currentTool.classList.remove('active')
     });
 });
 

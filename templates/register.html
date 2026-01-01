@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="form-wrapper">
     <form method="POST" action="/register">
         <label for="name">Name</label><br>
         <input type="text" id="name" name="name" class="input"><br><br>
@@ -25,5 +26,7 @@
             Already part of the hive? <a class="link" href="/login">Login here</a>
         </p>
     </form>
+</div>
+    <br>
     <a href="/" class="link">Main page</a>
 {% endblock %}

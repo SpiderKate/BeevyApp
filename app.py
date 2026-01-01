@@ -108,6 +108,9 @@ def register():
         email = request.form['email']
         dob = request.form['dob']
 
+        if len(username)>20:
+            flash("Username is too long.","info")
+            return render_template("register.html")
         #hash hesla
         hash = None if not password else bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
@@ -166,7 +169,7 @@ def userPage(username):
     cursor.execute("""
         SELECT id, title, price, thumbnail_path
         FROM art
-        WHERE user_ID = ?
+        WHERE user_id = ?
     """, (user[0],))
     selling = cursor.fetchall()
 
@@ -277,7 +280,7 @@ def create():
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM users WHERE username = ?;",(username,))
             User_ID = cursor.fetchone()
-            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public, User_ID) VALUES (?, ?, ?, ?, ?)", (name, hash, room_ID, is_public, User_ID[0]))
+            cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public, user_id) VALUES (?, ?, ?, ?, ?)", (name, hash, room_ID, is_public, User_ID[0]))
             conn.commit()
             print(f"Room created: {name} / {room_ID}")
             
@@ -526,12 +529,11 @@ def shop():
     cursor.execute("""
         SELECT art.id, art.title, art.price, art.thumbnail_path, users.username
         FROM art
-        JOIN users ON art.user_ID = users.id
+        JOIN users ON art.user_id = users.id
     """)
     items = cursor.fetchall()
     conn.close()
 
-    # items now include the thumbnail path as item[3]
     return render_template("shop.html", items=items)
 
 
@@ -546,7 +548,7 @@ def art_detail(art_id):
     cursor.execute("""
         SELECT art.*, users.username
         FROM art
-        JOIN users ON art.user_ID = users.id
+        JOIN users ON art.user_id = users.id
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
@@ -590,7 +592,7 @@ def buy_art(art_id):
 
     # Get artwork
     cursor.execute("""
-        SELECT id, price, user_ID, title
+        SELECT id, price, user_id, title
         FROM art
         WHERE id = ?
     """, (art_id,))
@@ -707,7 +709,7 @@ def create_art():
 
             cursor.execute("""
                 INSERT INTO art 
-                (title, description, tat, price, type, slots, thumbnail_path, examples_path, user_ID)
+                (title, description, tat, price, type, slots, thumbnail_path, examples_path, user_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, user_id))
             conn.commit()

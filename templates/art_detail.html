@@ -28,14 +28,26 @@
 {% endif %}
 
 <!-- TODO: Buy / Edit / Owned buttons -->
-{% if session.username == item[-1] %}
+{% if item[5]=="art" %}
+    {% if session.username == item[-1] %}
         <!-- AUTHOR -->
         <button>Edit artwork</button>
-{% else %}
+    {% else %}
         <!-- BUYER -->
         <a href="/shop/{{ item[0] }}/buy" class="btn buy">
             Buy for {{ item[4] }} BP
         </a>
+    {% endif %}
+{% elif item[5]=="commission" %}
+    {% if session.username == item[-1] %}
+        <!-- AUTHOR -->
+        <button>Edit commission</button>
+    {% else %}
+        <!-- BUYER -->
+        <a href="/shop/{{ item[0] }}/buy" class="btn buy">
+            Buy for {{ item[4] }} BP
+        </a>
+    {% endif %}
 {% endif %}
 
 </div>

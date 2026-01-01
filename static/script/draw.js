@@ -11,23 +11,36 @@ function sendDrawData(drawData) {
     socket.emit('draw', { room: room_ID, ...drawData });
 }
 
-function resizeCanvas() {
-    // save current drawing
-    const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+const BASE_WIDTH = 1600;
+const BASE_HEIGHT = 1200;
 
-    // set canvas width and height to match its CSS size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-
-    // restore previous drawing
-    ctx.putImageData(temp, 0, 0);
+function getNormalizedPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height
+    };
 }
 
-// call on page load
-resizeCanvas();
+function denormX(x) {
+    return x * canvas.width;
+}
 
-// call on window resize
-window.addEventListener('resize', resizeCanvas);
+function denormY(y) {
+    return y * canvas.height;
+}
+
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+
+    canvas.width = BASE_WIDTH;
+    canvas.height = BASE_HEIGHT;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
 let drawing = false;
 let lastX = 0;
@@ -60,8 +73,9 @@ toolBtns.forEach(btn => {
 
 canvas.addEventListener("mousedown", (e) => {
     drawing = true;
-    lastX = e.offsetX;
-    lastY = e.offsetY;
+    const pos = getNormalizedPos(e);
+    lastX = pos.x;
+    lastY = pos.y;
 
     if (currentTool === "rectangle" || currentTool === "triangle" || currentTool === "circle") {
         saveCanvasState();
@@ -69,11 +83,12 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mouseup", (e) => {
+    const pos = getNormalizedPos(e);
     const data = { 
             fromX: lastX,
             fromY: lastY,
-            toX: e.offsetX,
-            toY: e.offsetY,
+            toX: pos.x,
+            toY: pos.y,
             color: currentColor,
             width: brushSize
         };
@@ -97,50 +112,45 @@ canvas.addEventListener("mouseup", (e) => {
 
 canvas.addEventListener("mousemove", (e) => {
     if (!drawing) return;
-
-    let x = e.offsetX;
-    let y = e.offsetY;
-    let brushSize = slider.value;
+    const pos = getNormalizedPos(e);
     
     if (currentTool === "brush") {
         const data = { 
             fromX: lastX,
             fromY: lastY,
-            toX: e.offsetX,
-            toY: e.offsetY,
+            toX: pos.x,
+            toY: pos.y,
             color: currentColor,
             width: brushSize
         };
-        x = e.offsetX;
-        y = e.offsetY;
-        sendDrawData({ type:"line", ...data});
+        sendDrawData({ type: "line", ...data });
         draw(data);
-        lastX = x;
-        lastY = y;
+
+        lastX = pos.x;
+        lastY = pos.y;
     }
     else if (currentTool === "eraser") {
-         const data = { 
+        const data = { 
             fromX: lastX,
             fromY: lastY,
-            toX: e.offsetX,
-            toY: e.offsetY,
+            toX: pos.x,
+            toY: pos.y,
             color: '#ffffff',
             width: brushSize
         };
-        x = e.offsetX;
-        y = e.offsetY;
         sendDrawData({ type:"line",  ...data});
         draw(data);
-        lastX = x;
-        lastY = y;      
+
+        lastX = pos.x;
+        lastY = pos.y;      
     }
     else if (currentTool === "rectangle") {
         restoreCanvasState();
         const data = { 
             fromX: lastX,
             fromY: lastY,
-            toX: x,
-            toY: y,
+            toX: pos.x,
+            toY: pos.y,
             color: currentColor,
             width: brushSize
         };
@@ -151,8 +161,8 @@ canvas.addEventListener("mousemove", (e) => {
         const data = { 
             fromX: lastX,
             fromY: lastY,
-            toX: x,
-            toY: y,
+            toX: pos.x,
+            toY: pos.y,
             color: currentColor,
             width: brushSize
         };
@@ -163,8 +173,8 @@ canvas.addEventListener("mousemove", (e) => {
         const data = { 
             fromX: lastX,
             fromY: lastY,
-            toX: x,
-            toY: y,
+            toX: pos.x,
+            toY: pos.y,
             color: currentColor,
             width: brushSize
         };
@@ -186,22 +196,26 @@ function restoreCanvasState() {
 //styl kresby
 function draw(data) {
     ctx.strokeStyle = data.color; //kresli/vyplnuje line barvou 
-    ctx.lineWidth = data.width;
+    ctx.lineWidth = data.width * (canvas.width / BASE_WIDTH);
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(data.fromX, data.fromY);
-    ctx.lineTo(data.toX, data.toY); //tvori line pomoci mouse event
+    ctx.moveTo(denormX(data.fromX), denormY(data.fromY));
+    ctx.lineTo(denormX(data.toX), denormY(data.toY));
     ctx.stroke();
 }
 
 function rectangle(data) {
     ctx.strokeStyle = data.color;
-    ctx.lineWidth = data.width;
+    ctx.lineWidth = data.width * (canvas.width / BASE_WIDTH);
+    const x1 = denormX(data.fromX);
+    const y1 = denormY(data.fromY);
+    const x2 = denormX(data.toX);
+    const y2 = denormY(data.toY);
 
-    const rectX = Math.min(data.fromX, data.toX);
-    const rectY = Math.min(data.fromY, data.toY);
-    const rectW = Math.abs(data.toX - data.fromX);
-    const rectH = Math.abs(data.toY - data.fromY);
+    const rectX = Math.min(x1, x2);
+    const rectY = Math.min(y1, y2);
+    const rectW = Math.abs(x2 - x1);
+    const rectH = Math.abs(y2 - y1);
 
     ctx.beginPath();
     ctx.rect(rectX, rectY, rectW, rectH);
@@ -211,31 +225,36 @@ function rectangle(data) {
 function triangle(data) {
     const { fromX, fromY, toX, toY, color, width } = data;
     ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    const triW = Math.abs(toX - fromX);
-    const triH = Math.abs(toY - fromY);
+    ctx.lineWidth = data.width * (canvas.width / BASE_WIDTH);
+    const x1 = denormX(fromX);
+    const y1 = denormY(fromY);
+    const x2 = denormX(toX);
+    const y2 = denormY(toY);
+
+    const triW = Math.abs(x2 - x1);
+    const triH = Math.abs(y2 - y1);
     ctx.beginPath();
-    ctx.moveTo(fromX,fromY);
-    ctx.lineTo(toX,toY);
-    if(fromY>toY && fromX<toX){
-        ctx.lineTo(toX+triW,toY+triH);
-        ctx.moveTo(fromX,fromY);
-        ctx.lineTo(toX+triW,fromY);
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    if(y1>y2 && x1<x2){
+        ctx.lineTo(x2+triW,y2+triH);
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2+triW,y1);
     }
-    else if (fromY<toY && fromX<toX) {
-        ctx.lineTo(toX+triW,toY-triH);
-        ctx.moveTo(fromX,fromY);
-        ctx.lineTo(toX+triW,fromY);
+    else if (y1<y2 && x1<x2) {
+        ctx.lineTo(x2+triW,y2-triH);
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2+triW,y1);
     }
-    else if (fromY>toY && fromX>toX) {
-        ctx.lineTo(toX-triW,toY+triH);
-        ctx.moveTo(fromX,fromY);
-        ctx.lineTo(toX-triW,fromY);
+    else if (y1>y2 && x1>x2) {
+        ctx.lineTo(x2-triW,y2+triH);
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2-triW,y1);
     }
-    else if (fromY<toY && fromX>toX) {
-        ctx.lineTo(toX-triW,toY-triH);
-        ctx.moveTo(fromX,fromY);
-        ctx.lineTo(toX-triW,fromY);
+    else if (y1<y2 && x1>x2) {
+        ctx.lineTo(x2-triW,y2-triH);
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2-triW,y1);
     }
     ctx.closePath();
     ctx.stroke();
@@ -244,12 +263,18 @@ function triangle(data) {
 function circle(data){
     const { fromX, fromY, toX, toY, color, width } = data;
     ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    a = Math.abs(toX-fromX);
-    b = Math.abs(toY-fromY);
-    c = Math.sqrt(a*a + b*b);
+    ctx.lineWidth = data.width * (canvas.width / BASE_WIDTH);
+    const x1 = denormX(fromX);
+    const y1 = denormY(fromY);
+    const x2 = denormX(toX);
+    const y2 = denormY(toY);
+
+    const a = x2 - x1;
+    const b = y2 - y1;
+    const c = Math.sqrt(a*a + b*b);
+
     ctx.beginPath();
-    ctx.arc(fromX, fromY, c, 0, 2 * Math.PI);
+    ctx.arc(x1, y1, c, 0, 2 * Math.PI);
     ctx.stroke();
 };
 

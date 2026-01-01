@@ -92,8 +92,9 @@ section{
 }
 
 .drawingBoard {
-    flex: 1;
-    height: calc(100vh - 60px); /* full viewport height minus padding */
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    height: auto;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -102,8 +103,8 @@ section{
 
 .drawingBoard canvas {
     background-color: white;
-    width: 120%;
-    height: 100%;
+    width: 100%;
+    height: auto;
     border-radius: 14px;
     box-shadow:
         0 0 25px rgba(247,235,78,0.15),

@@ -14,39 +14,39 @@
 
     <!-- Title -->
     <label class="form-label">Title</label>
-    <input type="text" name="title" required class="form-input">
+    <input type="text" name="title" required class="input">
 
     <!-- Description -->
     <label class="form-label">Description</label>
-    <textarea name="description" rows="4" class="form-input"></textarea>
+    <textarea name="description" rows="4" class="input"></textarea>
 
     <!-- TAT -->
     <label class="form-label">Turnaround Time (days)</label>
-    <input type="number" name="tat" min="1" required class="form-input">
+    <input type="number" name="tat" min="1" required class="input">
 
     <!-- Price -->
     <label class="form-label">Price (Beevy Points)</label>
-    <input type="number" name="price" min="1" required class="form-input">
+    <input type="number" name="price" min="1" required class="input">
 
     <!-- Type -->
     <label class="form-label">Type</label>
-    <select name="type" class="form-input" required>
+    <select name="type" class="input" required>
         <option value="art">Art</option>
         <option value="commission">Commission</option>
     </select>
 
     <!-- Slots -->
     <label class="form-label">Slots (optional)</label>
-    <input type="number" name="slots" min="1" class="form-input">
+    <input type="number" name="slots" min="1" class="input">
 
    <!-- Thumbnail -->
 <label class="form-label">Thumbnail (cover image)</label>
-<input type="file" name="thumbnail" accept="image/*" required class="form-input">
+<input type="file" name="thumbnail" accept="image/*" required class="input">
 <img id="thumbPreview" class="preview-img" style="display:none; width:150px; height:auto;">
 
 <!-- Examples -->
 <label class="form-label">Example images (optional)</label>
-<input type="file" name="examples" accept="image/*" multiple class="form-input">
+<input type="file" name="examples" accept="image/*" multiple class="input">
 <div id="examplesPreview" class="preview-container"></div>
 
     <button type="submit" class="submit" id="submit">Create</button>

@@ -149,13 +149,12 @@ def register():
 def userPage(username):
     viewer = session.get('username')
     is_owner = viewer == username
-
     conn = sqlite3.connect('beevy.db')
     cursor = conn.cursor()
 
     # fetch user
     cursor.execute("""
-        SELECT id, username, bio, avatar_path
+        SELECT id, username, bio, avatar_path, bee_points
         FROM users
         WHERE username = ?
     """, (username,))
@@ -164,6 +163,9 @@ def userPage(username):
     if not user:
         conn.close()
         return "User not found", 404
+    #if username == "SpiderKate":
+     #   cursor.execute("UPDATE users SET bee_points=? WHERE id=?",(1000000,user[0]))
+      #  conn.commit()
 
     # fetch selling art
     cursor.execute("""
@@ -340,7 +342,7 @@ def settings(username):
         flash("Log in first to access settings")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
+        flash("You shall not trespass in other's property.", "info")
         return redirect(url_for("index"))
     return render_template("settings.html")
 
@@ -353,7 +355,7 @@ def settingsProfile(username):
         return redirect(url_for("login"))
 
     if session["username"] != username:
-        flash("You shall not trespass in other's property.", "error")
+        flash("You shall not trespass in other's property.", "info")
         return redirect(url_for("index"))
 
     conn = sqlite3.connect("beevy.db")
@@ -408,7 +410,7 @@ def settingsAccount(username):
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
+        flash("You shall not trespass in other's property.", "info")
         return redirect(url_for("index"))
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
@@ -454,7 +456,7 @@ def settingsSecurity(username):
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
+        flash("You shall not trespass in other's property.", "info")
         return redirect(url_for("index"))
     
     conn = sqlite3.connect('beevy.db')
@@ -500,21 +502,43 @@ def settingsLogout(username):
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
+        flash("You shall not trespass in other's property.", "info")
         return redirect(url_for("index"))
     if request.method == "POST":
         session.clear()
+        flash("Successfully logged out.","success")
         return redirect(url_for("index"))
     return render_template("settingsLogout.html")
 
-@app.route("/<username>/settings/delete")
+@app.route("/<username>/settings/delete", methods=["GET","POST"])
 def settingsDelete(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session)
-        flash("You shall not trespass in other's property.", "error")
+        flash("You shall not trespass in other's property.", "info")
         return redirect(url_for("index"))
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    try:
+        if request.method == "POST":
+            username2 = session.get("username")
+            cursor.execute("SELECT id FROM users WHERE username=?;",(username2,))
+            id = cursor.fetchone()
+            ID = id[0]
+        
+            cursor.execute("DELETE FROM users WHERE id=?;",(id[0],))
+            print("2")
+            conn.commit()
+            print("1")
+            session.clear()
+            flash("Account was deleted successfully.", "success")
+            return redirect(url_for("index"))
+    except Exception as e:
+        return f"Something went wrong: {e}"
+    finally:
+        conn.close()
+        print("finalyly")      
     return render_template("settingsDelete.html")
 
 

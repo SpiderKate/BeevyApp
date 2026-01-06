@@ -1,19 +1,10 @@
-{% extends "base.html" %}
+{% extends "settings.html" %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/settings.css">
-{% endblock %}
+{% block title %}Log Out{% endblock %}
 
-{% block content %}
-<div class="settings-container">
-
-   
-
-    <div class="settings-content">
-        {% block settings_page %}
-        
-        {% endblock %}
-    </div>
-
-</div>
+{% block settings_page %}
+<h2>Delete account</h2>
+    <form method="POST">
+        <button type="submit">Delete account</button>
+    </form>
 {% endblock %}

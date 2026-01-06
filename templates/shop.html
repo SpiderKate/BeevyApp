@@ -12,8 +12,8 @@
     <a href="{{ url_for('art_detail', art_id=item[0]) }}" class="art-link">
         <div class="art-item">
             <h3>{{ item[1] }}</h3>
-            <p>By {{ item[4] }}</p>
-            <p>Price: {{ item[2] }}</p>
+            <p>By {{ item[-1] }}</p>
+            <p>Price: {{ item[2] }} BP</p>
             <img src="{{ url_for('static', filename=item[3]) }}" alt="Thumbnail" style="max-width:150px;">
         </div>
     </a>

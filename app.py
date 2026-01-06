@@ -5,10 +5,36 @@ import sys
 import secrets
 import string
 import os
+import shutil
 import uuid
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
 from datetime import timedelta, datetime
+
+def delete_file(relative_path):
+    if not relative_path:
+        return
+
+    full_path = os.path.join(STATIC_ROOT, relative_path)
+
+    if os.path.exists(full_path) and os.path.isfile(full_path):
+        os.remove(full_path)
+
+def generate_deleted_username(length=8):
+    """
+    Generates a unique placeholder username for deleted users.
+    Example: Deleted_User_A1B2C3D4
+    """
+    chars = string.ascii_uppercase + string.digits  # A-Z + 0-9
+    random_part = ''.join(secrets.choice(chars) for _ in range(length))
+    return f"Deleted_User_{random_part}"
+def get_unique_deleted_username(cursor):
+    while True:
+        username = generate_deleted_username()
+        cursor.execute("SELECT 1 FROM users WHERE username=?", (username,))
+        if not cursor.fetchone():
+            return username
+
 
 now = datetime.now()
 
@@ -57,7 +83,7 @@ def login():
             conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
             #hleda heslo bud pro username ci email
-            cursor.execute("SELECT password,username,last_login_at,id FROM users WHERE email=? OR username=?",(usEm, usEm))
+            cursor.execute("SELECT password,username,last_login_at,id, deleted FROM users WHERE email=? OR username=?",(usEm, usEm))
             #vysledek se popripadne ulozi sem
             result = cursor.fetchone()
             
@@ -68,7 +94,9 @@ def login():
                     db_pass = result[0].encode('utf-8') #converts the string to bytes
                     
                 #kdyz je spravne posle uzivatele na userPage
-                
+                if result[4]:
+                    flash("This account has been deleted. You can restore it if you want.", "info")
+                    return redirect(url_for("login"))
                 if bcrypt.checkpw(user_bytes, db_pass):
                     session.permanent = True
                     session['username'] = result[1]
@@ -86,7 +114,8 @@ def login():
                 flash(err,"error")
             return redirect(url_for("login", page="login"))
         except Exception as e:
-            return f"Something went wrong: {e}"
+            flash(f"Something went wrong: {e}", "error")
+            return redirect(url_for("index"))
         finally:
             conn.close()
     else:
@@ -171,7 +200,7 @@ def userPage(username):
     cursor.execute("""
         SELECT id, title, price, thumbnail_path
         FROM art
-        WHERE user_id = ?
+        WHERE author_id = ?
     """, (user[0],))
     selling = cursor.fetchall()
 
@@ -342,7 +371,7 @@ def settings(username):
         flash("Log in first to access settings")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "info")
+        flash("You shall not trespass in other's property.", "error")
         return redirect(url_for("index"))
     return render_template("settings.html")
 
@@ -355,7 +384,7 @@ def settingsProfile(username):
         return redirect(url_for("login"))
 
     if session["username"] != username:
-        flash("You shall not trespass in other's property.", "info")
+        flash("You shall not trespass in other's property.", "error")
         return redirect(url_for("index"))
 
     conn = sqlite3.connect("beevy.db")
@@ -397,7 +426,8 @@ def settingsProfile(username):
             flash("Settings saved successfully.","success")
             return redirect(url_for("settingsProfile", username=new_username))
     except Exception as e:
-        return f"Something went wrong: {e}"     
+        flash(f"Something went wrong: {e}", "error")
+        return redirect(url_for("index"))    
     finally:
         conn.close()
     return render_template("settingsProfile.html", user=user)
@@ -410,7 +440,7 @@ def settingsAccount(username):
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "info")
+        flash("You shall not trespass in other's property.", "error")
         return redirect(url_for("index"))
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
@@ -442,7 +472,8 @@ def settingsAccount(username):
             flash("Settings saved successfully.","success")
             return redirect(url_for("settingsAccount", user=user, username=username))
     except Exception as e:
-        return f"Something went wrong: {e}"
+        flash(f"Something went wrong: {e}", "error")
+        return redirect(url_for("index"))
     finally:
             conn.close()
     return render_template("settingsAccount.html", user=user)
@@ -456,7 +487,7 @@ def settingsSecurity(username):
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "info")
+        flash("You shall not trespass in other's property.", "error")
         return redirect(url_for("index"))
     
     conn = sqlite3.connect('beevy.db')
@@ -502,7 +533,7 @@ def settingsLogout(username):
         flash("Log in first to access settings.","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "info")
+        flash("You shall not trespass in other's property.", "error")
         return redirect(url_for("index"))
     if request.method == "POST":
         session.clear()
@@ -510,35 +541,87 @@ def settingsLogout(username):
         return redirect(url_for("index"))
     return render_template("settingsLogout.html")
 
-@app.route("/<username>/settings/delete", methods=["GET","POST"])
+@app.route("/<username>/settings/delete", methods=["GET", "POST"])
 def settingsDelete(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Log in first to access settings.","error")
+    # auth checks
+    if "username" not in session:
+        flash("Log in first to access settings.", "error")
         return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session)
-        flash("You shall not trespass in other's property.", "info")
+
+    if session["username"] != username:
+        flash("You shall not trespass in other's property.", "error")
         return redirect(url_for("index"))
-    conn = sqlite3.connect("beevy.db")
-    cursor = conn.cursor()
-    try:
-        if request.method == "POST":
-            username2 = session.get("username")
-            cursor.execute("SELECT id FROM users WHERE username=?;",(username2,))
-            id = cursor.fetchone()
-            ID = id[0]
-        
-            cursor.execute("DELETE FROM users WHERE id=?;",(id[0],))
-            print("2")
+
+    if request.method == "POST":
+        # DELETE confirmation
+        if request.form.get("confirm") != "DELETE":
+            flash("You must type DELETE exactly.", "info")
+            return redirect(request.url)
+
+        password = request.form.get("password")
+
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(
+                "SELECT id, password FROM users WHERE username = ? AND deleted = 0;",
+                (username,)
+            )
+            user = cursor.fetchone()
+
+            if not user:
+                flash("User not found or already deleted.", "error")
+                return redirect(url_for("index"))
+
+            user_id, password_hash = user
+
+            # bcrypt check
+            if not bcrypt.checkpw(password.encode("utf-8"),password_hash.encode("utf-8")):
+                flash("Wrong password.", "error")
+                return redirect(request.url)
+
+            # soft delete
+            deleted_username = get_unique_deleted_username(cursor)
+            deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute("UPDATE users SET deleted=1, deleted_at=?, username=? WHERE id=?",(deleted_at, deleted_username, user_id))
+            # deactivate rooms
+            cursor.execute("UPDATE rooms SET is_active=0 WHERE user_id=?",(user_id,))
+
+            # deactivate art
+            cursor.execute("UPDATE art SET is_active=0 WHERE author_id=?",(user_id,))
             conn.commit()
-            print("1")
+
+            # fetch avatar
+            cursor.execute("SELECT avatar_path FROM users WHERE id=?", (user_id,))
+            avatar = cursor.fetchone()[0]
+            if avatar:
+                try: os.remove(os.path.join(STATIC_ROOT, avatar))
+                except: pass
+
+            # fetch art files
+            cursor.execute("SELECT thumbnail_path, preview_path, original_path, examples_path FROM art WHERE author_id=?", (user_id,))
+            for thumb, preview, original, examples in cursor.fetchall():
+                for path in [thumb, preview, original]:
+                    if path:
+                        try: os.remove(os.path.join(STATIC_ROOT, path))
+                        except: pass
+                if examples:
+                    for ex in examples.split(","):
+                        try: os.remove(os.path.join(STATIC_ROOT, ex))
+                        except: pass
+            
             session.clear()
-            flash("Account was deleted successfully.", "success")
+            flash("Account and related content deactivated successfully.", "success")
             return redirect(url_for("index"))
-    except Exception as e:
-        return f"Something went wrong: {e}"
-    finally:
-        conn.close()
-        print("finalyly")      
+
+        except Exception as e:
+            conn.rollback()
+            return f"Something went wrong: {e}"
+
+        finally:
+            conn.close()
+
     return render_template("settingsDelete.html")
 
 
@@ -553,7 +636,7 @@ def shop():
     cursor.execute("""
         SELECT art.id, art.title, art.price, art.thumbnail_path, users.username
         FROM art
-        JOIN users ON art.user_id = users.id
+        JOIN users ON art.author_id = users.id
     """)
     items = cursor.fetchall()
     conn.close()
@@ -572,7 +655,7 @@ def art_detail(art_id):
     cursor.execute("""
         SELECT art.*, users.username
         FROM art
-        JOIN users ON art.user_id = users.id
+        JOIN users ON art.author_id = users.id
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
@@ -583,8 +666,8 @@ def art_detail(art_id):
         return "Item not found", 404
 
     # split examples_path into a list for HTML display
-    if item[7]:
-        examples_list = item[7].split(",")
+    if item[10]:
+        examples_list = item[10].split(",")
     else:
         examples_list = []
     print(f"Item: {item}")
@@ -616,7 +699,7 @@ def buy_art(art_id):
 
     # Get artwork
     cursor.execute("""
-        SELECT id, price, user_id, title
+        SELECT id, price, author_id, title
         FROM art
         WHERE id = ?
     """, (art_id,))
@@ -725,17 +808,17 @@ def create_art():
         try:
             conn = sqlite3.connect("beevy.db")
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE username = ?",(username,))
+            cursor.execute("SELECT id, name, surname FROM users WHERE username = ?",(username,))
             user_row = cursor.fetchone()
             if not user_row:
                 return "User not found", 400
             user_id = user_row[0]
-
+            author_name = f"{user_row[1]} {user_row[2]} - {username}"
             cursor.execute("""
                 INSERT INTO art 
-                (title, description, tat, price, type, slots, thumbnail_path, examples_path, user_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, user_id))
+                (title, description, tat, price, type, slots, thumbnail_path, examples_path, author_id, author_name)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, user_id, author_name))
             conn.commit()
         finally:
             conn.close()

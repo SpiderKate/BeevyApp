@@ -9,15 +9,15 @@
 {% block content %}
 <div class="art-detail">
 
-<h2>{{ item[1] }}</h2>
+<h2>{{ item[2] }}</h2>
 <p>By {{ item[-1] }}</p>
-<p>Price: {{ item[4] }} BP</p>
-<p>Description: {{ item[2] }}</p>
-<p>Turnaround time: {{ item[3] }} days</p>
+<p>Price: {{ item[5] }} BP</p>
+<p>Description: {{ item[3] }}</p>
+<p>Turnaround time: {{ item[4] }} days</p>
 
 <h3>Thumbnail</h3>
-{% if item[6] %}
-    <img src="{{ url_for('static', filename=item[6]) }}" alt="Thumbnail" style="max-width:300px;">
+{% if item[7] %}
+    <img src="{{ url_for('static', filename=item[7]) }}" alt="Thumbnail" style="max-width:300px;">
 {% endif %}
 
 {% if examples_list %}
@@ -26,26 +26,27 @@
         <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;">
     {% endfor %}
 {% endif %}
-
+<br>
 <!-- TODO: Buy / Edit / Owned buttons -->
-{% if item[5]=="art" %}
+{% if item[6]=="art" %}
     {% if session.username == item[-1] %}
         <!-- AUTHOR -->
         <button>Edit artwork</button>
     {% else %}
         <!-- BUYER -->
         <a href="/shop/{{ item[0] }}/buy" class="btn buy">
-            Buy for {{ item[4] }} BP
+            Buy for {{ item[5] }} BP
         </a>
     {% endif %}
-{% elif item[5]=="commission" %}
+    
+{% elif item[6]=="commission" %}
     {% if session.username == item[-1] %}
         <!-- AUTHOR -->
         <button>Edit commission</button>
     {% else %}
         <!-- BUYER -->
         <a href="/shop/{{ item[0] }}/buy" class="btn buy">
-            Buy for {{ item[4] }} BP
+            Buy for {{ item[5] }} BP
         </a>
     {% endif %}
 {% endif %}

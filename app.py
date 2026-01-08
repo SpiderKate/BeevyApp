@@ -351,7 +351,11 @@ def private():
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = FALSE")
+        cursor.execute("""
+            SELECT r.name, r.room_ID, u.deleted
+            FROM rooms r
+            JOIN users u ON r.user_id = u.id AND r.is_public = FALSE
+        """)
         rooms = cursor.fetchall()
     finally:
         conn.close()
@@ -368,7 +372,7 @@ def option():
 @app.route('/<username>/settings')
 def settings(username):
     if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Log in first to access settings")
+        flash("Log in first to access settings","error")
         return redirect(url_for("login"))
     if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
         flash("You shall not trespass in other's property.", "error")
@@ -629,14 +633,14 @@ def settingsDelete(username):
 @app.route('/shop')
 def shop():
     if 'username' not in session:  # kontroluje user je prihlasen
-        flash("Log in first to visit shop.")
+        flash("Log in first to visit shop.","error")
         return redirect(url_for("login"))
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT art.id, art.title, art.price, art.thumbnail_path, users.username
+        SELECT art.id, art.title, art.price, art.thumbnail_path, users.username, users.deleted
         FROM art
-        JOIN users ON art.author_id = users.id
+        JOIN users ON art.author_id = users.id AND users.deleted = 0
     """)
     items = cursor.fetchall()
     conn.close()
@@ -647,7 +651,7 @@ def shop():
 @app.route('/shop/<int:art_id>')
 def art_detail(art_id):
     if 'username' not in session:  # kontroluje user je prihlasen
-        flash("Log in first to visit shop.")
+        flash("Log in first to visit shop.","error")
         return redirect(url_for("login"))
 
     conn = sqlite3.connect("beevy.db")
@@ -779,7 +783,7 @@ def buy_art(art_id):
 def create_art():
     username = session.get("username")
     if 'username' not in session:  # kontroluje user je prihlasen
-        flash("Log in first to create commissions/art.")
+        flash("Log in first to create commissions/art.","error")
         return redirect(url_for("login"))
 
     if request.method == "POST":

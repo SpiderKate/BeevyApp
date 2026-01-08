@@ -9,7 +9,7 @@
 <!-- mistnostiPrivate -->
 {% block content %}
     <h2>Seznam místností:</h2>
-    {% for name, room_id in rooms %}
+    {% for name, room_id, deleted in rooms %}
     <ul>
             <a href="{{ url_for('join_room_page', room_ID=room_id) }}">{{ name }}</a>
         </ul>

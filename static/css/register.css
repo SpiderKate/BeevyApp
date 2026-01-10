@@ -12,13 +12,12 @@ form {
     border: 2px solid rgba(247, 235, 78, 0.6);
     border-radius: 15px;
     padding: 30px 40px;
+    min-width: 200px;
     max-width: 600px;
-    width: 90%;
     box-shadow: 0 0 15px rgba(247, 235, 78, 0.1);
     backdrop-filter: blur(6px);
     position: relative;
     z-index: 1;
-    margin: 0 auto;
 }
 
 .form-wrapper {

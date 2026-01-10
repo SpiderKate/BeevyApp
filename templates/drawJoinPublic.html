@@ -8,10 +8,12 @@
 <!-- mistnostiPublic -->
 {% block content %}
     <h2>Seznam místností:</h2>
-    {% for name, room_id in rooms %}
-        <ul>
-            <a href="{{ url_for('draw', room_ID=room_id) }}">{{ name }}</a>
-        </ul>
+    {% for name, room_id, deleted in rooms %}
+        {% if not deleted %}
+            <ul>
+                <a href="{{ url_for('draw', room_ID=room_id) }}">{{ name }}</a>
+            </ul>
+        {% endif %}
     {% endfor %}
 
     <br>

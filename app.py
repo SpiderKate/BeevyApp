@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, send_file, abort
 import bcrypt
 import sqlite3
 import sys
@@ -6,19 +6,28 @@ import secrets
 import string
 import os
 import shutil
-import uuid
+import uuid, os
+from io import BytesIO
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
 from datetime import timedelta, datetime
+from PIL import Image, ImageDraw, ImageFont
+from PIL.PngImagePlugin import PngInfo
 
-def delete_file(relative_path):
-    if not relative_path:
-        return
+STATIC_ROOT = "static"
+AVATAR_UPLOAD_FOLDER = "uploads/avatar"
+UPLOAD_FOLDER = "uploads/shop"
 
+def save_uploaded_file(file, subfolder):
+    filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+
+    relative_path = os.path.join(subfolder, filename).replace("\\", "/")
     full_path = os.path.join(STATIC_ROOT, relative_path)
 
-    if os.path.exists(full_path) and os.path.isfile(full_path):
-        os.remove(full_path)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    file.save(full_path)
+
+    return relative_path
 
 def generate_deleted_username(length=8):
     """
@@ -35,23 +44,36 @@ def get_unique_deleted_username(cursor):
         if not cursor.fetchone():
             return username
 
+def watermark_text(src_path, dest_path, text):
+    """Add semi-transparent text watermark"""
+    img = Image.open(src_path).convert("RGBA")
+    watermark = Image.new("RGBA", img.size)
+    draw = ImageDraw.Draw(watermark)
+
+    font_size = max(img.size) // 15
+    try:
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except:
+        font = ImageFont.load_default()
+
+    # Position centered using textbbox
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    w, h = img.size
+    draw.text(
+        ((w - text_w) // 2, (h - text_h) // 2),
+        text,
+        fill=(255, 255, 255, 80),
+        font=font
+    )
+    result = Image.alpha_composite(img, watermark)
+    result.convert("RGB").save(dest_path)
+
+
 
 now = datetime.now()
-
-
-STATIC_ROOT = "static"
-AVATAR_UPLOAD_FOLDER = "uploads/avatar"
-UPLOAD_FOLDER = "uploads/shop"
-def save_uploaded_file(file, subfolder):
-    filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-
-    relative_path = os.path.join(subfolder, filename).replace("\\", "/")
-    full_path = os.path.join(STATIC_ROOT, relative_path)
-
-    os.makedirs(os.path.dirname(full_path), exist_ok=True)
-    file.save(full_path)
-
-    return relative_path
 
 print('some debug', file=sys.stderr)
 
@@ -60,6 +82,19 @@ socketio = SocketIO(app)
 
 app.secret_key = "/,z}it9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
 app.permanent_session_lifetime = timedelta(days=7)
+
+@app.before_request
+def load_logged_in_user():
+    g.avatar_path = None
+    username = session.get('username')
+    if username:
+        conn = sqlite3.connect('beevy.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT avatar_path FROM users WHERE username=?", (username,))
+        row = cursor.fetchone()
+        conn.close()
+        if row and row[0]:
+            g.avatar_path = row[0]
 
 @app.route('/')
 def index():
@@ -107,9 +142,9 @@ def login():
                     flash("Succesfully logged in.","success")
                     return redirect(url_for("userPage", username=session['username']))
                 else:
-                    login_errors.append("Incorrect password")
+                    login_errors.append("Incorrect username/e-mail or password")
             else:
-                login_errors.append("Invalid username or e-mail")
+                login_errors.append("Incorrect username/e-mail or password")
             for err in login_errors:
                 flash(err,"error")
             return redirect(url_for("login", page="login"))
@@ -138,7 +173,7 @@ def register():
         dob = request.form['dob']
 
         if len(username)>20:
-            flash("Username is too long.","info")
+            flash("Username is too long.","error")
             return render_template("register.html")
         #hash hesla
         hash = None if not password else bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -172,6 +207,110 @@ def register():
         finally:
             conn.close()
     return render_template("register.html", page="register")        
+
+@app.route("/recover", methods=["GET", "POST"])
+def recover_account():
+    if request.method == "POST":
+        email = request.form.get("email")
+        new_username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not email or not password:
+            flash("Please enter your email and password.", "error")
+            return render_template("recover.html")
+
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""
+                SELECT id, password, deleted, recovery_username
+                FROM users 
+                WHERE email = ?
+            """, (email,))
+            user = cursor.fetchone()
+
+            if not user:
+                flash(
+                    "If an account with this email exists, you can recover it.",
+                    "info"
+                )
+                return render_template("recover.html")
+
+            user_id, password_hash, deleted, recovery_username = user
+            if not bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
+                flash("Invalid email or password.", "error")
+                return render_template("recover.html")
+            
+            if deleted == 0:
+                flash("This account is already active.", "info")
+                return redirect(url_for("login"))
+            
+            #check old username
+            if not new_username:
+                cursor.execute(
+                    "SELECT id FROM users WHERE username = ?",
+                    (recovery_username,)
+                )
+                taken = cursor.fetchone()
+
+                if taken:
+                    flash(
+                        "Your previous username is no longer available. Please choose a new one.",
+                        "error"
+                    )
+                    return render_template(
+                        "recover.html",
+                        ask_username=True,
+                        email=email
+                    )
+
+                # old username is free → restore
+                cursor.execute("""
+                    UPDATE users
+                    SET deleted = 0,
+                        deleted_at = NULL,
+                        username = recovery_username
+                    WHERE id = ?
+                """, (user_id,))
+                conn.commit()
+
+            #user provided a new username
+            else:
+                cursor.execute(
+                    "SELECT id FROM users WHERE username = ?",
+                    (new_username,)
+                )
+                if cursor.fetchone():
+                    flash("Username is already in use.", "error")
+                    return render_template(
+                        "recover.html",
+                        ask_username=True,
+                        email=email
+                    )
+
+                cursor.execute("""
+                    UPDATE users
+                    SET username = ?,
+                        deleted = 0,
+                        deleted_at = NULL
+                    WHERE id = ?
+                """, (new_username, user_id))
+                conn.commit()
+
+            flash(
+                "Your account has been recovered. You can now log in.",
+                "success"
+            )
+            return redirect(url_for("login"))
+
+        finally:
+            conn.close()
+
+    return render_template("recover.html")
+
+    
+
 
 #userpage
 @app.route('/<username>')
@@ -336,7 +475,11 @@ def public():
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT name, room_ID FROM rooms WHERE is_public = TRUE")
+        cursor.execute("""
+            SELECT r.name, r.room_ID, u.deleted
+            FROM rooms r
+            JOIN users u ON r.user_id = u.id AND r.is_public = TRUE
+        """)
         rooms = cursor.fetchall()
     finally:
         conn.close()
@@ -409,6 +552,12 @@ def settingsProfile(username):
             new_username = request.form.get("username")
             new_bio = request.form.get("bio")
             avatar = request.files.get("avatar")
+
+            cursor.execute("SELECT username FROM users WHERE username = ?", (new_username,))
+            db_user = cursor.fetchone()
+            if db_user and username!=new_username:
+                flash("Username is already in use, please choose another one.","error")
+                return render_template("settingsProfile.html", user = user)
 
             avatar_path = user[3]  # default: keep old avatar
 
@@ -572,6 +721,7 @@ def settingsDelete(username):
                 "SELECT id, password FROM users WHERE username = ? AND deleted = 0;",
                 (username,)
             )
+            recUsername = username
             user = cursor.fetchone()
 
             if not user:
@@ -588,32 +738,13 @@ def settingsDelete(username):
             # soft delete
             deleted_username = get_unique_deleted_username(cursor)
             deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cursor.execute("UPDATE users SET deleted=1, deleted_at=?, username=? WHERE id=?",(deleted_at, deleted_username, user_id))
+            cursor.execute("UPDATE users SET deleted=1, deleted_at=?, username=?, recovery_username = ? WHERE id=?",(deleted_at, deleted_username, recUsername, user_id))
             # deactivate rooms
             cursor.execute("UPDATE rooms SET is_active=0 WHERE user_id=?",(user_id,))
 
             # deactivate art
             cursor.execute("UPDATE art SET is_active=0 WHERE author_id=?",(user_id,))
             conn.commit()
-
-            # fetch avatar
-            cursor.execute("SELECT avatar_path FROM users WHERE id=?", (user_id,))
-            avatar = cursor.fetchone()[0]
-            if avatar:
-                try: os.remove(os.path.join(STATIC_ROOT, avatar))
-                except: pass
-
-            # fetch art files
-            cursor.execute("SELECT thumbnail_path, preview_path, original_path, examples_path FROM art WHERE author_id=?", (user_id,))
-            for thumb, preview, original, examples in cursor.fetchall():
-                for path in [thumb, preview, original]:
-                    if path:
-                        try: os.remove(os.path.join(STATIC_ROOT, path))
-                        except: pass
-                if examples:
-                    for ex in examples.split(","):
-                        try: os.remove(os.path.join(STATIC_ROOT, ex))
-                        except: pass
             
             session.clear()
             flash("Account and related content deactivated successfully.", "success")
@@ -632,26 +763,27 @@ def settingsDelete(username):
 
 @app.route('/shop')
 def shop():
-    if 'username' not in session:  # kontroluje user je prihlasen
-        flash("Log in first to visit shop.","error")
+    if 'username' not in session:
+        flash("Log in first to visit shop.", "error")
         return redirect(url_for("login"))
+
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     cursor.execute("""
         SELECT art.id, art.title, art.price, art.thumbnail_path, users.username, users.deleted
         FROM art
-        JOIN users ON art.author_id = users.id AND users.deleted = 0
+        JOIN users ON art.author_id = users.id
+        WHERE users.deleted=0 AND art.is_active=1
     """)
     items = cursor.fetchall()
     conn.close()
 
     return render_template("shop.html", items=items)
 
-
 @app.route('/shop/<int:art_id>')
 def art_detail(art_id):
-    if 'username' not in session:  # kontroluje user je prihlasen
-        flash("Log in first to visit shop.","error")
+    if 'username' not in session:
+        flash("Log in first to visit shop.", "error")
         return redirect(url_for("login"))
 
     conn = sqlite3.connect("beevy.db")
@@ -663,19 +795,24 @@ def art_detail(art_id):
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
-    
-    conn.close()
 
     if not item:
+        conn.close()
         return "Item not found", 404
 
-    # split examples_path into a list for HTML display
-    if item[10]:
-        examples_list = item[10].split(",")
-    else:
-        examples_list = []
+    # examples list
+    examples_list = item[10].split(",") if item[10] else []
+
+    # check ownership
+    cursor.execute("""
+        SELECT 1 FROM art_ownership
+        WHERE art_id = ? AND owner_id = (SELECT id FROM users WHERE username = ?)
+    """, (art_id, session['username']))
+    owns = cursor.fetchone() is not None
+    conn.close()
     print(f"Item: {item}")
-    return render_template("art_detail.html", item=item, examples_list=examples_list)
+
+    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
 
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
 def buy_art(art_id):
@@ -765,6 +902,11 @@ def buy_art(art_id):
             INSERT INTO art_ownership (art_id, owner_id, acquired_at)
             VALUES (?, ?, ?)
         """, (art_id, user_id, now))
+        cursor.execute("""
+            SELECT 1 FROM art_ownership
+            WHERE art_id = ? AND owner_id = (SELECT id FROM users WHERE username = ?)
+        """, (art_id, session["username"]))
+        owns = cursor.fetchone() is not None
 
         conn.commit()
         flash("Artwork purchased successfully!", "success")
@@ -776,78 +918,148 @@ def buy_art(art_id):
     finally:
         conn.close()
 
-    return redirect(url_for("art_detail", art_id=art_id))
+    return redirect(url_for("art_detail", art_id=art_id, owns=owns))
 
+
+@app.route("/download/<int:art_id>")
+def download_art(art_id):
+    if "username" not in session:
+        abort(403)
+
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT art.original_path, ao.can_download
+        FROM art
+        JOIN art_ownership ao ON art.id = ao.art_id
+        JOIN users u ON ao.owner_id = u.id
+        WHERE art.id = ? AND u.username = ?
+    """, (art_id, session["username"]))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or not row[1]:
+        abort(403)
+
+    file_path = os.path.join(STATIC_ROOT, row[0])
+    if not os.path.exists(file_path):
+        abort(404)
+    return send_file(file_path, as_attachment=True)
 
 @app.route("/create_art", methods=["GET", "POST"])
 def create_art():
-    username = session.get("username")
-    if 'username' not in session:  # kontroluje user je prihlasen
-        flash("Log in first to create commissions/art.","error")
+    if 'username' not in session:
+        flash("Log in first to create commissions/art.", "error")
         return redirect(url_for("login"))
 
     if request.method == "POST":
         title = request.form["title"]
         description = request.form["description"]
         tat = request.form["tat"]
-        price = request.form["price"]
+        price = int(request.form["price"])
         art_type = request.form["type"]
         slots = request.form.get("slots")
-        thumb = request.files["thumbnail"]
-        examples = request.files.getlist("examples")
-        username = session.get("username")
+        thumb_file = request.files["thumbnail"]
+        examples_files = request.files.getlist("examples")
+        username = session["username"]
 
-        # uloží thumbnail
-        thumb_path = save_uploaded_file(thumb, UPLOAD_FOLDER)
+        # === READ FILE ONCE ===
+        file_bytes = thumb_file.read()
+        filename = secure_filename(thumb_file.filename)
 
+        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER), exist_ok=True)
+
+        # === SAVE ORIGINAL (NO WATERMARK) ===
+        original_path = os.path.join(
+            UPLOAD_FOLDER,
+            f"original_{uuid.uuid4().hex}_{filename}"
+        )
+        with open(os.path.join(STATIC_ROOT, original_path), "wb") as f:
+            f.write(file_bytes)
+
+        # === SAVE THUMBNAIL ===
+        thumb_path = os.path.join(
+            UPLOAD_FOLDER,
+            f"thumb_{uuid.uuid4().hex}_{filename}"
+        )
+        with open(os.path.join(STATIC_ROOT, thumb_path), "wb") as f:
+            f.write(file_bytes)
+
+        # === WATERMARK THUMB ===
+        thumb_watermarked = thumb_path.replace(".", "_wm.")
+        watermark_text(
+            os.path.join(STATIC_ROOT, thumb_path),
+            os.path.join(STATIC_ROOT, thumb_watermarked),
+            username
+        )
+
+        # === SAVE EXAMPLES ===
         examples_paths = []
-        for ex in examples:
+        for ex in examples_files:
             if ex.filename:
-                ex_path = save_uploaded_file(ex, UPLOAD_FOLDER)
-                examples_paths.append(ex_path)
+                ex_bytes = ex.read()
+                ex_filename = secure_filename(ex.filename)
+
+                ex_path = os.path.join(
+                    UPLOAD_FOLDER,
+                    f"example_{uuid.uuid4().hex}_{ex_filename}"
+                )
+                with open(os.path.join(STATIC_ROOT, ex_path), "wb") as f:
+                    f.write(ex_bytes)
+
+                ex_watermarked = ex_path.replace(".", "_wm.")
+                watermark_text(
+                    os.path.join(STATIC_ROOT, ex_path),
+                    os.path.join(STATIC_ROOT, ex_watermarked),
+                    username
+                )
+
+                # 🔧 normalize for DB
+                examples_paths.append(
+                    os.path.normpath(ex_watermarked).replace("\\", "/")
+                )
 
         examples_paths_str = ",".join(examples_paths)
 
+        # 🔧 NORMALIZE ALL PATHS FOR DB
+        thumb_watermarked = os.path.normpath(thumb_watermarked).replace("\\", "/")
+        original_path = os.path.normpath(original_path).replace("\\", "/")
 
-        try:
-            conn = sqlite3.connect("beevy.db")
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, name, surname FROM users WHERE username = ?",(username,))
-            user_row = cursor.fetchone()
-            if not user_row:
-                return "User not found", 400
-            user_id = user_row[0]
-            author_name = f"{user_row[1]} {user_row[2]} - {username}"
-            cursor.execute("""
-                INSERT INTO art 
-                (title, description, tat, price, type, slots, thumbnail_path, examples_path, author_id, author_name)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (title, description, tat, price, art_type, slots, thumb_path, examples_paths_str, user_id, author_name))
-            conn.commit()
-        finally:
+        # === DATABASE ===
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT id, name, surname FROM users WHERE username = ?",
+            (username,)
+        )
+        user_row = cursor.fetchone()
+        if not user_row:
             conn.close()
+            return "User not found", 400
 
+        user_id = user_row[0]
+        author_name = f"{user_row[1]} {user_row[2]} - {username}"
+
+        cursor.execute("""
+            INSERT INTO art 
+            (title, description, tat, price, type, slots,
+             thumbnail_path, preview_path, original_path,
+             examples_path, author_id, author_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            title, description, tat, price, art_type, slots,
+            thumb_watermarked, thumb_watermarked, original_path,
+            examples_paths_str, user_id, author_name
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash("Artwork created successfully!", "success")
         return redirect("/shop")
 
     return render_template("create_art.html")
-
-@app.before_request
-def load_logged_in_user():
-    g.avatar_path = None
-    username = session.get('username')
-    if username:
-        conn = sqlite3.connect('beevy.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT avatar_path FROM users WHERE username=?", (username,))
-        row = cursor.fetchone()
-        conn.close()
-        if row and row[0]:
-            g.avatar_path = row[0]
-
-
-
-
-
 
 @socketio.on('join_room')
 def handle_join(data):
@@ -856,7 +1068,6 @@ def handle_join(data):
     print(f"Client joined room {room}")
     if room in draw_history:
         emit('draw_history', draw_history[room], to=request.sid)
-
 
 @socketio.on('draw')
 def handle_draw(data):

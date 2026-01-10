@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Recover account{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/register.css">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+
+    <h2>Recover your account</h2>
+
+    <p class="muted">
+        If your account was previously deleted, you can recover it using your email.
+    </p>
+
+    <form method="POST">
+        {% if ask_username %}
+            <label for="username">Username</label>
+            <input type="username" id="username" name="username" required class="input">
+        {% endif %}
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required class="input" placeholder="you@example.com" value="{{email}}">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required class="input">
+        <button type="submit" class="submit">Recover account</button>
+    </form>
+
+    <p class="auth-alt">
+        <a href="{{ url_for('login') }}">Back to login</a>
+    </p>
+
+</div>
+{% endblock %}

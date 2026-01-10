@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}Art Details{% endblock %}
 
 {% block extra_css %}
@@ -27,30 +26,19 @@
     {% endfor %}
 {% endif %}
 <br>
-<!-- TODO: Buy / Edit / Owned buttons -->
-{% if item[6]=="art" %}
-    {% if session.username == item[-1] %}
-        <!-- AUTHOR -->
-        <button>Edit artwork</button>
-    {% else %}
-        <!-- BUYER -->
-        <a href="/shop/{{ item[0] }}/buy" class="btn buy">
-            Buy for {{ item[5] }} BP
-        </a>
-    {% endif %}
-    
-{% elif item[6]=="commission" %}
-    {% if session.username == item[-1] %}
-        <!-- AUTHOR -->
-        <button>Edit commission</button>
-    {% else %}
-        <!-- BUYER -->
-        <a href="/shop/{{ item[0] }}/buy" class="btn buy">
-            Buy for {{ item[5] }} BP
-        </a>
-    {% endif %}
+{% if owns %}
+    <a href="{{ url_for('download_art', art_id=item[0]) }}" class="btn download">
+        Download Original
+    </a>
+{% elif session.username == item[-1] %}
+    <a href="">
+        Edit artwork.
+    </a>
+{% else %}
+    <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn buy">
+        Buy for {{ item[5] }} BP
+    </a>
 {% endif %}
 
 </div>
-
 {% endblock %}

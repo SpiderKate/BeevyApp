@@ -814,6 +814,42 @@ def art_detail(art_id):
 
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
 
+@app.route("/<username>/<int:art_id>/edit", methods=['GET','POST'])
+def editArt(username,art_id):
+    if "username" not in session:
+        flash("Login first to buy artwork.", "error")
+        return redirect(url_for("login"))
+    if session["username"] != username:
+        flash("You shall not trespass in other's property.", "error")
+        return redirect(url_for("index"))
+    conn = sqlite3.connect('beevy.db')
+    cursor = conn.cursor()
+            
+    cursor.execute("""
+        SELECT art.*, users.username
+        FROM art
+        JOIN users ON art.author_id = users.id
+        WHERE art.id = ?
+    """, (art_id,))
+    item = cursor.fetchone()
+    examples_list = item[10].split(",") if item[10] else []
+    conn.close()
+    if request.method == 'POST':
+        new_title = request.form['title']
+        new_description = request.form['description']
+        new_slots = request.form['slots']
+        new_thumb = request.form['thumbnail']
+        new_ex = request.form['examples']
+        cursor.execute(
+                """
+                UPDATE art
+                SET title = ?, description = ?, slots = ?, thumbnail_path = ?, examples_path = ?
+                WHERE id = ?
+                """,
+                (new_title, new_description, new_slots, new_thumb, new_ex, art.author_id)
+            )
+    return render_template("artEdit.html", item=item, examples_list=examples_list)
+
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
 def buy_art(art_id):
     # Must be logged in

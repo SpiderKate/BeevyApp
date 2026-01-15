@@ -31,7 +31,7 @@
         Download Original
     </a>
 {% elif session.username == item[-1] %}
-    <a href="">
+    <a href="{{ url_for('editArt', username = session.get('username'), art_id=item[0]) }}">
         Edit artwork.
     </a>
 {% else %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Edit{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/register.css">
+{% endblock %}
+
+{% block content %}
+<h1 class="shop-title">Edit an artwork</h1>
+
+<form action="/editArt" method="POST" enctype="multipart/form-data" class="edit-form">
+
+    <!-- Title -->
+    <label class="form-label">Title</label>
+    <input type="text" name="title" required class="input" value="{{ item[2] }}">
+
+    <!-- Description -->
+    <label class="form-label">Description</label>
+    <textarea name="description">{{ item[3] }}</textarea>
+
+    <!-- Slots -->
+    <label class="form-label">Slots (optional)</label>
+    <input type="number" name="slots" min="1" class="input" value="{{ item[11] }}">
+
+    <!-- Thumbnail -->
+    <label class="form-label">Thumbnail (cover image)</label>
+    <input type="file" name="thumbnail" accept="image/*" required class="input" value="{{ item[7] }}">
+    <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" 
+     class="thumb-preview" alt="Thumbnail">
+
+    <!-- Examples -->
+    <label class="form-label">Example images (optional)</label>
+    <input type="file" name="examples" accept="image/*" multiple class="input">
+    {% for ex in examples_list %}
+    <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;">
+    {% endfor %}
+    <div id="examplesPreview" class="preview-container"></div>
+
+    <!-- Hide -->
+
+
+    <!-- Delete -->
+    <label class="form-label">Delete artwork</label>
+    <ul>
+    <label>
+            Type <b>DELETE</b> to confirm:
+            <input type="text" name="confirm" class="input" required>
+        </label>
+
+        <label>
+            Confirm password:
+            <input type="password" name="password" class="input" required>
+        </label>
+    </ul>
+
+    <button type="submit" class="submit" id="submit">Save changes</button>
+
+</form>
+<script>
+    const thumbInput = document.getElementById('avatarInput');
+    const thumbPreview = document.getElementById('avatarPreview');
+
+    avatarInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarPreview.src = e.target.result; // show preview
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

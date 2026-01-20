@@ -8,7 +8,7 @@
 {% block content %}
 <h1 class="shop-title">Edit an artwork</h1>
 
-<form action="/editArt" method="POST" enctype="multipart/form-data" class="edit-form">
+<form method="POST" enctype="multipart/form-data" class="edit-form">
 
     <!-- Title -->
     <label class="form-label">Title</label>
@@ -24,7 +24,7 @@
 
     <!-- Thumbnail -->
     <label class="form-label">Thumbnail (cover image)</label>
-    <input type="file" name="thumbnail" accept="image/*" required class="input" value="{{ item[7] }}">
+    <input type="file" name="thumbnail" accept="image/*" class="input" value="{{ item[7] }}">
     <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" 
      class="thumb-preview" alt="Thumbnail">
 
@@ -37,19 +37,25 @@
     <div id="examplesPreview" class="preview-container"></div>
 
     <!-- Hide -->
-
+    <label class="form-label">Hide artwork</label>
+    <ul>
+    <label>
+        Type <b>HIDE</b> to confirm:
+        <input type="text" name="confirmHide" class="input">
+    </label>
+    </ul>
 
     <!-- Delete -->
     <label class="form-label">Delete artwork</label>
     <ul>
     <label>
             Type <b>DELETE</b> to confirm:
-            <input type="text" name="confirm" class="input" required>
+            <input type="text" name="confirmDelete" class="input">
         </label>
 
         <label>
             Confirm password:
-            <input type="password" name="password" class="input" required>
+            <input type="password" name="password" class="input">
         </label>
     </ul>
 
@@ -60,12 +66,12 @@
     const thumbInput = document.getElementById('avatarInput');
     const thumbPreview = document.getElementById('avatarPreview');
 
-    avatarInput.addEventListener('change', function() {
+    thumbInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                avatarPreview.src = e.target.result; // show preview
+                thumbPreview.src = e.target.result; // show preview
             }
             reader.readAsDataURL(file);
         }

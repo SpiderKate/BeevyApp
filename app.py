@@ -817,7 +817,7 @@ def art_detail(art_id):
 @app.route("/<username>/<int:art_id>/edit", methods=['GET','POST'])
 def editArt(username,art_id):
     if "username" not in session:
-        flash("Login first to buy artwork.", "error")
+        flash("Login first to edit artwork.", "error")
         return redirect(url_for("login"))
     if session["username"] != username:
         flash("You shall not trespass in other's property.", "error")
@@ -826,29 +826,55 @@ def editArt(username,art_id):
     cursor = conn.cursor()
             
     cursor.execute("""
-        SELECT art.*, users.username
+        SELECT art.*, users.username, users.password
         FROM art
         JOIN users ON art.author_id = users.id
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
     examples_list = item[10].split(",") if item[10] else []
-    conn.close()
-    if request.method == 'POST':
-        new_title = request.form['title']
-        new_description = request.form['description']
-        new_slots = request.form['slots']
-        new_thumb = request.form['thumbnail']
-        new_ex = request.form['examples']
-        cursor.execute(
-                """
+    try: 
+        if request.method == 'POST':
+            new_title = request.form['title']
+            new_description = request.form['description']
+            new_slots = request.form['slots']
+            new_thumb = request.form['thumbnail']
+            new_ex = request.form['examples']
+            confirmD = request.form['confirmDelete']
+            confirmH = request.form['confirmHide']
+            password = request.form['password']
+            
+            if confirmD == 'DELETE' and bcrypt.checkpw(password.encode("utf-8"), (users.password).encode("utf-8")):
+                cursor.execute("""
+                    DELETE FROM art
+                    WHERE id = ?
+                """,
+                (art.author_id)
+                )
+                flash('Artwork deleted successfully.','success')
+                return redirect(url_for('shop'))
+
+            if confirmH == 'HIDE':
+                cursor.execute("""
+                    UPDATE art
+                    SET is_active = 0
+                    WHERE id = ?
+                """,
+                (art.author_id)
+                )
+                flash('Artwork hidden successfully.','success')
+                return redirect(url_for('shop'))
+
+            cursor.execute("""
                 UPDATE art
                 SET title = ?, description = ?, slots = ?, thumbnail_path = ?, examples_path = ?
                 WHERE id = ?
-                """,
-                (new_title, new_description, new_slots, new_thumb, new_ex, art.author_id)
+            """,
+            (new_title, new_description, new_slots, new_thumb, new_ex, art.author_id)
             )
-    return render_template("artEdit.html", item=item, examples_list=examples_list)
+    finally:
+        conn.close()
+    return render_template("artEdit.html", item=item, examples_list=examples_list,username=username)
 
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
 def buy_art(art_id):

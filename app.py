@@ -603,7 +603,7 @@ def settingsAccount(username):
 
         if not user:
             conn.close()
-            return "User not found", 
+            return "User not found", 404
     
     
         if request.method == "POST":

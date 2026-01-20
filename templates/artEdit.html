@@ -2,7 +2,7 @@
 {% block title %}Edit{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="/static/css/settings.css">
+<link rel="stylesheet" href="/static/css/register.css">
 {% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
 
     <!-- Description -->
     <label class="form-label">Description</label>
-    <textarea name="description">{{ item[3] }}</textarea>
+    <textarea class="desc" name="description">{{ item[3] }}</textarea>
 
     <!-- Slots -->
     <label class="form-label">Slots (optional)</label>
@@ -26,7 +26,7 @@
     <label class="form-label">Thumbnail (cover image)</label>
     <input type="file" id="avatarInput" name="thumbnail" accept="image/*" class="input" value="{{ item[7] }}">
     <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" 
-     class="thumb-preview" alt="Thumbnail">
+     class="thumb-preview" alt="Thumbnail" style="max-width:300px; margin:5px;">
 
     <!-- Examples -->
     <label class="form-label">Example images (optional)</label>
@@ -58,7 +58,7 @@
     <p class="danger-text">
         This action cannot be undone.
     </p>
-
+    <ul>
     <label>
         Type <b>DELETE</b> to confirm:
         <input type="text" name="confirmDelete" class="input danger-input">
@@ -68,6 +68,7 @@
         Confirm password:
         <input type="password" name="password" class="input danger-input">
     </label>
+    </ul>
 </div>
 
 

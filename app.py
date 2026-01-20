@@ -30,8 +30,8 @@ STATIC_ROOT = "static"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
 UPLOAD_FOLDER = "uploads/shop"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
-MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB
-app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB per file
 MAX_HISTORY = 1000
 
 
@@ -92,14 +92,17 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def validate_image(file):
+    """Validuje, zda je soubor obrázek s povolenou příponou"""
     if not allowed_file(file.filename):
         return False
     try:
+        file.seek(0)  # ujistíme se, že čteme od začátku
         img = Image.open(file)
         img.verify()
-        file.seek(0)
+        file.seek(0)  # pointer zpátky na začátek pro další použití
         return True
-    except:
+    except Exception as e:
+        print("Image validation error:", e)
         return False
 
 
@@ -741,7 +744,7 @@ def settingsDelete(username):
         # DELETE confirmation
         if request.form.get("confirm") != "DELETE":
             flash("You must type DELETE exactly.", "info")
-            return redirect(request.url)
+            return render_template("settingsDelete.html")
 
         password = request.form.get("password")
 
@@ -1111,14 +1114,6 @@ def create_art():
         flash("Log in first to create commissions/art.", "error")
         return redirect(url_for("login"))
 
-    if not validate_image(thumb_file):
-        flash("Invalid thumbnail file.", "error")
-        return redirect(request.url)
-
-    if len(examples_files) > 5:
-        flash("Too many example images.", "error")
-        return redirect(request.url)
-
     if request.method == "POST":
         title = request.form["title"]
         description = request.form["description"]
@@ -1130,6 +1125,11 @@ def create_art():
         examples_files = request.files.getlist("examples")
         username = session["username"]
 
+        thumb_file.seek(0)
+        if not validate_image(thumb_file):
+            flash("Invalid thumbnail file.", "error")
+            return redirect(request.url)
+        
         # === READ FILE ONCE ===
         file_bytes = thumb_file.read()
         filename = secure_filename(thumb_file.filename)
@@ -1161,30 +1161,31 @@ def create_art():
         )
 
         # === SAVE EXAMPLES ===
+        valid_examples = [ex for ex in examples_files if ex.filename]
+        if len(valid_examples) > 5:
+            flash("Too many example images.", "error")
+            return redirect(request.url)
+        
         examples_paths = []
         for ex in examples_files:
+            
             if ex.filename:
+                ex.seek(0)  # reset před validací
+                if not validate_image(ex):
+                    flash(f"Invalid example file: {ex.filename}", "error")
+                    return redirect(request.url)
                 ex_bytes = ex.read()
                 ex_filename = secure_filename(ex.filename)
 
-                ex_path = os.path.join(
-                    UPLOAD_FOLDER,
-                    f"example_{uuid.uuid4().hex}_{ex_filename}"
-                )
+                ex_path = os.path.join(UPLOAD_FOLDER, f"example_{uuid.uuid4().hex}_{ex_filename}")
                 with open(os.path.join(STATIC_ROOT, ex_path), "wb") as f:
                     f.write(ex_bytes)
 
                 ex_watermarked = ex_path.replace(".", "_wm.")
-                watermark_text(
-                    os.path.join(STATIC_ROOT, ex_path),
-                    os.path.join(STATIC_ROOT, ex_watermarked),
-                    username
-                )
+                watermark_text(os.path.join(STATIC_ROOT, ex_path),os.path.join(STATIC_ROOT, ex_watermarked),username)
 
                 # 🔧 normalize for DB
-                examples_paths.append(
-                    os.path.normpath(ex_watermarked).replace("\\", "/")
-                )
+                examples_paths.append(os.path.normpath(ex_watermarked).replace("\\", "/"))
 
         examples_paths_str = ",".join(examples_paths)
 

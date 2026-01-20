@@ -402,3 +402,32 @@ body.register .menu-label{
 .auth-alt {
     margin-top: 15px;
 }
+
+.danger-zone {
+    background: rgba(136, 96, 204, 0.4); /* purple accent, semi-transparent */
+    color: var(--primary-text); /* golden text */
+    border: none;
+    transition: var(--transition-speed);
+}
+
+.danger-zone:hover {
+    background: rgba(136, 96, 204, 0.6); /* darker purple on hover */
+    box-shadow: 0 0 8px var(--accent-color); /* subtle glow */
+}
+
+.danger-title {
+    color: var(--accent-color); /* golden, fits theme */
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(247,235,78,0.6);
+}
+
+.desc {
+    width: 90%;
+    min-width: 90%;
+    max-width: 100%;
+    min-height: 100px;  /* fixed pixel value for minimum */
+    max-height: 300px;  /* optional max-height */
+    resize: vertical;   /* allow user to resize only vertically */
+    padding: 8px;
+    box-sizing: border-box;
+}

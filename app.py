@@ -880,6 +880,7 @@ def editArt(username, art_id):
 
         confirm_delete = request.form.get("confirmDelete")
         confirm_hide = request.form.get("confirmHide")
+        confirm_show = request.form.get("confirmShow")
         password = request.form.get("password")
 
         # === DELETE ARTWORK ===
@@ -908,6 +909,16 @@ def editArt(username, art_id):
             conn.close()
 
             flash("Artwork hidden.", "success")
+            return redirect(url_for("shop"))
+        
+        if confirm_show == "SHOW":
+            cursor.execute("""
+                UPDATE art SET is_active = 1 WHERE id = ?
+            """, (art_id,))
+            conn.commit()
+            conn.close()
+
+            flash("Artwork unhidden.", "success")
             return redirect(url_for("shop"))
 
         # === NORMAL EDIT ===

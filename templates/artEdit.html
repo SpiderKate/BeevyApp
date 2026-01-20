@@ -37,13 +37,24 @@
     <div id="examplesPreview" class="preview-container"></div>
 
     <!-- Hide -->
-    <label class="form-label">Hide artwork</label>
+     {% if item[13] == 1 %}
+    <label class="form-label">Hide artwork in shop</label>
     <ul>
     <label>
         Type <b>HIDE</b> to confirm:
         <input type="text" name="confirmHide" class="input">
     </label>
     </ul>
+    {% elif item[13]==0 %}
+    <label class="form-label">Show artwork in shop</label>
+    <ul>
+    <label>
+        Type <b>SHOW</b> to confirm:
+        <input type="text" name="confirmShow" class="input">
+    </label>
+    </ul>
+    {% endif %}
+
 
     <!-- Delete -->
     <hr>

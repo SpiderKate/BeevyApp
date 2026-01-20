@@ -5,6 +5,7 @@
 {% block settings_page %}
 <h2>Delete account</h2>
     <form method="POST" class="danger-zone">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p class="warning">⚠️ This action is irreversible. Your account will be deactivated.</p>
         <label>
             Type <b>DELETE</b> to confirm:

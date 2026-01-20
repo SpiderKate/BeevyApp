@@ -2,14 +2,14 @@
 {% block title %}Edit{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="/static/css/register.css">
+<link rel="stylesheet" href="/static/css/settings.css">
 {% endblock %}
 
 {% block content %}
 <h1 class="shop-title">Edit an artwork</h1>
 
 <form method="POST" enctype="multipart/form-data" class="edit-form">
-
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <!-- Title -->
     <label class="form-label">Title</label>
     <input type="text" name="title" required class="input" value="{{ item[2] }}">
@@ -24,7 +24,7 @@
 
     <!-- Thumbnail -->
     <label class="form-label">Thumbnail (cover image)</label>
-    <input type="file" name="thumbnail" accept="image/*" class="input" value="{{ item[7] }}">
+    <input type="file" id="avatarInput" name="thumbnail" accept="image/*" class="input" value="{{ item[7] }}">
     <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" 
      class="thumb-preview" alt="Thumbnail">
 
@@ -46,25 +46,37 @@
     </ul>
 
     <!-- Delete -->
-    <label class="form-label">Delete artwork</label>
-    <ul>
-    <label>
-            Type <b>DELETE</b> to confirm:
-            <input type="text" name="confirmDelete" class="input">
-        </label>
+    <hr>
 
-        <label>
-            Confirm password:
-            <input type="password" name="password" class="input">
-        </label>
-    </ul>
+<div class="danger-zone">
+    <h3 class="danger-title">Danger zone</h3>
+
+    <label class="form-label danger">
+        Delete artwork permanently
+    </label>
+
+    <p class="danger-text">
+        This action cannot be undone.
+    </p>
+
+    <label>
+        Type <b>DELETE</b> to confirm:
+        <input type="text" name="confirmDelete" class="input danger-input">
+    </label>
+
+    <label>
+        Confirm password:
+        <input type="password" name="password" class="input danger-input">
+    </label>
+</div>
+
 
     <button type="submit" class="submit" id="submit">Save changes</button>
 
 </form>
 <script>
-    const thumbInput = document.getElementById('avatarInput');
-    const thumbPreview = document.getElementById('avatarPreview');
+    const thumbInput = document.getElementById('thumbInput');
+    const thumbPreview = document.getElementById('thumbPreview');
 
     thumbInput.addEventListener('change', function() {
         const file = this.files[0];

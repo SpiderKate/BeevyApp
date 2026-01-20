@@ -1,0 +1,15 @@
+# Environment variables
+.env
+
+# Database
+*.db
+
+# Uploads
+static/uploads/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtualenv
+venv/

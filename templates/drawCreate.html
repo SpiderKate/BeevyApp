@@ -8,6 +8,7 @@
 
 {% block content %}
     <form action="/create" method="post" class="drawCreateForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>Name for the room</label>
         <input type="text" name="name" id="name" class="input" required>
         <label>Add a password for a private room</label>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g, send_file, abort
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, send_file, abort, send_from_directory
 import bcrypt
 import sqlite3
 import sys
@@ -8,15 +8,32 @@ import os
 import shutil
 import uuid, os
 from io import BytesIO
+from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
+from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta, datetime
 from PIL import Image, ImageDraw, ImageFont
 from PIL.PngImagePlugin import PngInfo
 
+load_dotenv()
+now = datetime.now()
+
+print('some debug', file=sys.stderr)
+
+app = Flask(__name__)
+socketio = SocketIO(app)
+csrf = CSRFProtect(app)
+
+
 STATIC_ROOT = "static"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
 UPLOAD_FOLDER = "uploads/shop"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB
+app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+MAX_HISTORY = 1000
+
 
 def save_uploaded_file(file, subfolder):
     filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
@@ -71,16 +88,28 @@ def watermark_text(src_path, dest_path, text):
     result = Image.alpha_composite(img, watermark)
     result.convert("RGB").save(dest_path)
 
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def validate_image(file):
+    if not allowed_file(file.filename):
+        return False
+    try:
+        img = Image.open(file)
+        img.verify()
+        file.seek(0)
+        return True
+    except:
+        return False
 
 
-now = datetime.now()
 
-print('some debug', file=sys.stderr)
 
-app = Flask(__name__)
-socketio = SocketIO(app)
 
-app.secret_key = "/,z}it9UGrtMK(<y2lECF]Vb}B2naL]0a2S:7=?MOdYc]D^y"
+app.secret_key = os.environ.get("SECRET_KEY") #neni ulozen v kodu
+if not app.secret_key:
+    raise RuntimeError("SECRET_KEY not set")
+
 app.permanent_session_lifetime = timedelta(days=7)
 
 @app.before_request
@@ -383,13 +412,17 @@ def join_room_page(room_ID):
         flash("Room not found.","error")
         return redirect(url_for("join"))
     room_name, password_hash, room_type = room
-    if room_type == True:
-        session.setdefault('verified_rooms', []).append(room_ID)
+    if room_type == 1:
+        rooms = session.get('verified_rooms', [])
+        rooms.append(room_ID)
+        session['verified_rooms'] = rooms
         return redirect(url_for('draw', room_ID=room_ID, page="draw"))
     if request.method == 'POST':
         entered_password = request.form['password']
         if password_hash and bcrypt.checkpw(entered_password.encode('utf-8'), password_hash.encode('utf-8')):
-            session.setdefault('verified_rooms', []).append(room_ID)
+            rooms = session.get('verified_rooms', [])
+            rooms.append(room_ID)
+            session['verified_rooms'] = rooms
             return redirect(url_for('draw', room_ID=room_ID, page="draw"))
         else:
             return render_template('roomPassword.html', error="Wrong password!", room_ID=room_ID)
@@ -397,7 +430,9 @@ def join_room_page(room_ID):
 
 @app.route('/draw/<room_ID>')
 def draw(room_ID):
-    verified_rooms = session.get('verified_rooms', [])
+    rooms = session.get('verified_rooms', [])
+    rooms.append(room_ID)
+    session["verified_rooms"] = rooms
     if 'username' not in session: #kontroluje user je prihlasen
         flash("Log in is first to draw.","error")
         return redirect(url_for("login"))
@@ -417,7 +452,7 @@ def draw(room_ID):
         return redirect(url_for("join"))
 
     room_type = result[0]
-    if room_type == 'private' and room_ID not in verified_rooms:
+    if room_type == 0 and room_ID not in rooms:
         return redirect(url_for('join_room_page', room_ID=room_ID))
     return render_template('draw.html',room_ID=room_ID, page="draw", brush=brush)
 
@@ -441,10 +476,7 @@ def create():
     #hash hesla
         hash = None if not password else bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     #generuje room_ID
-        def generate_roomID(length=8):
-            chars = string.ascii_uppercase + string.digits  # ABC... + 0-9
-            return ''.join(secrets.choice(chars) for _ in range(length))
-        room_ID = generate_roomID()
+        room_ID = str(uuid.uuid4())
         try:
             conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
@@ -814,67 +846,128 @@ def art_detail(art_id):
 
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
 
-@app.route("/<username>/<int:art_id>/edit", methods=['GET','POST'])
-def editArt(username,art_id):
+@app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
+def editArt(username, art_id):
     if "username" not in session:
-        flash("Login first to edit artwork.", "error")
+        flash("Login first.", "error")
         return redirect(url_for("login"))
+
     if session["username"] != username:
-        flash("You shall not trespass in other's property.", "error")
+        flash("Unauthorized access.", "error")
         return redirect(url_for("index"))
-    conn = sqlite3.connect('beevy.db')
+
+    conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
-            
+
     cursor.execute("""
-        SELECT art.*, users.username, users.password
+        SELECT art.*, users.password
         FROM art
         JOIN users ON art.author_id = users.id
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
-    examples_list = item[10].split(",") if item[10] else []
-    try: 
-        if request.method == 'POST':
-            new_title = request.form['title']
-            new_description = request.form['description']
-            new_slots = request.form['slots']
-            new_thumb = request.form['thumbnail']
-            new_ex = request.form['examples']
-            confirmD = request.form['confirmDelete']
-            confirmH = request.form['confirmHide']
-            password = request.form['password']
-            
-            if confirmD == 'DELETE' and bcrypt.checkpw(password.encode("utf-8"), (users.password).encode("utf-8")):
-                cursor.execute("""
-                    DELETE FROM art
-                    WHERE id = ?
-                """,
-                (art.author_id)
-                )
-                flash('Artwork deleted successfully.','success')
-                return redirect(url_for('shop'))
 
-            if confirmH == 'HIDE':
-                cursor.execute("""
-                    UPDATE art
-                    SET is_active = 0
-                    WHERE id = ?
-                """,
-                (art.author_id)
-                )
-                flash('Artwork hidden successfully.','success')
-                return redirect(url_for('shop'))
-
-            cursor.execute("""
-                UPDATE art
-                SET title = ?, description = ?, slots = ?, thumbnail_path = ?, examples_path = ?
-                WHERE id = ?
-            """,
-            (new_title, new_description, new_slots, new_thumb, new_ex, art.author_id)
-            )
-    finally:
+    if not item:
         conn.close()
-    return render_template("artEdit.html", item=item, examples_list=examples_list,username=username)
+        abort(404)
+
+    examples_list = item[10].split(",") if item[10] else []
+
+    if request.method == "POST":
+
+        confirm_delete = request.form.get("confirmDelete")
+        confirm_hide = request.form.get("confirmHide")
+        password = request.form.get("password")
+
+        # === DELETE ARTWORK ===
+        if confirm_delete == "DELETE":
+            if not password:
+                flash("Password required.", "error")
+                return redirect(request.url)
+
+            if not bcrypt.checkpw(password.encode(), item[-1].encode()):
+                flash("Wrong password.", "error")
+                return redirect(request.url)
+
+            cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
+            conn.commit()
+            conn.close()
+
+            flash("Artwork deleted permanently.", "success")
+            return redirect(url_for("shop"))
+
+        # === HIDE ARTWORK ===
+        if confirm_hide == "HIDE":
+            cursor.execute("""
+                UPDATE art SET is_active = 0 WHERE id = ?
+            """, (art_id,))
+            conn.commit()
+            conn.close()
+
+            flash("Artwork hidden.", "success")
+            return redirect(url_for("shop"))
+
+        # === NORMAL EDIT ===
+        new_title = request.form.get("title")
+        new_description = request.form.get("description")
+        new_slots = request.form.get("slots") or None
+
+        thumb_file = request.files.get("thumbnail")
+        examples_files = request.files.getlist("examples")
+
+        thumbnail_path = item[7]
+        examples_path = item[10]
+
+        # thumbnail upload
+        if thumb_file and thumb_file.filename:
+            if not validate_image(thumb_file):
+                flash("Invalid thumbnail.", "error")
+                return redirect(request.url)
+
+            filename = secure_filename(thumb_file.filename)
+            save_path = f"uploads/thumbs/{filename}"
+            thumb_file.save(os.path.join("static", save_path))
+            thumbnail_path = save_path
+
+        # example images
+        if examples_files and examples_files[0].filename:
+            new_examples = []
+            for ex in examples_files:
+                if validate_image(ex):
+                    fname = secure_filename(ex.filename)
+                    ex_path = f"uploads/examples/{fname}"
+                    ex.save(os.path.join("static", ex_path))
+                    new_examples.append(ex_path)
+
+            examples_path = ",".join(new_examples)
+
+        cursor.execute("""
+            UPDATE art
+            SET title = ?, description = ?, slots = ?, thumbnail_path = ?, examples_path = ?
+            WHERE id = ?
+        """, (
+            new_title,
+            new_description,
+            new_slots,
+            thumbnail_path,
+            examples_path,
+            art_id
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash("Artwork updated.", "success")
+        return redirect(request.url)
+
+    conn.close()
+    return render_template(
+        "artEdit.html",
+        item=item,
+        examples_list=examples_list,
+        username=username
+    )
+
 
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
 def buy_art(art_id):
@@ -1006,13 +1099,25 @@ def download_art(art_id):
     file_path = os.path.join(STATIC_ROOT, row[0])
     if not os.path.exists(file_path):
         abort(404)
-    return send_file(file_path, as_attachment=True)
+    return send_from_directory(
+        STATIC_ROOT,
+        row[0],
+        as_attachment=True
+    )
 
 @app.route("/create_art", methods=["GET", "POST"])
 def create_art():
     if 'username' not in session:
         flash("Log in first to create commissions/art.", "error")
         return redirect(url_for("login"))
+
+    if not validate_image(thumb_file):
+        flash("Invalid thumbnail file.", "error")
+        return redirect(request.url)
+
+    if len(examples_files) > 5:
+        flash("Too many example images.", "error")
+        return redirect(request.url)
 
     if request.method == "POST":
         title = request.form["title"]
@@ -1140,4 +1245,4 @@ def handle_draw(data):
     emit('draw', data, to=room, skip_sid=request.sid) #odelar ostatnim lidem
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)#, use_reloader=False -> stranky se sami nereload
+    socketio.run(app, debug=False)#, use_reloader=False -> stranky se sami nereload

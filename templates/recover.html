@@ -15,6 +15,7 @@
     </p>
 
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if ask_username %}
             <label for="username">Username</label>
             <input type="username" id="username" name="username" required class="input">

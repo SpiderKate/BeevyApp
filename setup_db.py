@@ -1,4 +1,5 @@
 import sqlite3
+import secrets
 conn = sqlite3.connect('beevy.db')
 cursor = conn.cursor()
 
@@ -26,3 +27,4 @@ cursor = conn.cursor()
 
 conn.commit()
 conn.close()
+print(secrets.token_hex(32))

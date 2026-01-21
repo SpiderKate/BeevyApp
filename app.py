@@ -6,20 +6,21 @@ import secrets
 import string
 import os
 import shutil
-import uuid, os
+import uuid
 from io import BytesIO
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
 from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta, datetime
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 from PIL.PngImagePlugin import PngInfo
+from functools import wraps
 
 load_dotenv()
 now = datetime.now()
 
-print('some debug', file=sys.stderr)
+#print('some debug', file=sys.stderr)
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -61,8 +62,7 @@ def get_unique_deleted_username(cursor):
         if not cursor.fetchone():
             return username
 
-def watermark_text(src_path, dest_path, text):
-    """Add semi-transparent text watermark"""
+def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
     img = Image.open(src_path).convert("RGBA")
     watermark = Image.new("RGBA", img.size)
     draw = ImageDraw.Draw(watermark)
@@ -73,20 +73,26 @@ def watermark_text(src_path, dest_path, text):
     except:
         font = ImageFont.load_default()
 
-    # Position centered using textbbox
     bbox = draw.textbbox((0, 0), text, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
-
     w, h = img.size
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+
     draw.text(
-        ((w - text_w) // 2, (h - text_h) // 2),
+        ((w - tw) // 2, (h - th) // 2),
         text,
         fill=(255, 255, 255, 80),
         font=font
     )
-    result = Image.alpha_composite(img, watermark)
-    result.convert("RGB").save(dest_path)
+
+    result = Image.alpha_composite(img, watermark).convert("RGB")
+
+    pnginfo = PngInfo()
+    for k, v in metadata.items():
+        pnginfo.add_text(k, str(v))
+
+    result.save(dest_path, pnginfo=pnginfo)
+
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -105,7 +111,71 @@ def validate_image(file):
         print("Image validation error:", e)
         return False
 
+def add_metadata(image_path, author, upload_date, creation_date=None):
+    """
+    Adds metadata to a PNG image.
+    image_path: path to the saved image
+    author: str, artwork author
+    upload_date: datetime object, when uploaded to Beevy
+    creation_date: datetime object, when artwork was created
+    """
+    try:
+        img = Image.open(image_path)
+        meta = PngImagePlugin.PngInfo()
+        meta.add_text("Author", author)
+        meta.add_text("Uploaded on Beevy", upload_date.strftime("%Y-%m-%d %H:%M:%S"))
+        if creation_date:
+            meta.add_text("Original creation date", creation_date.strftime("%Y-%m-%d %H:%M:%S"))
+        meta.add_text("Downloaded from Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        img.save(image_path, pnginfo=meta)
+    except Exception as e:
+        print(f"Failed to add metadata to {image_path}: {e}")
 
+# Helper to check ownership
+def user_owns_art(user_id, art_id):
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 1 FROM art_ownership
+        WHERE art_id = ? AND owner_id = ?
+    """, (art_id, user_id))
+    owns = cursor.fetchone() is not None
+    conn.close()
+    return owns
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'username' not in session:
+            flash("Log in first.", "error")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
+
+def no_trespass(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        username = kwargs.get('username')
+        if session.get('username') != username:
+            flash("You shall not trespass in other's property.", "error")
+            return redirect(url_for("index"))
+        return f(*args, **kwargs)
+    return decorated
+
+def read_png_metadata(file_path):
+    """Reads metadata from a PNG file."""
+    try:
+        img = Image.open(file_path)
+        metadata = img.info  # returns dict of PNG text chunks
+        return {
+            "Author": metadata.get("Author"),
+            "Uploaded on Beevy": metadata.get("Uploaded on Beevy"),
+            "Original creation date": metadata.get("Original creation date"),
+            "Downloaded from Beevy": metadata.get("Downloaded from Beevy")
+        }
+    except Exception as e:
+        print(f"Failed to read metadata from {file_path}: {e}")
+        return {}
 
 
 
@@ -226,11 +296,11 @@ def register():
                 flash("Registration was successful.","success")
                 return redirect(url_for("login", page="login"))
             if existing_user:
-                print('username in use')
+                #print('username in use')
                 flash("Username is already taken.","error")
                 a = 1
             if existing_email:
-                print('email in use')
+                #print('email in use')
                 flash("Email is already in use.","error")
                 a = 1
             #kdyz nejsou zadne chyby tak input ze stranky zapise do db
@@ -386,7 +456,7 @@ def userPage(username):
         """, (user[0],))
         
         owned = cursor.fetchall()
-        print(f"Art: {owned}")
+        #print(f"Art: {owned}")
 
     conn.close()
 
@@ -400,10 +470,8 @@ def userPage(username):
 
 
 @app.route('/join/<room_ID>', methods=['GET','POST'])
+@login_required
 def join_room_page(room_ID):
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     try:
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
@@ -432,13 +500,11 @@ def join_room_page(room_ID):
     return render_template('roomPassword.html', room_ID=room_ID)
 
 @app.route('/draw/<room_ID>')
+@login_required
 def draw(room_ID):
     rooms = session.get('verified_rooms', [])
     rooms.append(room_ID)
     session["verified_rooms"] = rooms
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     try:
         username = session.get("username")
         conn = sqlite3.connect("beevy.db")
@@ -461,11 +527,9 @@ def draw(room_ID):
 
 draw_history = {}
 @app.route('/create',methods=['GET','POST'])
+@login_required
 def create():
     username = session.get('username')
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     if request.method == 'POST':
     #input ze stranky 
         name = request.form['name']
@@ -487,7 +551,7 @@ def create():
             User_ID = cursor.fetchone()
             cursor.execute("INSERT INTO rooms (name, password, room_ID, is_public, user_id) VALUES (?, ?, ?, ?, ?)", (name, hash, room_ID, is_public, User_ID[0]))
             conn.commit()
-            print(f"Room created: {name} / {room_ID}")
+            #print(f"Room created: {name} / {room_ID}")
             
         finally:
             conn.close()
@@ -495,18 +559,14 @@ def create():
     return render_template("drawCreate.html")
 
 @app.route('/join', methods=['GET'])
+@login_required
 def join():
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     return render_template('drawJoin.html')
 
 #vypisuje vytvorene public rooms linky
 @app.route('/join/public')
+@login_required
 def public():
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
@@ -522,10 +582,8 @@ def public():
 
 #vypisuje vytvorene private rooms jako linky
 @app.route('/join/private')
+@login_required
 def private():
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
@@ -540,34 +598,22 @@ def private():
     return render_template("drawJoinPrivate.html", rooms=rooms)
 
 @app.route('/option')
+@login_required
 def option():
-    if 'username' not in session: #kontroluje user je prihlasen
-        flash("Log in is first to draw.","error")
-        return redirect(url_for("login"))
     return render_template('drawOption.html')
 
 #settings
 @app.route('/<username>/settings')
+@login_required
+@no_trespass
 def settings(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Log in first to access settings","error")
-        return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
     return render_template("settings.html")
 
 
 @app.route("/<username>/settings/profile", methods=["GET", "POST"])
+@login_required
+@no_trespass
 def settingsProfile(username):
-    
-    if "username" not in session:
-        flash("Log in first to access settings.","error")
-        return redirect(url_for("login"))
-
-    if session["username"] != username:
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
 
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
@@ -623,13 +669,9 @@ def settingsProfile(username):
 
 
 @app.route("/<username>/settings/account", methods=["GET","POST"])
+@login_required
+@no_trespass
 def settingsAccount(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Log in first to access settings.","error")
-        return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     try:
@@ -669,14 +711,10 @@ def settingsAccount(username):
 
 
 @app.route("/<username>/settings/security", methods=["GET","POST"])
+@login_required
+@no_trespass
 def settingsSecurity(username):
     error = []
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Log in first to access settings.","error")
-        return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
     
     conn = sqlite3.connect('beevy.db')
     cursor = conn.cursor()
@@ -716,13 +754,9 @@ def settingsSecurity(username):
     return render_template("settingsSecurity.html", user=user)
 
 @app.route('/<username>/settings/logout',methods=["GET","POST"])
+@login_required
+@no_trespass
 def settingsLogout(username):
-    if 'username' not in session: #kontroluje jestli je vytvorena session
-        flash("Log in first to access settings.","error")
-        return redirect(url_for("login"))
-    if session['username'] != username: #kontroluje zda uzivatel vstupuje na svoji stranku (na svuj session) 
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
     if request.method == "POST":
         session.clear()
         flash("Successfully logged out.","success")
@@ -730,15 +764,9 @@ def settingsLogout(username):
     return render_template("settingsLogout.html")
 
 @app.route("/<username>/settings/delete", methods=["GET", "POST"])
+@login_required
+@no_trespass
 def settingsDelete(username):
-    # auth checks
-    if "username" not in session:
-        flash("Log in first to access settings.", "error")
-        return redirect(url_for("login"))
-
-    if session["username"] != username:
-        flash("You shall not trespass in other's property.", "error")
-        return redirect(url_for("index"))
 
     if request.method == "POST":
         # DELETE confirmation
@@ -797,10 +825,8 @@ def settingsDelete(username):
 
 
 @app.route('/shop')
+@login_required
 def shop():
-    if 'username' not in session:
-        flash("Log in first to visit shop.", "error")
-        return redirect(url_for("login"))
 
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
@@ -816,13 +842,13 @@ def shop():
     return render_template("shop.html", items=items)
 
 @app.route('/shop/<int:art_id>')
+@login_required
 def art_detail(art_id):
-    if 'username' not in session:
-        flash("Log in first to visit shop.", "error")
-        return redirect(url_for("login"))
 
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
+
+    # Fetch artwork and author
     cursor.execute("""
         SELECT art.*, users.username
         FROM art
@@ -830,24 +856,30 @@ def art_detail(art_id):
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
+    conn.close()
 
     if not item:
-        conn.close()
         return "Item not found", 404
 
-    # examples list
+    # Prepare examples list
     examples_list = item[10].split(",") if item[10] else []
 
-    # check ownership
-    cursor.execute("""
-        SELECT 1 FROM art_ownership
-        WHERE art_id = ? AND owner_id = (SELECT id FROM users WHERE username = ?)
-    """, (art_id, session['username']))
-    owns = cursor.fetchone() is not None
-    conn.close()
-    print(f"Item: {item}")
+    # Check if the current user owns the artwork
+    user_id = None
+    owns = False
+    if "username" in session:
+        # Get user id first
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username=?", (session["username"],))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            user_id = row[0]
+            owns = user_owns_art(user_id, art_id)
 
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
+
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
 def editArt(username, art_id):
@@ -982,10 +1014,8 @@ def editArt(username, art_id):
         username=username
     )
 
-
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
 def buy_art(art_id):
-    # Must be logged in
     if "username" not in session:
         flash("Login first to buy artwork.", "error")
         return redirect(url_for("login"))
@@ -994,55 +1024,35 @@ def buy_art(art_id):
     cursor = conn.cursor()
 
     # Get user
-    cursor.execute(
-        "SELECT id, bee_points FROM users WHERE username=?",
-        (session["username"],)
-    )
+    cursor.execute("SELECT id, bee_points FROM users WHERE username=?", (session["username"],))
     user = cursor.fetchone()
-
     if not user:
         conn.close()
         flash("User not found.", "error")
         return redirect(url_for("shop"))
-
     user_id, user_points = user
 
     # Get artwork
-    cursor.execute("""
-        SELECT id, price, author_id, title
-        FROM art
-        WHERE id = ?
-    """, (art_id,))
+    cursor.execute("SELECT id, price, author_id, title FROM art WHERE id=?", (art_id,))
     art = cursor.fetchone()
-
+    conn.close()
     if not art:
-        conn.close()
         flash("Artwork not found.", "error")
         return redirect(url_for("shop"))
-
     art_id, price, author_id, title = art
 
     # Prevent author buying own art
     if user_id == author_id:
-        conn.close()
         flash("You cannot buy your own artwork.", "error")
         return redirect(url_for("art_detail", art_id=art_id))
 
-    #Check ownership
-    cursor.execute("""
-        SELECT 1 FROM art_ownership
-        WHERE art_id = ? AND owner_id = ?
-    """, (art_id, user_id))
-
-    if cursor.fetchone():
-        conn.close()
+    # Check ownership using helper
+    if user_owns_art(user_id, art_id):
         flash("You already own this artwork.", "info")
         return redirect(url_for("art_detail", art_id=art_id))
-    
-    #GET -> Confirmation page
-   
+
+    # GET -> show confirmation
     if request.method == "GET":
-        conn.close()
         return render_template(
             "buy_confirm.html",
             art_id=art_id,
@@ -1051,50 +1061,41 @@ def buy_art(art_id):
             user_points=user_points
         )
 
-    #POST -> Perform purchase
+    # POST -> perform purchase
     if user_points < price:
-        conn.close()
         flash("Not enough BeePoints.", "error")
         return redirect(url_for("art_detail", art_id=art_id))
 
     try:
-        # subtract points
-        cursor.execute("""
-            UPDATE users
-            SET bee_points = bee_points - ?
-            WHERE id = ?
-        """, (price, user_id))
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
 
-        # create ownership
+        # Subtract points
+        cursor.execute("UPDATE users SET bee_points = bee_points - ? WHERE id=?", (price, user_id))
+
+        # Add ownership
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute("""
-            INSERT INTO art_ownership (art_id, owner_id, acquired_at)
-            VALUES (?, ?, ?)
-        """, (art_id, user_id, now))
-        cursor.execute("""
-            SELECT 1 FROM art_ownership
-            WHERE art_id = ? AND owner_id = (SELECT id FROM users WHERE username = ?)
-        """, (art_id, session["username"]))
-        owns = cursor.fetchone() is not None
+        cursor.execute("INSERT INTO art_ownership (art_id, owner_id, acquired_at) VALUES (?, ?, ?)",
+                       (art_id, user_id, now))
 
         conn.commit()
         flash("Artwork purchased successfully!", "success")
-
-    except Exception as e:
+    except Exception:
         conn.rollback()
         flash("Purchase failed. Try again.", "error")
-
     finally:
         conn.close()
 
+    # Update ownership status
+    owns = user_owns_art(user_id, art_id)
     return redirect(url_for("art_detail", art_id=art_id, owns=owns))
 
 
-@app.route("/download/<int:art_id>")
-def download_art(art_id):
-    if "username" not in session:
-        abort(403)
 
+
+@app.route("/download/<int:art_id>")
+@login_required
+def download_art(art_id):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     cursor.execute("""
@@ -1110,112 +1111,157 @@ def download_art(art_id):
     if not row or not row[1]:
         abort(403)
 
-    file_path = os.path.join(STATIC_ROOT, row[0])
-    if not os.path.exists(file_path):
+    file_rel_path = row[0].replace("\\", "/")
+    file_dir = os.path.dirname(file_rel_path)
+    file_name = os.path.basename(file_rel_path)
+    full_dir = os.path.join(STATIC_ROOT, file_dir)
+
+    if not os.path.exists(os.path.join(full_dir, file_name)):
         abort(404)
-    return send_from_directory(
-        STATIC_ROOT,
-        row[0],
-        as_attachment=True
-    )
+
+
+    # Clean download name
+    download_name = f"beevyDownload{art_id:04d}.png"
+    # Optional: read metadata
+    metadata = read_png_metadata(os.path.join(full_dir, file_name))
+    print("Metadata:", metadata)
+
+    return send_from_directory(full_dir, file_name, as_attachment=True,download_name=download_name)
+
+
+
 
 @app.route("/create_art", methods=["GET", "POST"])
+@login_required
 def create_art():
-    if 'username' not in session:
-        flash("Log in first to create commissions/art.", "error")
-        return redirect(url_for("login"))
-
     if request.method == "POST":
-        title = request.form["title"]
-        description = request.form["description"]
-        tat = request.form["tat"]
-        price = int(request.form["price"])
-        art_type = request.form["type"]
-        slots = request.form.get("slots")
-        thumb_file = request.files["thumbnail"]
-        examples_files = request.files.getlist("examples")
         username = session["username"]
 
-        thumb_file.seek(0)
+        # --- Form data ---
+        title = request.form.get("title")
+        description = request.form.get("description")
+        tat = request.form.get("tat")
+        price = int(request.form.get("price", 0))
+        art_type = request.form.get("type")
+        slots = request.form.get("slots")
+        thumb_file = request.files.get("thumbnail")
+        examples_files = request.files.getlist("examples")
+
+        if not thumb_file or not thumb_file.filename:
+            flash("Thumbnail is required.", "error")
+            return redirect(request.url)
+
         if not validate_image(thumb_file):
             flash("Invalid thumbnail file.", "error")
             return redirect(request.url)
-        
-        # === READ FILE ONCE ===
-        file_bytes = thumb_file.read()
-        filename = secure_filename(thumb_file.filename)
 
         os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "thumbs"), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "examples"), exist_ok=True)
 
-        # === SAVE ORIGINAL (NO WATERMARK) ===
-        original_path = os.path.join(
-            UPLOAD_FOLDER,
-            f"original_{uuid.uuid4().hex}_{filename}"
-        )
-        with open(os.path.join(STATIC_ROOT, original_path), "wb") as f:
-            f.write(file_bytes)
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
+        cursor.execute("""SELECT author_name FROM art
+                       JOIN users ON art.author_id = users.id
+        """)
+        user_row = cursor.fetchone()
 
-        # === SAVE THUMBNAIL ===
-        thumb_path = os.path.join(
-            UPLOAD_FOLDER,
-            f"thumb_{uuid.uuid4().hex}_{filename}"
-        )
-        with open(os.path.join(STATIC_ROOT, thumb_path), "wb") as f:
-            f.write(file_bytes)
+        # --- Helper to save + watermark + add metadata ---
+        def process_image(file, username, prefix="", save_original=True):
+            """
+            Saves original image (optional), creates watermarked version with metadata.
+            Returns (watermarked_rel_path, original_rel_path or None)
+            """
 
-        # === WATERMARK THUMB ===
-        thumb_watermarked = thumb_path.replace(".", "_wm.")
-        watermark_text(
-            os.path.join(STATIC_ROOT, thumb_path),
-            os.path.join(STATIC_ROOT, thumb_watermarked),
-            username
-        )
+            filename = secure_filename(file.filename)
+            file.seek(0)
 
-        # === SAVE EXAMPLES ===
-        valid_examples = [ex for ex in examples_files if ex.filename]
-        if len(valid_examples) > 5:
-            flash("Too many example images.", "error")
-            return redirect(request.url)
-        
+            # --- folders ---
+            base_path = UPLOAD_FOLDER
+            thumb_folder = os.path.join(base_path, "thumbs")
+            example_folder = os.path.join(base_path, "examples")
+            original_folder = os.path.join(base_path, "originals")
+
+            for folder in (thumb_folder, example_folder, original_folder):
+                os.makedirs(os.path.join(STATIC_ROOT, folder), exist_ok=True)
+
+            # --- ORIGINAL ---
+            original_rel_path = None
+            full_original_path = None
+
+            if save_original:
+                original_rel_path = os.path.join(
+                    original_folder,
+                    f"{uuid.uuid4().hex}_{filename}"
+                ).replace("\\", "/")
+                full_original_path = os.path.join(STATIC_ROOT, original_rel_path)
+
+                img = Image.open(file)
+                meta = PngInfo()
+                meta.add_text("Author", username)
+                meta.add_text("Uploaded on Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                img.save(full_original_path, pnginfo=meta)
+
+                file.seek(0)  # reset for watermarking
+            # --- WATERMARKED ---
+            target_folder = thumb_folder if prefix == "thumb" else example_folder
+
+            watermarked_rel_path = os.path.join(
+                target_folder,
+                f"{prefix}_{uuid.uuid4().hex}_{filename}"
+            ).replace("\\", "/")
+
+            full_watermarked_path = os.path.join(STATIC_ROOT, watermarked_rel_path)
+            cursor.execute("""SELECT author_name FROM art
+                        JOIN users ON art.author_id = users.id
+                           """)
+            author_name = cursor.fetchone()[0]
+            metadata = {
+                "Author": author_name,
+                "Uploaded on Beevy": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Downloaded from Beevy": "Beevy",
+                "Preview": "True" if prefix != "original" else "False"
+            }
+
+            watermark_source = full_original_path if full_original_path else file
+            watermark_text_with_metadata(
+                full_original_path if full_original_path else file,
+                full_watermarked_path,
+                username,
+                metadata
+            )
+            return watermarked_rel_path, original_rel_path
+
+
+
+        # Thumbnail
+        thumb_watermarked, original_path = process_image(thumb_file, username, prefix="thumb")
+
+        # Example images
         examples_paths = []
         for ex in examples_files:
-            
             if ex.filename:
-                ex.seek(0)  # reset před validací
                 if not validate_image(ex):
                     flash(f"Invalid example file: {ex.filename}", "error")
                     return redirect(request.url)
-                ex_bytes = ex.read()
-                ex_filename = secure_filename(ex.filename)
+                ex_wm, ex_original = process_image(ex, username, prefix="example")
+                examples_paths.append(ex_wm)    
 
-                ex_path = os.path.join(UPLOAD_FOLDER, f"example_{uuid.uuid4().hex}_{ex_filename}")
-                with open(os.path.join(STATIC_ROOT, ex_path), "wb") as f:
-                    f.write(ex_bytes)
-
-                ex_watermarked = ex_path.replace(".", "_wm.")
-                watermark_text(os.path.join(STATIC_ROOT, ex_path),os.path.join(STATIC_ROOT, ex_watermarked),username)
-
-                # 🔧 normalize for DB
-                examples_paths.append(os.path.normpath(ex_watermarked).replace("\\", "/"))
+        if len(examples_paths) > 5:
+            flash("Too many example images.", "error")
+            return redirect(request.url)
 
         examples_paths_str = ",".join(examples_paths)
 
-        # 🔧 NORMALIZE ALL PATHS FOR DB
-        thumb_watermarked = os.path.normpath(thumb_watermarked).replace("\\", "/")
-        original_path = os.path.normpath(original_path).replace("\\", "/")
-
-        # === DATABASE ===
+        # --- Save to DB ---
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT id, name, surname FROM users WHERE username = ?",
-            (username,)
-        )
+        cursor.execute("SELECT id, name, surname FROM users WHERE username = ?", (username,))
         user_row = cursor.fetchone()
         if not user_row:
             conn.close()
-            return "User not found", 400
+            flash("User not found.", "error")
+            return redirect(url_for("index"))
 
         user_id = user_row[0]
         author_name = f"{user_row[1]} {user_row[2]} - {username}"
@@ -1240,21 +1286,57 @@ def create_art():
 
     return render_template("create_art.html")
 
+
+@app.route("/preview/<int:art_id>")
+@login_required
+def preview_art(art_id):
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT preview_path FROM art WHERE id = ?", (art_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        abort(404)
+
+    file_path = os.path.join(STATIC_ROOT, row[0])
+    real_path = os.path.realpath(file_path)
+
+    if not real_path.startswith(os.path.realpath(STATIC_ROOT)):
+        abort(403)
+    if not os.path.exists(real_path):
+        abort(404)
+
+    # Read metadata (can be passed to template if needed)
+    metadata = read_png_metadata(real_path)
+
+    return send_from_directory(
+        STATIC_ROOT,
+        os.path.relpath(real_path, STATIC_ROOT)
+    )
+
+
+
 @socketio.on('join_room')
 def handle_join(data):
     room = data['room']
     join_room(room)
-    print(f"Client joined room {room}")
+    #print(f"Client joined room {room}")
     if room in draw_history:
         emit('draw_history', draw_history[room], to=request.sid)
 
 @socketio.on('draw')
 def handle_draw(data):
     room = data['room']
+    verified_rooms = session.get('verified_rooms', [])
+    if room not in verified_rooms:
+        return  # ignore unauthorized draw events
+
     if room not in draw_history:
         draw_history[room] = []
-    draw_history[room].append(data)
-    emit('draw', data, to=room, skip_sid=request.sid) #odelar ostatnim lidem
 
+    draw_history[room].append(data)
+    emit('draw', data, to=room, skip_sid=request.sid)
+    
 if __name__ == "__main__":
     socketio.run(app, debug=False)#, use_reloader=False -> stranky se sami nereload

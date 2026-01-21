@@ -25,14 +25,19 @@
     <!-- Thumbnail -->
     <label class="form-label">Thumbnail (cover image)</label>
     <input type="file" id="avatarInput" name="thumbnail" accept="image/*" class="input" value="{{ item[7] }}">
-    <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" 
-     class="thumb-preview" alt="Thumbnail" style="max-width:300px; margin:5px;">
+    <div style="position: relative; display: inline-block;">
+        <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" class="thumb-preview" alt="Thumbnail" style="max-width:300px; margin:5px;">
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+    </div>
 
     <!-- Examples -->
     <label class="form-label">Example images (optional)</label>
     <input type="file" name="examples" accept="image/*" multiple class="input">
     {% for ex in examples_list %}
-    <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;">
+    <div style="position: relative; display: inline-block;">
+        <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;">
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+    </div>
     {% endfor %}
     <div id="examplesPreview" class="preview-container"></div>
 

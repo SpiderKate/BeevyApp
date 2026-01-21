@@ -16,13 +16,19 @@
 
 <h3>Thumbnail</h3>
 {% if item[7] %}
-    <img src="{{ url_for('static', filename=item[7]) }}" alt="Thumbnail" style="max-width:300px;">
+    <div style="position: relative; display: inline-block;">
+        <img src="{{ url_for('static', filename=item[7]) }}" alt="Thumbnail" style="max-width:300px;" oncontextmenu="return false;">
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+    </div>
 {% endif %}
 
 {% if examples_list %}
     <h3>Example images</h3>
     {% for ex in examples_list %}
-        <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;">
+        <div style="position: relative; display: inline-block;">
+            <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;" oncontextmenu="return false;">
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        </div>
     {% endfor %}
 {% endif %}
 <br>

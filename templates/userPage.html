@@ -6,8 +6,10 @@
 
     <!-- HEADER -->
     <div class="profile-header">
-        <img src="{{ url_for('static', filename=user[3] or 'images/default_avatar.png') }}"
-             class="profile-avatar" style="max-width:150px">
+        <div style="position: relative; display: inline-block;">
+            <img src="{{ url_for('static', filename=user[3] or 'images/default_avatar.png') }}" class="profile-avatar" style="max-width:150px" oncontextmenu="return false;">
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        </div>
 
         <div>
             <h2>{{ user[1] }}</h2>
@@ -32,7 +34,10 @@
             <div class="art-grid">
                 {% for art in selling %}
                     <a href="/shop/{{ art[0] }}" class="art-card">
-                        <img src="{{ url_for('static', filename=art[3]) }}" style="max-width:200px">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ url_for('static', filename=art[3]) }}" style="max-width:200px" oncontextmenu="return false;">
+                            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+                        </div>
                         <p>{{ art[1] }}</p>
                         <span>{{ art[2] }} 🐝</span>
                     </a>
@@ -50,7 +55,10 @@
             <div class="art-grid">
                 {% for art in owned %}
                     <a href="/shop/{{ art[0] }}" class="art-card">
-                        <img src="{{ url_for('static', filename=art[2]) }}" style="max-width:200px">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ url_for('static', filename=art[2]) }}" style="max-width:200px" oncontextmenu="return false;">
+                            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+                        </div>
                         <p>{{ art[1] }}</p>
                     </a>
                 {% endfor %}

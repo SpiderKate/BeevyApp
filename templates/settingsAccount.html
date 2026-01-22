@@ -23,6 +23,10 @@
         <option value="light" {% if user[3] == 'light' %}selected{% endif %}>Light</option>
         <option value="bee" {% if user[3] == 'bee' %}selected{% endif %}>Bee</option>
     </select>
+
+<!--TODO: themes-->
+<!--TODO: languages-->
+
     <br><br>
     <label>Default brush size</label>
     <input type="number" name="brush" min="1" max="300" value="{{ user[4] }}">

@@ -30,11 +30,14 @@ csrf = CSRFProtect(app)
 STATIC_ROOT = "static"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
 UPLOAD_FOLDER = "uploads/shop"
+THUMB_FOLDER = "thumbs"
+EX_FOLDER = "examples"
+ORIG_PATH = "original"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB per file
 MAX_HISTORY = 1000
-
+#TODO: add comments
 
 def save_uploaded_file(file, subfolder):
     filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
@@ -93,10 +96,11 @@ def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
 
     result.save(dest_path, pnginfo=pnginfo)
 
-
+#contrls if the files ave the right extension
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+#valideates the image if they are the right type
 def validate_image(file):
     """Validuje, zda je soubor obrázek s povolenou příponou"""
     if not allowed_file(file.filename):
@@ -111,6 +115,7 @@ def validate_image(file):
         print("Image validation error:", e)
         return False
 
+#adds metadata to the image for better image security
 def add_metadata(image_path, author, upload_date, creation_date=None):
     """
     Adds metadata to a PNG image.
@@ -142,6 +147,7 @@ def user_owns_art(user_id, art_id):
     owns = cursor.fetchone() is not None
     conn.close()
     return owns
+
 
 def login_required(f):
     @wraps(f)
@@ -825,6 +831,8 @@ def settingsDelete(username):
 
 
 @app.route('/shop')
+
+#TODO only max 15 on page then click next (smth like carousel)
 @login_required
 def shop():
 
@@ -878,6 +886,8 @@ def art_detail(art_id):
             user_id = row[0]
             owns = user_owns_art(user_id, art_id)
 
+#TODO: preview/view mode instead only shop view
+
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
 
 
@@ -928,7 +938,8 @@ def editArt(username, art_id):
             cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
             conn.commit()
             conn.close()
-
+#TODO: if art deleted owned stays, examples get deleted
+#TODO: if no one owns delete everything
             flash("Artwork deleted permanently.", "success")
             return redirect(url_for("shop"))
 
@@ -1015,6 +1026,8 @@ def editArt(username, art_id):
     )
 
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
+#TODO: comms chat
+#TODO: comms safe delivery  author to buyer
 def buy_art(art_id):
     if "username" not in session:
         flash("Login first to buy artwork.", "error")
@@ -1133,6 +1146,8 @@ def download_art(art_id):
 
 @app.route("/create_art", methods=["GET", "POST"])
 @login_required
+#TODO rozdelit for kids or not
+#TODO zmensit resolution for thumnail, preview
 def create_art():
     if request.method == "POST":
         username = session["username"]
@@ -1156,8 +1171,9 @@ def create_art():
             return redirect(request.url)
 
         os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER), exist_ok=True)
-        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "thumbs"), exist_ok=True)
-        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "examples"), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, THUMB_FOLDER), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, EX_FOLDER), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER, ORIG_FOLDER), exist_ok=True)
 
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
@@ -1178,9 +1194,9 @@ def create_art():
 
             # --- folders ---
             base_path = UPLOAD_FOLDER
-            thumb_folder = os.path.join(base_path, "thumbs")
-            example_folder = os.path.join(base_path, "examples")
-            original_folder = os.path.join(base_path, "originals")
+            thumb_folder = os.path.join(UPLOAD_FOLDER, THUMB_FOLDER)
+            example_folder =os.path.join(UPLOAD_FOLDER, EX_FOLDER)
+            original_folder = os.path.join(UPLOAD_FOLDER, ORIG_FOLDER)
 
             for folder in (thumb_folder, example_folder, original_folder):
                 os.makedirs(os.path.join(STATIC_ROOT, folder), exist_ok=True)

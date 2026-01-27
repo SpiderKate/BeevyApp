@@ -57,8 +57,9 @@
 <br>
             <div class="row buttons">
                 <button class="clearCanvas">Clear canvas</button><br><br>
-                <button class="saveImg">Save as image</button>
+                <button class="saveImg" onclick="saveCanvasLocally()">Save as image</button>
 <!--TODO: save image in draw-->
+<!--TODO: save image to db to userpage-->
             </div>
         </section>
     
@@ -67,7 +68,7 @@
             <canvas id="drawCanvas" width=1000 height=800 data-room-id="{{ room_ID }}" style="border:1px solid #000"></canvas>
         </section>
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
-        
+        <!--<script src="/socket.io/socket.io.js"></script>-->
         <script src="{{ url_for('static', filename='script/draw.js') }}"></script>
     </div>
 {% endblock %}

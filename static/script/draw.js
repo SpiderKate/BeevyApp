@@ -47,6 +47,7 @@ let lastX = 0;
 let lastY = 0;
 let currentColor = '#000';
 let brushSize;
+//BUG: brushsize fix, from db i get users preference for bs, real output differs...
 let slider = document.getElementById("sizeSlider");
 let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
@@ -317,3 +318,13 @@ colorPicker.on('color:change', function(color) {
     currentColor=color.hexString;
 });
 
+function saveCanvasLocally(){
+    canvas.toBlob((blob)=>{
+        const a = document.createElement("a");
+        url = URL.createObjectURL(blob);
+        a.src = url;
+        a.download = 'beevy_canvas_${Date.now()}.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }, "image/png");
+}

@@ -26,7 +26,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 csrf = CSRFProtect(app)
 
-
+#TODO: create canvas folder for saved collab drawings
 STATIC_ROOT = "static"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
 UPLOAD_FOLDER = "uploads/shop"
@@ -886,7 +886,7 @@ def art_detail(art_id):
             user_id = row[0]
             owns = user_owns_art(user_id, art_id)
 
-#TODO: preview/view mode instead only shop view
+#BUG: preview/view mode instead only shop view
 
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
 

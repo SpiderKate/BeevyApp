@@ -26,7 +26,7 @@
 
 <!--TODO: themes-->
 <!--TODO: languages-->
-
+<!--TODO: GET /SpiderKate/settings/account?user=1&user=kate.neckarova@gmail.com&user=en&user=light&user=30&user=0 HTTP/1.1  zkontrolovat bezpecnost-->
     <br><br>
     <label>Default brush size</label>
     <input type="number" name="brush" min="1" max="300" value="{{ user[4] }}">
@@ -37,10 +37,4 @@
     <button type="submit">Save</button>
 
 </form>
-
-<script>
-    if (response.ok){
-        location.reload(); // flash messages now appear normally
-    }
-</script>
 {% endblock %}

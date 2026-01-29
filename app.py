@@ -7,6 +7,7 @@ import string
 import os
 import shutil
 import uuid
+import json
 from io import BytesIO
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
@@ -525,6 +526,13 @@ def draw(room_ID):
         result = cursor.fetchone()
         cursor.execute("SELECT default_brush_size FROM users WHERE username=?",(username,))
         brush = cursor.fetchone()
+
+#TODO: json ro draw.html to draw.js 
+#        brushPr = {
+#            "brushSize": brush;
+#        }
+
+
     finally:
         conn.close()
     

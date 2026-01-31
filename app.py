@@ -67,35 +67,74 @@ def get_unique_deleted_username(cursor):
             return username
 
 def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
+    """Draws a tiled, rotated watermark that remains visible on both light and dark images.
+    The watermark text is drawn with a dark outline and a lighter semi-transparent fill, repeated
+    across the image at a lower opacity but higher coverage so it's always noticeable.
+    """
     img = Image.open(src_path).convert("RGBA")
-    watermark = Image.new("RGBA", img.size)
-    draw = ImageDraw.Draw(watermark)
+    w, h = img.size
 
-    font_size = max(img.size) // 15
+    # build a watermark layer we can tile and rotate
+    watermark = Image.new("RGBA", img.size, (0, 0, 0, 0))
+
+    # choose a slightly larger font so watermark is more prominent but lower opacity
+    font_size = max(img.size) // 12
     try:
         font = ImageFont.truetype("arial.ttf", font_size)
-    except:
+    except Exception:
         font = ImageFont.load_default()
 
-    bbox = draw.textbbox((0, 0), text, font=font)
-    w, h = img.size
-    tw = bbox[2] - bbox[0]
-    th = bbox[3] - bbox[1]
+    # make a single text tile that we will rotate and tile across the watermark layer
+    # measure text size
+    tmp = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    tmp_draw = ImageDraw.Draw(tmp)
+    text_bbox = tmp_draw.textbbox((0, 0), text, font=font)
+    tw = text_bbox[2] - text_bbox[0]
+    th = text_bbox[3] - text_bbox[1]
 
-    draw.text(
-        ((w - tw) // 2, (h - th) // 2),
-        text,
-        fill=(255, 255, 255, 80),
-        font=font
-    )
+    # create text image slightly padded to allow outline
+    pad = max(6, font_size // 6)
+    tile_w = tw + pad * 2
+    tile_h = th + pad * 2
+    text_img = Image.new("RGBA", (tile_w, tile_h), (0, 0, 0, 0))
+    tile_draw = ImageDraw.Draw(text_img)
 
-    result = Image.alpha_composite(img, watermark).convert("RGB")
+    # outline (dark) and main fill (light) with semi-transparent alpha
+    outline_alpha = 160  # stronger outline for contrast
+    fill_alpha = 90      # softer main text fill
+    outline_color = (0, 0, 0, outline_alpha)
+    fill_color = (255, 255, 255, fill_alpha)
 
+    x0, y0 = pad, pad
+    # draw outline by drawing the text multiple times around center
+    offsets = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    for ox, oy in offsets:
+        tile_draw.text((x0 + ox, y0 + oy), text, font=font, fill=outline_color)
+    # draw main text on top
+    tile_draw.text((x0, y0), text, font=font, fill=fill_color)
+
+    # rotate the tile for diagonal coverage
+    angle = -25
+    rotated_tile = text_img.rotate(angle, expand=1)
+
+    # tile rotated_tile across watermark layer with spacing roughly half tile width
+    spacing_x = max(40, rotated_tile.width // 2)
+    spacing_y = max(40, rotated_tile.height // 2)
+
+    for yy in range(-rotated_tile.height, h + rotated_tile.height, spacing_y):
+        for xx in range(-rotated_tile.width, w + rotated_tile.width, spacing_x):
+            watermark.alpha_composite(rotated_tile, dest=(xx, yy))
+
+    # optionally reduce overall watermark opacity a bit more to keep it subtle
+    combined = Image.alpha_composite(img, watermark)
+
+    # ensure metadata saved in PNG
     pnginfo = PngInfo()
     for k, v in metadata.items():
         pnginfo.add_text(k, str(v))
 
-    result.save(dest_path, pnginfo=pnginfo)
+    # save as PNG to preserve text chunks
+    combined.convert("RGB").save(dest_path, format="PNG", pnginfo=pnginfo)
 
 #contrls if the files ave the right extension
 def allowed_file(filename):

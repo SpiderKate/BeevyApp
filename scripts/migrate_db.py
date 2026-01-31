@@ -232,6 +232,19 @@ def migrate():
     new.close()
     os.replace(NEW_DB, OLD_DB)
 
+    # Write migration log
+    migrations_dir = os.path.join(os.path.dirname(__file__), '..', 'migrations')
+    os.makedirs(migrations_dir, exist_ok=True)
+    log_path = os.path.join(migrations_dir, 'migration_log.txt')
+    entry = (f"{datetime.now().isoformat()} - Migration completed. Backup: {backup_name}. "
+             f"Users: old={len(users_rows)} new={users_new}; Art: old={len(art_rows)} new={art_new}\n")
+    try:
+        with open(log_path, 'a', encoding='utf-8') as fh:
+            fh.write(entry)
+        print(f"Wrote migration log to {log_path}")
+    except Exception as e:
+        print(f"Failed to write migration log: {e}")
+
     print("Migration complete. Please run your tests and verify app behavior. Original DB backed up.")
     return 0
 

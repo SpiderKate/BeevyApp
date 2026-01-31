@@ -199,6 +199,19 @@ def migrate():
             cur.execute(f"INSERT INTO art_ownership ({cols_sql}) VALUES ({placeholders})", row)
     new.commit()
 
+    # Ensure every user has a preferences row (insert defaults if missing)
+    print("Ensuring preferences exist for all users...")
+    cur.execute("SELECT id FROM users")
+    user_ids = [r[0] for r in cur.fetchall()]
+    for uid in user_ids:
+        cur.execute("SELECT 1 FROM preferences WHERE user_id = ?", (uid,))
+        if not cur.fetchone():
+            cur.execute(
+                "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                (uid, 'en', 'bee', 30, 1)
+            )
+    new.commit()
+
     # Update sqlite_sequence for AUTOINCREMENT behavior
     print("Updating sqlite_sequence to match max ids...")
     for t in ('users', 'art', 'rooms', 'art_ownership', 'preferences'):

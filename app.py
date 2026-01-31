@@ -417,6 +417,9 @@ def register():
             #vypisuje chyby (kdyz uz username/email je pouzit)
             if not existing_email and not existing_user:
                 cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
+                user_id = cursor.lastrowid
+                # create default preferences for new user
+                cursor.execute("INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)", (user_id, 'en', 'bee', 30, 1))
                 conn.commit()
                 flash("Registration was successful.","success")
                 return redirect(url_for("login", page="login"))
@@ -809,37 +812,62 @@ def settingsAccount(username):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, email, language, theme, default_brush_size, notifications FROM users WHERE username=?",(username,))
-        user = cursor.fetchone()
+        # get basic user info
+        cursor.execute("SELECT id, email FROM users WHERE username=?", (username,))
+        user_row = cursor.fetchone()
 
-        if not user:
+        if not user_row:
             conn.close()
             return "User not found", 404
-    
-    
+
+        user_id, email = user_row
+
+        # get preferences (create defaults if missing)
+        cursor.execute("SELECT language, theme, default_brush_size, notifications FROM preferences WHERE user_id = ?", (user_id,))
+        prefs = cursor.fetchone()
+        if not prefs:
+            prefs = ('en', 'bee', 30, 1)
+            cursor.execute(
+                "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
+            )
+            conn.commit()
+
+        # assemble tuple expected by template: (id, email, language, theme, default_brush_size, notifications)
+        user = (user_id, email, prefs[0], prefs[1], prefs[2], prefs[3])
+
         if request.method == "POST":
             new_email = request.form.get("email")
             new_language = request.form.get("language")
             new_theme = request.form.get("theme")
-            new_brush = request.form.get("brush")
+            new_brush = int(request.form.get("brush") or prefs[2])
             new_not = 1 if request.form.get("not") else 0  # handle checkbox
 
+            # update users email
             cursor.execute(
-                """
-                UPDATE users
-                SET email = ?, language = ?, theme = ?, default_brush_size = ?, notifications = ?
-                WHERE id = ?
-                """,
-                (new_email, new_language, new_theme, new_brush, new_not, user[0])
+                "UPDATE users SET email = ? WHERE id = ?",
+                (new_email, user_id)
             )
+            # update or insert preferences
+            cursor.execute("SELECT 1 FROM preferences WHERE user_id = ?", (user_id,))
+            if cursor.fetchone():
+                cursor.execute(
+                    "UPDATE preferences SET language = ?, theme = ?, default_brush_size = ?, notifications = ? WHERE user_id = ?",
+                    (new_language, new_theme, new_brush, new_not, user_id)
+                )
+            else:
+                cursor.execute(
+                    "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                    (user_id, new_language, new_theme, new_brush, new_not)
+                )
             conn.commit()
-            flash("Settings saved successfully.","success")
-            return redirect(url_for("settingsAccount", user=user, username=username))
+            flash("Settings saved successfully.", "success")
+            return redirect(url_for("settingsAccount", username=username))
     except Exception as e:
         flash(f"Something went wrong: {e}", "error")
         return redirect(url_for("index"))
     finally:
-            conn.close()
+        conn.close()
     return render_template("settingsAccount.html", user=user)
     
 

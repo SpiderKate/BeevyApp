@@ -640,7 +640,7 @@ def draw(room_ID):
         cursor = conn.cursor()
         cursor.execute("SELECT is_public FROM rooms WHERE room_ID =?",(room_ID,))
         result = cursor.fetchone()
-        cursor.execute("SELECT default_brush_size FROM users WHERE username=?",(username,))
+        cursor.execute("SELECT default_brush_size FROM preferences WHERE user_id=(SELECT id FROM users WHERE username=?)",(username,))
         brush = cursor.fetchone()
 
 #TODO: json ro draw.html to draw.js 

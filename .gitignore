@@ -18,3 +18,7 @@ venv/
 # Node modules
 node_modules/
 
+# Database backups (created by migration script)
+beevy.db.bak*
+migrations/backups/
+

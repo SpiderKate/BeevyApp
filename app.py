@@ -67,35 +67,74 @@ def get_unique_deleted_username(cursor):
             return username
 
 def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
+    """Draws a tiled, rotated watermark that remains visible on both light and dark images.
+    The watermark text is drawn with a dark outline and a lighter semi-transparent fill, repeated
+    across the image at a lower opacity but higher coverage so it's always noticeable.
+    """
     img = Image.open(src_path).convert("RGBA")
-    watermark = Image.new("RGBA", img.size)
-    draw = ImageDraw.Draw(watermark)
+    w, h = img.size
 
-    font_size = max(img.size) // 15
+    # build a watermark layer we can tile and rotate
+    watermark = Image.new("RGBA", img.size, (0, 0, 0, 0))
+
+    # choose a slightly larger font so watermark is more prominent but lower opacity
+    font_size = max(img.size) // 12
     try:
         font = ImageFont.truetype("arial.ttf", font_size)
-    except:
+    except Exception:
         font = ImageFont.load_default()
 
-    bbox = draw.textbbox((0, 0), text, font=font)
-    w, h = img.size
-    tw = bbox[2] - bbox[0]
-    th = bbox[3] - bbox[1]
+    # make a single text tile that we will rotate and tile across the watermark layer
+    # measure text size
+    tmp = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    tmp_draw = ImageDraw.Draw(tmp)
+    text_bbox = tmp_draw.textbbox((0, 0), text, font=font)
+    tw = text_bbox[2] - text_bbox[0]
+    th = text_bbox[3] - text_bbox[1]
 
-    draw.text(
-        ((w - tw) // 2, (h - th) // 2),
-        text,
-        fill=(255, 255, 255, 80),
-        font=font
-    )
+    # create text image slightly padded to allow outline
+    pad = max(6, font_size // 6)
+    tile_w = tw + pad * 2
+    tile_h = th + pad * 2
+    text_img = Image.new("RGBA", (tile_w, tile_h), (0, 0, 0, 0))
+    tile_draw = ImageDraw.Draw(text_img)
 
-    result = Image.alpha_composite(img, watermark).convert("RGB")
+    # outline (dark) and main fill (light) with semi-transparent alpha
+    outline_alpha = 160  # stronger outline for contrast
+    fill_alpha = 90      # softer main text fill
+    outline_color = (0, 0, 0, outline_alpha)
+    fill_color = (255, 255, 255, fill_alpha)
 
+    x0, y0 = pad, pad
+    # draw outline by drawing the text multiple times around center
+    offsets = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    for ox, oy in offsets:
+        tile_draw.text((x0 + ox, y0 + oy), text, font=font, fill=outline_color)
+    # draw main text on top
+    tile_draw.text((x0, y0), text, font=font, fill=fill_color)
+
+    # rotate the tile for diagonal coverage
+    angle = -25
+    rotated_tile = text_img.rotate(angle, expand=1)
+
+    # tile rotated_tile across watermark layer with spacing roughly half tile width
+    spacing_x = max(40, rotated_tile.width // 2)
+    spacing_y = max(40, rotated_tile.height // 2)
+
+    for yy in range(-rotated_tile.height, h + rotated_tile.height, spacing_y):
+        for xx in range(-rotated_tile.width, w + rotated_tile.width, spacing_x):
+            watermark.alpha_composite(rotated_tile, dest=(xx, yy))
+
+    # optionally reduce overall watermark opacity a bit more to keep it subtle
+    combined = Image.alpha_composite(img, watermark)
+
+    # ensure metadata saved in PNG
     pnginfo = PngInfo()
     for k, v in metadata.items():
         pnginfo.add_text(k, str(v))
 
-    result.save(dest_path, pnginfo=pnginfo)
+    # save as PNG to preserve text chunks
+    combined.convert("RGB").save(dest_path, format="PNG", pnginfo=pnginfo)
 
 #contrls if the files ave the right extension
 def allowed_file(filename):
@@ -185,6 +224,80 @@ def read_png_metadata(file_path):
     except Exception as e:
         print(f"Failed to read metadata from {file_path}: {e}")
         return {}
+
+
+def process_uploaded_image(file, username, prefix="", save_original=True, author_name=None):
+    """Saves an original PNG (optional), creates a watermarked PNG with metadata.
+    Returns tuple (watermarked_rel_path, original_rel_path_or_None).
+    """
+    filename = secure_filename(file.filename)
+    base_name = os.path.splitext(filename)[0]
+    file.seek(0)
+
+    thumb_folder = os.path.join(UPLOAD_FOLDER, THUMB_FOLDER)
+    example_folder = os.path.join(UPLOAD_FOLDER, EX_FOLDER)
+    original_folder = os.path.join(UPLOAD_FOLDER, ORIG_FOLDER)
+
+    for folder in (thumb_folder, example_folder, original_folder):
+        os.makedirs(os.path.join(STATIC_ROOT, folder), exist_ok=True)
+
+    original_rel_path = None
+    full_original_path = None
+
+    if save_original:
+        original_rel_path = os.path.join(
+            original_folder,
+            f"{uuid.uuid4().hex}_{base_name}.png"
+        ).replace("\\", "/")
+        full_original_path = os.path.join(STATIC_ROOT, original_rel_path)
+
+        img = Image.open(file)
+        img = img.convert("RGBA")
+        meta = PngInfo()
+        # resolve author name if not provided
+        if not author_name:
+            try:
+                conn = sqlite3.connect("beevy.db")
+                cursor = conn.cursor()
+                cursor.execute("SELECT name, surname FROM users WHERE username = ?", (username,))
+                ur = cursor.fetchone()
+                conn.close()
+                if ur:
+                    author_name = f"{ur[0]} {ur[1]} - {username}"
+                else:
+                    author_name = username
+            except Exception:
+                author_name = username
+
+        meta.add_text("Author", author_name)
+        meta.add_text("Uploaded on Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        img.save(full_original_path, pnginfo=meta, format="PNG")
+        file.seek(0)
+
+    target_folder = thumb_folder if prefix == "thumb" else example_folder
+
+    watermarked_rel_path = os.path.join(
+        target_folder,
+        f"{prefix}_{uuid.uuid4().hex}_{base_name}.png"
+    ).replace("\\", "/")
+
+    full_watermarked_path = os.path.join(STATIC_ROOT, watermarked_rel_path)
+
+    metadata = {
+        "Author": author_name if author_name else username,
+        "Uploaded on Beevy": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Downloaded from Beevy": "Beevy",
+        "Preview": "True" if prefix != "original" else "False"
+    }
+
+    watermark_text_with_metadata(
+        full_original_path if full_original_path else file,
+        full_watermarked_path,
+        username,
+        metadata
+    )
+
+    return watermarked_rel_path, original_rel_path
 
 
 
@@ -304,6 +417,9 @@ def register():
             #vypisuje chyby (kdyz uz username/email je pouzit)
             if not existing_email and not existing_user:
                 cursor.execute("INSERT INTO users (username, password, name, surname, email, dob) VALUES (?, ?, ?, ?, ?, ?)", (username, hash, name, surname, email, dob))
+                user_id = cursor.lastrowid
+                # create default preferences for new user
+                cursor.execute("INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)", (user_id, 'en', 'bee', 30, 1))
                 conn.commit()
                 flash("Registration was successful.","success")
                 return redirect(url_for("login", page="login"))
@@ -696,37 +812,62 @@ def settingsAccount(username):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, email, language, theme, default_brush_size, notifications FROM users WHERE username=?",(username,))
-        user = cursor.fetchone()
+        # get basic user info
+        cursor.execute("SELECT id, email FROM users WHERE username=?", (username,))
+        user_row = cursor.fetchone()
 
-        if not user:
+        if not user_row:
             conn.close()
             return "User not found", 404
-    
-    
+
+        user_id, email = user_row
+
+        # get preferences (create defaults if missing)
+        cursor.execute("SELECT language, theme, default_brush_size, notifications FROM preferences WHERE user_id = ?", (user_id,))
+        prefs = cursor.fetchone()
+        if not prefs:
+            prefs = ('en', 'bee', 30, 1)
+            cursor.execute(
+                "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
+            )
+            conn.commit()
+
+        # assemble tuple expected by template: (id, email, language, theme, default_brush_size, notifications)
+        user = (user_id, email, prefs[0], prefs[1], prefs[2], prefs[3])
+
         if request.method == "POST":
             new_email = request.form.get("email")
             new_language = request.form.get("language")
             new_theme = request.form.get("theme")
-            new_brush = request.form.get("brush")
+            new_brush = int(request.form.get("brush") or prefs[2])
             new_not = 1 if request.form.get("not") else 0  # handle checkbox
 
+            # update users email
             cursor.execute(
-                """
-                UPDATE users
-                SET email = ?, language = ?, theme = ?, default_brush_size = ?, notifications = ?
-                WHERE id = ?
-                """,
-                (new_email, new_language, new_theme, new_brush, new_not, user[0])
+                "UPDATE users SET email = ? WHERE id = ?",
+                (new_email, user_id)
             )
+            # update or insert preferences
+            cursor.execute("SELECT 1 FROM preferences WHERE user_id = ?", (user_id,))
+            if cursor.fetchone():
+                cursor.execute(
+                    "UPDATE preferences SET language = ?, theme = ?, default_brush_size = ?, notifications = ? WHERE user_id = ?",
+                    (new_language, new_theme, new_brush, new_not, user_id)
+                )
+            else:
+                cursor.execute(
+                    "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                    (user_id, new_language, new_theme, new_brush, new_not)
+                )
             conn.commit()
-            flash("Settings saved successfully.","success")
-            return redirect(url_for("settingsAccount", user=user, username=username))
+            flash("Settings saved successfully.", "success")
+            return redirect(url_for("settingsAccount", username=username))
     except Exception as e:
         flash(f"Something went wrong: {e}", "error")
         return redirect(url_for("index"))
     finally:
-            conn.close()
+        conn.close()
     return render_template("settingsAccount.html", user=user)
     
 
@@ -987,6 +1128,11 @@ def editArt(username, art_id):
         thumb_file = request.files.get("thumbnail")
         examples_files = request.files.getlist("examples")
 
+        # Resolve author display name for metadata
+        cursor.execute("SELECT id, name, surname FROM users WHERE username = ?", (session['username'],))
+        user_row = cursor.fetchone()
+        author_name = f"{user_row[1]} {user_row[2]} - {session['username']}" if user_row else session['username']
+
         thumbnail_path = item[7]
         examples_path = item[10]
 
@@ -1013,8 +1159,9 @@ def editArt(username, art_id):
                 flash("Invalid thumbnail.", "error")
                 return redirect(request.url)
 
-            # save with unique name
-            thumbnail_path = save_uploaded_file(thumb_file, f"{UPLOAD_FOLDER}/{THUMB_FOLDER}")
+            # save with watermark + metadata
+            thumb_watermarked, thumb_original = process_uploaded_image(thumb_file, session['username'], prefix="thumb", author_name=author_name)
+            thumbnail_path = thumb_watermarked
 
         # example images
         if examples_files and examples_files[0].filename:
@@ -1036,8 +1183,8 @@ def editArt(username, art_id):
                     flash(f"Example file {ex.filename} is too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).", "error")
                     return redirect(request.url)
 
-                ex_wm_path = save_uploaded_file(ex, f"{UPLOAD_FOLDER}/{EX_FOLDER}")
-                new_examples.append(ex_wm_path)
+                ex_wm, ex_original = process_uploaded_image(ex, session['username'], prefix="example", author_name=author_name)
+                new_examples.append(ex_wm)
 
             examples_path = ",".join(new_examples)
 
@@ -1233,68 +1380,8 @@ def create_art():
 
         # --- Helper to save + watermark + add metadata ---
         def process_image(file, username, prefix="", save_original=True):
-            """
-            Saves original image (optional), creates watermarked version with metadata.
-            Returns (watermarked_rel_path, original_rel_path or None)
-            Uses uploader's name for metadata and always saves PNGs to preserve metadata.
-            """
-            filename = secure_filename(file.filename)
-            base_name = os.path.splitext(filename)[0]
-            file.seek(0)
-
-            # --- folders ---
-            base_path = UPLOAD_FOLDER
-            thumb_folder = os.path.join(UPLOAD_FOLDER, THUMB_FOLDER)
-            example_folder = os.path.join(UPLOAD_FOLDER, EX_FOLDER)
-            original_folder = os.path.join(UPLOAD_FOLDER, ORIG_FOLDER)
-
-            for folder in (thumb_folder, example_folder, original_folder):
-                os.makedirs(os.path.join(STATIC_ROOT, folder), exist_ok=True)
-
-            # --- ORIGINAL ---
-            original_rel_path = None
-            full_original_path = None
-
-            if save_original:
-                original_rel_path = os.path.join(
-                    original_folder,
-                    f"{uuid.uuid4().hex}_{base_name}.png"
-                ).replace("\\", "/")
-                full_original_path = os.path.join(STATIC_ROOT, original_rel_path)
-
-                img = Image.open(file)
-                img = img.convert("RGBA")
-                meta = PngInfo()
-                meta.add_text("Author", author_name)
-                meta.add_text("Uploaded on Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                img.save(full_original_path, pnginfo=meta, format="PNG")
-
-                file.seek(0)  # reset for watermarking
-
-            # --- WATERMARKED ---
-            target_folder = thumb_folder if prefix == "thumb" else example_folder
-
-            watermarked_rel_path = os.path.join(
-                target_folder,
-                f"{prefix}_{uuid.uuid4().hex}_{base_name}.png"
-            ).replace("\\", "/")
-
-            full_watermarked_path = os.path.join(STATIC_ROOT, watermarked_rel_path)
-
-            metadata = {
-                "Author": author_name,
-                "Uploaded on Beevy": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Downloaded from Beevy": "Beevy",
-                "Preview": "True" if prefix != "original" else "False"
-            }
-
-            watermark_text_with_metadata(
-                full_original_path if full_original_path else file,
-                full_watermarked_path,
-                username,
-                metadata
-            )
-            return watermarked_rel_path, original_rel_path
+            # thin wrapper used by create_art for backwards compatibility
+            return process_uploaded_image(file, username, prefix=prefix, save_original=save_original, author_name=author_name) 
 
 
 

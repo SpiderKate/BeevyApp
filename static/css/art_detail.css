@@ -1,9 +1,9 @@
 :root {
     --primary-bg: #8860cc;
-    --primary-text: rgb(247, 235, 78);
+    --primary-text: rgb(247 235 78);
     --accent-color: #f7eb4e;
     --transition-speed: 0.3s;
-    --glass-bg: rgba(255,255,255,0.12);
+    --glass-bg: rgb(255 255 255 / 12%);
     --card-blur: blur(6px);
     --radius: 18px;
 }
@@ -12,7 +12,7 @@
 body {
     background: radial-gradient(circle at top left, #c683ec, #7060cc 70%);
     color: var(--primary-text);
-    font-family: 'Poppins', sans-serif;
+    font-family: Poppins, sans-serif;
     min-height: 100vh;
     padding: 40px 20px;
     display: flex;
@@ -27,8 +27,8 @@ body::before {
     position: absolute;
     inset: 0;
     background-image:
-        repeating-linear-gradient(30deg, rgba(247,235,78,0.03) 0px, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-30deg, rgba(247,235,78,0.03) 0px, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px);
+        repeating-linear-gradient(30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(-30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px);
     pointer-events: none;
 }
 
@@ -40,7 +40,7 @@ body::before {
     border-radius: var(--radius);
     max-width: 900px;
     width: 100%;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 25%);
     position: relative;
     z-index: 5;
     animation: fadeIn 0.5s ease-out;
@@ -51,7 +51,7 @@ body::before {
     font-size: 2.7rem;
     font-weight: bold;
     margin-bottom: 10px;
-    text-shadow: 0 0 6px rgba(247,235,78,0.4);
+    text-shadow: 0 0 6px rgb(247 235 78 / 40%);
 }
 
 /* Author under title */
@@ -65,7 +65,7 @@ body::before {
 .art-image {
     width: 100%;
     border-radius: var(--radius);
-    box-shadow: 0 3px 18px rgba(0,0,0,0.35);
+    box-shadow: 0 3px 18px rgb(0 0 0 / 35%);
     margin: 20px 0;
     animation: float 6s ease-in-out infinite;
 }
@@ -78,11 +78,11 @@ body::before {
 
 /* Glassy info boxes */
 .info-box {
-    background: rgba(255,255,255,0.1);
+    background: rgb(255 255 255 / 10%);
     padding: 18px;
     border-radius: var(--radius);
     margin: 20px 0;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 3px 10px rgb(0 0 0 / 15%);
     text-align: left;
     line-height: 1.55;
 }
@@ -91,7 +91,7 @@ body::before {
 .label {
     font-weight: bold;
     color: var(--accent-color);
-    text-shadow: 0 0 4px rgba(247,235,78,0.5);
+    text-shadow: 0 0 4px rgb(247 235 78 / 50%);
 }
 
 /* BUY BUTTON following your button theme */
@@ -108,13 +108,13 @@ body::before {
     font-size: 1.3rem;
     transition: var(--transition-speed);
     text-decoration: none;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    box-shadow: 0 3px 10px rgb(0 0 0 / 25%);
 }
 
 .buy-btn:hover {
     transform: scale(1.05);
     background: linear-gradient(90deg, #b391ff, #9c7cff);
-    box-shadow: 0 0 15px rgba(247, 235, 78, 0.7);
+    box-shadow: 0 0 15px rgb(247 235 78 / 70%);
 }
 
 /* Back link */
@@ -122,14 +122,14 @@ body::before {
     display: inline-block;
     margin-top: 20px;
     font-weight: bold;
-    color: rgb(247, 235, 78);
+    color: rgb(247 235 78);
     transition: var(--transition-speed);
     text-decoration: none;
 }
 
 .back-link:hover {
     color: #fff6a3;
-    text-shadow: 0 0 10px rgba(255,255,200,0.7);
+    text-shadow: 0 0 10px rgb(255 255 200 / 70%);
     transform: scale(1.05);
 }
 

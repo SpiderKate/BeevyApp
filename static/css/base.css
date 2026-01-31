@@ -1,7 +1,7 @@
 :root {
     --primary-bg: #8860cc;
     --details: #bea4e7;
-    --primary-text: rgb(247, 235, 78);
+    --primary-text: rgb(247 235 78);
     --accent-color: #f7eb4e;
     --transition-speed: 0.3s;
     --text-outline: transparent;
@@ -10,7 +10,7 @@
 body {
     background: radial-gradient(circle at top left, #c683ec, #7060cc 70%);
     color: var(--primary-text);
-    font-family: 'Poppins', sans-serif;
+    font-family: Poppins, sans-serif;
     min-height: 100vh;
     margin: 0 auto;
     display: flex;
@@ -29,16 +29,13 @@ body::before {
     width: 100%;
     height: 100%;
     background-image: 
-        repeating-linear-gradient(30deg, rgba(247,235,78,0.03) 0, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-30deg, rgba(247,235,78,0.03) 0, rgba(247,235,78,0.03) 1px, transparent 1px, transparent 20px);
+        repeating-linear-gradient(30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(-30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px);
     background-size: 40px 70px;
     pointer-events: none;
     z-index: 0;
 }
 
-body.index .sidebar {
-    display: none;
-}
 
 .profile{
     text-align: center;
@@ -58,7 +55,7 @@ body.index .sidebar {
     position: absolute;
     width: 60px;
     height: 70px;
-    background-color: rgba(247, 235, 78, 0.1);
+    background-color: rgb(247 235 78 / 10%);
     clip-path: polygon(
         25% 6.7%, 75% 6.7%,
         100% 50%, 75% 93.3%,
@@ -78,9 +75,10 @@ body.index .sidebar {
     text-align: right;
     
 }
+
 .user-menu-button{
     background: #a17cf4;
-    color: rgb(247, 235, 78);
+    color: rgb(247 235 78);
     padding: 10px 15px;
     border-radius: 12px;
     cursor: pointer;
@@ -95,17 +93,18 @@ body.index .sidebar {
     min-width: 120px;
     max-width: 300px;
 }
+
 .user-menu-button:hover{
     background: #b391ff;
     color: white;
 }
+
 .dropdown{
     background: #8860cc;
     padding: 10px 0;
     border-radius: 10px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 3px 12px rgb(0 0 0 / 30%);
     margin-top: 8px;
-    right: 0;
     width: 150px;
     text-align: center;
     position: fixed;
@@ -113,18 +112,56 @@ body.index .sidebar {
     top: 60px;
     z-index: 99;
 }
+
+/* Global anchor styles */
+a {
+  color: rgb(247 235 78); /* your golden yellow */
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+
+/* On hover: lighter glow and gentle enlargement */
+a:hover {
+  color: #fff6a3; /* lighter yellow */
+  text-shadow: 0 0 10px rgb(255 255 200 / 70%);
+  transform: scale(1.05);
+}
+
+/* nav links (sidebar) */
+.sidebar nav a {
+    display: block;
+    color: #cfcfe6;
+    text-decoration: none;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+}
+
+.sidebar nav a.active {
+    background: rgb(247 235 78 / 15%);
+    box-shadow: inset 0 0 0 1px rgb(247 235 78 / 40%);
+}
+
+.sidebar nav a:hover {
+    background: #6f569e;
+}
+
 .dropdown a{
     display: block;
     padding: 10px 15px;
-    color: rgb(247, 235, 78);
+    color: rgb(247 235 78);
     text-decoration: none;
     transition: 0.2s;
 }
+
 .dropdown a:hover{
     background: #b391ff;
     color: white;
     border-radius: 10px;
 }
+
 .hidden{
     display: none;
 }
@@ -140,25 +177,11 @@ button {
     font-weight: bold;
     z-index: 5;
 }
+
 button:hover {
     transform: scale(1.05);
     background: linear-gradient(90deg, #b391ff, #9c7cff);
-    box-shadow: 0 0 10px rgba(247, 235, 78, 0.6);
-}
-
-a {
-  color: rgb(247, 235, 78); /* your golden yellow */
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-  font-family: "Trebuchet MS", Arial, sans-serif;
-}
-
-/* On hover: lighter glow and gentle enlargement */
-a:hover {
-  color: #fff6a3; /* lighter yellow */
-  text-shadow: 0 0 10px rgba(255, 255, 200, 0.7);
-  transform: scale(1.05);
+    box-shadow: 0 0 10px rgb(247 235 78 / 60%);
 }
 
 .user-avatar {
@@ -175,7 +198,7 @@ a:hover {
     border-radius: 8px;
     max-width: 400px;
     margin: 15px auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
     border: 1px solid transparent;
     font-weight: 500;
     text-shadow:
@@ -194,24 +217,27 @@ a:hover {
 
 /* Info messages */
 .msg.info {
-    --text-outline: rgba(147, 197, 253, 0.5);
-    background: rgba(219, 234, 254, 0.18);
+    --text-outline: rgb(147 197 253 / 50%);
+
+    background: rgb(219 234 254 / 18%);
     color: #305dda;
     border-color: var(--text-outline);
 }
 
 /* Success messages */
 .msg.success {
-    --text-outline: rgba(111, 207, 151, 0.5);
-    background: rgba(200, 241, 209, 0.18);
+    --text-outline: rgb(111 207 151 / 50%);
+
+    background: rgb(200 241 209 / 18%);
     color: #145a32;
     border-color: var(--text-outline);
 }
 
 /* Error messages */
 .msg.error {
-    --text-outline: rgba(248, 113, 113, 0.5);
-    background: rgba(253, 226, 226, 0.18);
+    --text-outline: rgb(248 113 113 / 50%);
+
+    background: rgb(253 226 226 / 18%);
     color: #7f1d1d;
     border-color: var(--text-outline);
 }
@@ -222,6 +248,7 @@ a:hover {
     font-weight: bold;
     margin-left: 10px;
 }
+
 .msg .close-btn:hover {
     color: #1b1817;
 }
@@ -236,6 +263,7 @@ a:hover {
 
 .tab { display: none; }
 .tab.active { display: block; }
+
 .art-grid {
     display: flex;
     flex-wrap: wrap;
@@ -261,9 +289,9 @@ a:hover {
     left: 0;
     height: 100vh;
     padding: 20px;
-    background: rgba(136, 96, 204, 0.35);
+    background: rgb(136 96 204 / 35%);
     backdrop-filter: blur(14px);
-    border-right: 1px solid rgba(247, 235, 78, 0.25);
+    border-right: 1px solid rgb(247 235 78 / 25%);
     transition: transform 0.3s ease;
     transform: translateX(-100%); /* hidden by default */
     z-index: 200;
@@ -273,30 +301,16 @@ a:hover {
     transform: translateX(0); /* shown */
 }
 
+/* Hidden sidebar on index page */
+body.index .sidebar {
+    display: none;
+}
+
 .logo {
     margin-bottom: 30px;
     font-size: 1.4rem;
 }
 
-/* nav links */
-.sidebar nav a {
-    display: block;
-    color: #cfcfe6;
-    text-decoration: none;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    border-radius: 8px;
-}
-
-.sidebar nav a.active {
-    background: rgba(247,235,78,0.15);
-    box-shadow: inset 0 0 0 1px rgba(247,235,78,0.4);
-}
-
-
-.sidebar nav a:hover {
-    background: #6f569e;
-}
 
 /* content */
 .content {
@@ -332,7 +346,7 @@ footer {
     font-size: 0.9rem;
     font-weight: bold;
     color: var(--accent-color);
-    text-shadow: 0 0 6px rgba(0,0,0,0.5);
+    text-shadow: 0 0 6px rgb(0 0 0 / 50%);
     position: fixed;
     margin-left: 0;
     left: 20px;
@@ -399,26 +413,54 @@ body.register .menu-label{
     margin-bottom: 20px;
 }
 
+/* Small helper text for file inputs (hints) */
+.file-hint {
+    font-size: 0.9rem;
+    color: #9ca3af; /* muted gray */
+    margin-top: 6px;
+    text-align: left;
+}
+
+/* Small utilities */
+.file-error {
+    color: #b00020;
+    font-size: 0.95rem;
+    margin-top: 6px;
+}
+
+.preview-img {
+    max-width: 300px;
+    margin: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    object-fit: contain;
+}
+
+.preview-img.small {
+    max-width: 200px;
+}
+
+
 .auth-alt {
     margin-top: 15px;
 }
 
 .danger-zone {
-    background: rgba(136, 96, 204, 0.4); /* purple accent, semi-transparent */
+    background: rgb(136 96 204 / 40%); /* purple accent, semi-transparent */
     color: var(--primary-text); /* golden text */
     border: none;
     transition: var(--transition-speed);
 }
 
 .danger-zone:hover {
-    background: rgba(136, 96, 204, 0.6); /* darker purple on hover */
+    background: rgb(136 96 204 / 60%); /* darker purple on hover */
     box-shadow: 0 0 8px var(--accent-color); /* subtle glow */
 }
 
 .danger-title {
     color: var(--accent-color); /* golden, fits theme */
     font-weight: bold;
-    text-shadow: 0 0 4px rgba(247,235,78,0.6);
+    text-shadow: 0 0 4px rgb(247 235 78 / 60%);
 }
 
 .desc {

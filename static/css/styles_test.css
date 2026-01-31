@@ -1,6 +1,6 @@
 :root {
     --primary-bg: #8860cc;
-    --primary-text: rgb(247, 235, 78);
+    --primary-text: rgb(247 235 78);
     --accent-color: #f7eb4e;
     --transition-speed: 0.3s;
 }
@@ -30,6 +30,7 @@
     margin-bottom: 15px;
     animation: float 6s ease-in-out infinite;
 }
+
 #bee {
     animation: bee-fly 3s ease-in-out infinite alternate;
     z-index: 2;
@@ -107,7 +108,7 @@
 /* Hover effect stays on top */
 .hex:hover {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 15px rgba(247, 235, 78, 0.7);
+    box-shadow: 0 0 15px rgb(247 235 78 / 70%);
 }
 
 

@@ -14,3 +14,7 @@ __pycache__/
 # Virtualenv
 .venv/
 venv/
+
+# Node modules
+node_modules/
+

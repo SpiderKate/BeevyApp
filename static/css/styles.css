@@ -1,47 +1,56 @@
 body{
     background-color: #8860cc;
 }
+
 #placeholder_Beevy{
-    color:rgb(247, 235, 78);
-    font-family: Brush Script MT;
+    color:rgb(247 235 78);
+    font-family: "Brush Script MT", cursive;
     font-size: 300px;
     text-align: center;
     margin-top: 10%;
     margin-bottom: 1%;
 }
+
 #about{
-    color:rgb(247, 235, 78);
+    color:rgb(247 235 78);
     padding-left: 30%;
     padding-right: 30%;
     text-align: center;
 }
+
 .input{
     color: black;
-    background-color: rgb(231, 216, 150);
+    background-color: rgb(231 216 150);
 }
+
 .submit{
-    background-color: rgb(197, 166, 65);
+    background-color: rgb(197 166 65);
     font-size: medium;
 }
+
 label{
-    color: rgb(231, 200, 59);
-    font-family: Arial;
+    color: rgb(231 200 59);
+    font-family: Arial, sans-serif;
 }
+
 form{
     text-align: center;
     padding-top: 10%;
 }
+
 .linkText{
-    color: rgb(231, 216, 150);
-    font-family: Arial;
+    color: rgb(231 216 150);
+    font-family: Arial, sans-serif;
 }
+
 .link{
-    color: rgb(211, 178, 30);
-    font-family: Arial;
+    color: rgb(211 178 30);
+    font-family: Arial, sans-serif;
 }
+
 .errorH{
-    color:rgb(247, 235, 78);
-    font-family: Trebuchet MS;
+    color:rgb(247 235 78);
+    font-family: "Trebuchet MS", sans-serif;
     font-size: 1000%;
     text-align: center;
     margin-top: 10%;

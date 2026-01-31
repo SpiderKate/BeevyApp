@@ -992,24 +992,52 @@ def editArt(username, art_id):
 
         # thumbnail upload
         if thumb_file and thumb_file.filename:
+            # --- size check ---
+            try:
+                thumb_file.stream.seek(0, os.SEEK_END)
+                size = thumb_file.stream.tell()
+                thumb_file.stream.seek(0)
+            except Exception:
+                size = None
+
+            if size and size > MAX_FILE_SIZE:
+                flash(f"Thumbnail too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).", "error")
+                return redirect(request.url)
+
+            # --- extension/type check ---
+            if not allowed_file(thumb_file.filename):
+                flash("Invalid thumbnail file type.", "error")
+                return redirect(request.url)
+
             if not validate_image(thumb_file):
                 flash("Invalid thumbnail.", "error")
                 return redirect(request.url)
 
-            filename = secure_filename(thumb_file.filename)
-            save_path = f"uploads/thumbs/{filename}"
-            thumb_file.save(os.path.join("static", save_path))
-            thumbnail_path = save_path
+            # save with unique name
+            thumbnail_path = save_uploaded_file(thumb_file, f"{UPLOAD_FOLDER}/{THUMB_FOLDER}")
 
         # example images
         if examples_files and examples_files[0].filename:
             new_examples = []
             for ex in examples_files:
-                if validate_image(ex):
-                    fname = secure_filename(ex.filename)
-                    ex_path = f"uploads/examples/{fname}"
-                    ex.save(os.path.join("static", ex_path))
-                    new_examples.append(ex_path)
+                if not validate_image(ex):
+                    flash(f"Invalid example file: {ex.filename}", "error")
+                    return redirect(request.url)
+
+                # size check
+                try:
+                    ex.stream.seek(0, os.SEEK_END)
+                    ex_size = ex.stream.tell()
+                    ex.stream.seek(0)
+                except Exception:
+                    ex_size = None
+
+                if ex_size and ex_size > MAX_FILE_SIZE:
+                    flash(f"Example file {ex.filename} is too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).", "error")
+                    return redirect(request.url)
+
+                ex_wm_path = save_uploaded_file(ex, f"{UPLOAD_FOLDER}/{EX_FOLDER}")
+                new_examples.append(ex_wm_path)
 
             examples_path = ",".join(new_examples)
 
@@ -1037,7 +1065,9 @@ def editArt(username, art_id):
         "artEdit.html",
         item=item,
         examples_list=examples_list,
-        username=username
+        username=username,
+        max_file_size=MAX_FILE_SIZE,
+        allowed_extensions=list(ALLOWED_EXTENSIONS)
     )
 
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
@@ -1192,25 +1222,30 @@ def create_art():
 
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
-        cursor.execute("""SELECT author_name FROM art
-                       JOIN users ON art.author_id = users.id
-        """)
+        cursor.execute("SELECT id, name, surname FROM users WHERE username = ?", (username,))
         user_row = cursor.fetchone()
+        if not user_row:
+            conn.close()
+            flash("User not found.", "error")
+            return redirect(url_for("index"))
+        user_id = user_row[0]
+        author_name = f"{user_row[1]} {user_row[2]} - {username}"
 
         # --- Helper to save + watermark + add metadata ---
         def process_image(file, username, prefix="", save_original=True):
             """
             Saves original image (optional), creates watermarked version with metadata.
             Returns (watermarked_rel_path, original_rel_path or None)
+            Uses uploader's name for metadata and always saves PNGs to preserve metadata.
             """
-
             filename = secure_filename(file.filename)
+            base_name = os.path.splitext(filename)[0]
             file.seek(0)
 
             # --- folders ---
             base_path = UPLOAD_FOLDER
             thumb_folder = os.path.join(UPLOAD_FOLDER, THUMB_FOLDER)
-            example_folder =os.path.join(UPLOAD_FOLDER, EX_FOLDER)
+            example_folder = os.path.join(UPLOAD_FOLDER, EX_FOLDER)
             original_folder = os.path.join(UPLOAD_FOLDER, ORIG_FOLDER)
 
             for folder in (thumb_folder, example_folder, original_folder):
@@ -1223,30 +1258,29 @@ def create_art():
             if save_original:
                 original_rel_path = os.path.join(
                     original_folder,
-                    f"{uuid.uuid4().hex}_{filename}"
+                    f"{uuid.uuid4().hex}_{base_name}.png"
                 ).replace("\\", "/")
                 full_original_path = os.path.join(STATIC_ROOT, original_rel_path)
 
                 img = Image.open(file)
+                img = img.convert("RGBA")
                 meta = PngInfo()
-                meta.add_text("Author", username)
+                meta.add_text("Author", author_name)
                 meta.add_text("Uploaded on Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                img.save(full_original_path, pnginfo=meta)
+                img.save(full_original_path, pnginfo=meta, format="PNG")
 
                 file.seek(0)  # reset for watermarking
+
             # --- WATERMARKED ---
             target_folder = thumb_folder if prefix == "thumb" else example_folder
 
             watermarked_rel_path = os.path.join(
                 target_folder,
-                f"{prefix}_{uuid.uuid4().hex}_{filename}"
+                f"{prefix}_{uuid.uuid4().hex}_{base_name}.png"
             ).replace("\\", "/")
 
             full_watermarked_path = os.path.join(STATIC_ROOT, watermarked_rel_path)
-            cursor.execute("""SELECT author_name FROM art
-                        JOIN users ON art.author_id = users.id
-                           """)
-            author_name = cursor.fetchone()[0]
+
             metadata = {
                 "Author": author_name,
                 "Uploaded on Beevy": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -1254,7 +1288,6 @@ def create_art():
                 "Preview": "True" if prefix != "original" else "False"
             }
 
-            watermark_source = full_original_path if full_original_path else file
             watermark_text_with_metadata(
                 full_original_path if full_original_path else file,
                 full_watermarked_path,
@@ -1285,14 +1318,7 @@ def create_art():
         examples_paths_str = ",".join(examples_paths)
 
         # --- Save to DB ---
-        conn = sqlite3.connect("beevy.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, name, surname FROM users WHERE username = ?", (username,))
-        user_row = cursor.fetchone()
-        if not user_row:
-            conn.close()
-            flash("User not found.", "error")
-            return redirect(url_for("index"))
+
 
         user_id = user_row[0]
         author_name = f"{user_row[1]} {user_row[2]} - {username}"

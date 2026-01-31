@@ -24,22 +24,32 @@
 
     <!-- Thumbnail -->
     <label class="form-label">Thumbnail (cover image)</label>
-    <input type="file" id="avatarInput" name="thumbnail" accept="image/*" class="input" value="{{ item[7] }}">
+    <input type="file" id="thumbInput" name="thumbnail" accept="image/*" class="input"
+           data-max-size="{{ max_file_size }}" data-allowed="{{ allowed_extensions | join(',') }}"
+           title="Max file size: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}"
+           aria-describedby="thumbHint">
     <div style="position: relative; display: inline-block;">
-        <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" class="thumb-preview" alt="Thumbnail" style="max-width:300px; margin:5px;">
+        <img id="thumbPreview" src="{{ url_for('static', filename=item[7]) if item[7] else url_for('static', filename='images/noThumb.png') }}" class="thumb-preview preview-img" alt="Thumbnail">
         <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
     </div>
+    <div id="thumbError" class="file-error" style="color:#b00020; margin-top:6px;"></div>
+    <div id="thumbHint" class="file-hint" style="font-size:0.9em; color:#666; margin-top:4px;">Max file size: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.</div>
 
     <!-- Examples -->
     <label class="form-label">Example images (optional)</label>
-    <input type="file" name="examples" accept="image/*" multiple class="input">
+    <input type="file" id="examplesInput" name="examples" accept="image/*" multiple class="input"
+           data-max-size="{{ max_file_size }}" data-allowed="{{ allowed_extensions | join(',') }}"
+           title="Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}"
+           aria-describedby="examplesHint">
     {% for ex in examples_list %}
     <div style="position: relative; display: inline-block;">
-        <img src="{{ url_for('static', filename=ex) }}" alt="Example" style="max-width:300px; margin:5px;">
+        <img src="{{ url_for('static', filename=ex) }}" alt="Example" class="preview-img" >
         <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
     </div>
     {% endfor %}
     <div id="examplesPreview" class="preview-container"></div>
+    <div id="examplesError" class="file-error" style="color:#b00020; margin-top:6px;"></div>
+    <div id="examplesHint" class="file-hint" style="font-size:0.9em; color:#666; margin-top:4px;">Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.</div>
 
     <!-- Hide -->
      {% if item[13] == 1 %}
@@ -92,18 +102,90 @@
 
 </form>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const thumbInput = document.getElementById('thumbInput');
     const thumbPreview = document.getElementById('thumbPreview');
+    if (thumbInput && thumbPreview) {
+        const thumbError = document.getElementById('thumbError');
+        const thumbMax = parseInt(thumbInput.dataset.maxSize || '0', 10);
+        const thumbAllowed = (thumbInput.dataset.allowed || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-    thumbInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
+        function updateSubmitDisabled() {
+            const exErr = document.getElementById('examplesError');
+            const tErr = thumbError;
+            const submitBtn = document.getElementById('submit');
+            submitBtn.disabled = ((exErr && exErr.textContent) || (tErr && tErr.textContent));
+        }
+
+        thumbInput.addEventListener('change', function() {
+            thumbError.textContent = '';
+            const file = this.files[0];
+            if (!file) return updateSubmitDisabled();
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (thumbMax && file.size > thumbMax) {
+                thumbError.textContent = `Thumbnail too large (max ${(thumbMax/1024/1024).toFixed(1)} MB)`;
+                return updateSubmitDisabled();
+            }
+            if (thumbAllowed.length && !thumbAllowed.includes(ext)) {
+                thumbError.textContent = `Invalid thumbnail type.`;
+                return updateSubmitDisabled();
+            }
+            if (!file.type || !file.type.startsWith('image/')) {
+                thumbError.textContent = `Selected file is not an image.`;
+                return updateSubmitDisabled();
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                thumbPreview.src = e.target.result; // show preview
+                thumbPreview.src = e.target.result;
             }
             reader.readAsDataURL(file);
-        }
-    });
+            updateSubmitDisabled();
+        });
+    }
+
+    const examplesInput = document.getElementById('examplesInput');
+    const examplesPreview = document.getElementById('examplesPreview');
+    if (examplesInput && examplesPreview) {
+        const exError = document.getElementById('examplesError');
+        const exMax = parseInt(examplesInput.dataset.maxSize || '0', 10);
+        const exAllowed = (examplesInput.dataset.allowed || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+        examplesInput.addEventListener('change', function() {
+            examplesPreview.innerHTML = '';
+            exError.textContent = '';
+            let invalid = false;
+            Array.from(this.files).forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (exMax && file.size > exMax) {
+                    exError.textContent = `File ${file.name} is too large (max ${(exMax/1024/1024).toFixed(1)} MB)`;
+                    invalid = true;
+                    return;
+                }
+                if (exAllowed.length && !exAllowed.includes(ext)) {
+                    exError.textContent = `File ${file.name} has an invalid type.`;
+                    invalid = true;
+                    return;
+                }
+                if (!file.type || !file.type.startsWith('image/')) {
+                    exError.textContent = `File ${file.name} is not an image.`;
+                    invalid = true;
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '200px';
+                    img.style.margin = '5px';
+                    examplesPreview.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
+            document.getElementById('submit').disabled = invalid || (document.getElementById('thumbError') && document.getElementById('thumbError').textContent);
+        });
+    }
+});
 </script>
 {% endblock %}

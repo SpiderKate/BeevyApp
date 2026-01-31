@@ -187,6 +187,80 @@ def read_png_metadata(file_path):
         return {}
 
 
+def process_uploaded_image(file, username, prefix="", save_original=True, author_name=None):
+    """Saves an original PNG (optional), creates a watermarked PNG with metadata.
+    Returns tuple (watermarked_rel_path, original_rel_path_or_None).
+    """
+    filename = secure_filename(file.filename)
+    base_name = os.path.splitext(filename)[0]
+    file.seek(0)
+
+    thumb_folder = os.path.join(UPLOAD_FOLDER, THUMB_FOLDER)
+    example_folder = os.path.join(UPLOAD_FOLDER, EX_FOLDER)
+    original_folder = os.path.join(UPLOAD_FOLDER, ORIG_FOLDER)
+
+    for folder in (thumb_folder, example_folder, original_folder):
+        os.makedirs(os.path.join(STATIC_ROOT, folder), exist_ok=True)
+
+    original_rel_path = None
+    full_original_path = None
+
+    if save_original:
+        original_rel_path = os.path.join(
+            original_folder,
+            f"{uuid.uuid4().hex}_{base_name}.png"
+        ).replace("\\", "/")
+        full_original_path = os.path.join(STATIC_ROOT, original_rel_path)
+
+        img = Image.open(file)
+        img = img.convert("RGBA")
+        meta = PngInfo()
+        # resolve author name if not provided
+        if not author_name:
+            try:
+                conn = sqlite3.connect("beevy.db")
+                cursor = conn.cursor()
+                cursor.execute("SELECT name, surname FROM users WHERE username = ?", (username,))
+                ur = cursor.fetchone()
+                conn.close()
+                if ur:
+                    author_name = f"{ur[0]} {ur[1]} - {username}"
+                else:
+                    author_name = username
+            except Exception:
+                author_name = username
+
+        meta.add_text("Author", author_name)
+        meta.add_text("Uploaded on Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        img.save(full_original_path, pnginfo=meta, format="PNG")
+        file.seek(0)
+
+    target_folder = thumb_folder if prefix == "thumb" else example_folder
+
+    watermarked_rel_path = os.path.join(
+        target_folder,
+        f"{prefix}_{uuid.uuid4().hex}_{base_name}.png"
+    ).replace("\\", "/")
+
+    full_watermarked_path = os.path.join(STATIC_ROOT, watermarked_rel_path)
+
+    metadata = {
+        "Author": author_name if author_name else username,
+        "Uploaded on Beevy": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Downloaded from Beevy": "Beevy",
+        "Preview": "True" if prefix != "original" else "False"
+    }
+
+    watermark_text_with_metadata(
+        full_original_path if full_original_path else file,
+        full_watermarked_path,
+        username,
+        metadata
+    )
+
+    return watermarked_rel_path, original_rel_path
+
+
 
 app.secret_key = os.environ.get("SECRET_KEY") #neni ulozen v kodu :3
 if not app.secret_key:
@@ -987,6 +1061,11 @@ def editArt(username, art_id):
         thumb_file = request.files.get("thumbnail")
         examples_files = request.files.getlist("examples")
 
+        # Resolve author display name for metadata
+        cursor.execute("SELECT id, name, surname FROM users WHERE username = ?", (session['username'],))
+        user_row = cursor.fetchone()
+        author_name = f"{user_row[1]} {user_row[2]} - {session['username']}" if user_row else session['username']
+
         thumbnail_path = item[7]
         examples_path = item[10]
 
@@ -1013,8 +1092,9 @@ def editArt(username, art_id):
                 flash("Invalid thumbnail.", "error")
                 return redirect(request.url)
 
-            # save with unique name
-            thumbnail_path = save_uploaded_file(thumb_file, f"{UPLOAD_FOLDER}/{THUMB_FOLDER}")
+            # save with watermark + metadata
+            thumb_watermarked, thumb_original = process_uploaded_image(thumb_file, session['username'], prefix="thumb", author_name=author_name)
+            thumbnail_path = thumb_watermarked
 
         # example images
         if examples_files and examples_files[0].filename:
@@ -1036,8 +1116,8 @@ def editArt(username, art_id):
                     flash(f"Example file {ex.filename} is too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).", "error")
                     return redirect(request.url)
 
-                ex_wm_path = save_uploaded_file(ex, f"{UPLOAD_FOLDER}/{EX_FOLDER}")
-                new_examples.append(ex_wm_path)
+                ex_wm, ex_original = process_uploaded_image(ex, session['username'], prefix="example", author_name=author_name)
+                new_examples.append(ex_wm)
 
             examples_path = ",".join(new_examples)
 
@@ -1233,68 +1313,8 @@ def create_art():
 
         # --- Helper to save + watermark + add metadata ---
         def process_image(file, username, prefix="", save_original=True):
-            """
-            Saves original image (optional), creates watermarked version with metadata.
-            Returns (watermarked_rel_path, original_rel_path or None)
-            Uses uploader's name for metadata and always saves PNGs to preserve metadata.
-            """
-            filename = secure_filename(file.filename)
-            base_name = os.path.splitext(filename)[0]
-            file.seek(0)
-
-            # --- folders ---
-            base_path = UPLOAD_FOLDER
-            thumb_folder = os.path.join(UPLOAD_FOLDER, THUMB_FOLDER)
-            example_folder = os.path.join(UPLOAD_FOLDER, EX_FOLDER)
-            original_folder = os.path.join(UPLOAD_FOLDER, ORIG_FOLDER)
-
-            for folder in (thumb_folder, example_folder, original_folder):
-                os.makedirs(os.path.join(STATIC_ROOT, folder), exist_ok=True)
-
-            # --- ORIGINAL ---
-            original_rel_path = None
-            full_original_path = None
-
-            if save_original:
-                original_rel_path = os.path.join(
-                    original_folder,
-                    f"{uuid.uuid4().hex}_{base_name}.png"
-                ).replace("\\", "/")
-                full_original_path = os.path.join(STATIC_ROOT, original_rel_path)
-
-                img = Image.open(file)
-                img = img.convert("RGBA")
-                meta = PngInfo()
-                meta.add_text("Author", author_name)
-                meta.add_text("Uploaded on Beevy", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                img.save(full_original_path, pnginfo=meta, format="PNG")
-
-                file.seek(0)  # reset for watermarking
-
-            # --- WATERMARKED ---
-            target_folder = thumb_folder if prefix == "thumb" else example_folder
-
-            watermarked_rel_path = os.path.join(
-                target_folder,
-                f"{prefix}_{uuid.uuid4().hex}_{base_name}.png"
-            ).replace("\\", "/")
-
-            full_watermarked_path = os.path.join(STATIC_ROOT, watermarked_rel_path)
-
-            metadata = {
-                "Author": author_name,
-                "Uploaded on Beevy": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Downloaded from Beevy": "Beevy",
-                "Preview": "True" if prefix != "original" else "False"
-            }
-
-            watermark_text_with_metadata(
-                full_original_path if full_original_path else file,
-                full_watermarked_path,
-                username,
-                metadata
-            )
-            return watermarked_rel_path, original_rel_path
+            # thin wrapper used by create_art for backwards compatibility
+            return process_uploaded_image(file, username, prefix=prefix, save_original=save_original, author_name=author_name) 
 
 
 

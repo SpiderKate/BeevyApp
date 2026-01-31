@@ -7,6 +7,7 @@ import string
 import os
 import shutil
 import uuid
+import json
 from io import BytesIO
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
@@ -26,7 +27,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 csrf = CSRFProtect(app)
 
-
+#TODO: create canvas folder for saved collab drawings
 STATIC_ROOT = "static"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
 UPLOAD_FOLDER = "uploads/shop"
@@ -148,7 +149,7 @@ def user_owns_art(user_id, art_id):
     conn.close()
     return owns
 
-
+#creates @login_required for furher use
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -158,6 +159,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+#creates @no_trespass for controlling if user doesnt invade to others sites
 def no_trespass(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -168,6 +170,7 @@ def no_trespass(f):
         return f(*args, **kwargs)
     return decorated
 
+#outputs the stored metadata
 def read_png_metadata(file_path):
     """Reads metadata from a PNG file."""
     try:
@@ -185,12 +188,14 @@ def read_png_metadata(file_path):
 
 
 
-app.secret_key = os.environ.get("SECRET_KEY") #neni ulozen v kodu
+app.secret_key = os.environ.get("SECRET_KEY") #neni ulozen v kodu :3
 if not app.secret_key:
     raise RuntimeError("SECRET_KEY not set")
 
+#session potrva 7 dni pak se cookie smaze
 app.permanent_session_lifetime = timedelta(days=7)
 
+#nejprve nacte user badge pred vsim ostatnim
 @app.before_request
 def load_logged_in_user():
     g.avatar_path = None
@@ -204,10 +209,10 @@ def load_logged_in_user():
         if row and row[0]:
             g.avatar_path = row[0]
 
+#hlavni stranka..
 @app.route('/')
 def index():
     return render_template("index.html", page="index")
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -239,7 +244,7 @@ def login():
                 #kdyz je spravne posle uzivatele na userPage
                 if result[4]:
                     flash("This account has been deleted. You can restore it if you want.", "info")
-                    return redirect(url_for("login"))
+                    return redirect(request.url)
                 if bcrypt.checkpw(user_bytes, db_pass):
                     session.permanent = True
                     session['username'] = result[1]
@@ -255,7 +260,7 @@ def login():
                 login_errors.append("Incorrect username/e-mail or password")
             for err in login_errors:
                 flash(err,"error")
-            return redirect(url_for("login", page="login"))
+            return redirect(request.url,page="login")
         except Exception as e:
             flash(f"Something went wrong: {e}", "error")
             return redirect(url_for("index"))
@@ -273,6 +278,7 @@ def register():
         return redirect(url_for("userPage", username=session['username']))
     #bere input ze stranky
     if request.method == 'POST':
+        #form data
         username = request.form['username']
         password = request.form['password']
         name = request.form['name'].capitalize()
@@ -319,6 +325,7 @@ def register():
 @app.route("/recover", methods=["GET", "POST"])
 def recover_account():
     if request.method == "POST":
+        #form data
         email = request.form.get("email")
         new_username = request.form.get("username")
         password = request.form.get("password")
@@ -519,6 +526,13 @@ def draw(room_ID):
         result = cursor.fetchone()
         cursor.execute("SELECT default_brush_size FROM users WHERE username=?",(username,))
         brush = cursor.fetchone()
+
+#TODO: json ro draw.html to draw.js 
+#        brushPr = {
+#            "brushSize": brush;
+#        }
+
+
     finally:
         conn.close()
     
@@ -606,9 +620,10 @@ def private():
 @app.route('/option')
 @login_required
 def option():
+    #FIXME: if click button render dif template then redirect
     return render_template('drawOption.html')
 
-#settings
+#settings...
 @app.route('/<username>/settings')
 @login_required
 @no_trespass
@@ -886,7 +901,7 @@ def art_detail(art_id):
             user_id = row[0]
             owns = user_owns_art(user_id, art_id)
 
-#TODO: preview/view mode instead only shop view
+#BUG: preview/view mode instead only shop view
 
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
 

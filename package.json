@@ -1,0 +1,26 @@
+{
+  "name": "beevyapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "lint:css": "stylelint \"static/css/**/*.css\"",
+    "lint:css:fix": "stylelint --fix \"static/css/**/*.css\"",
+    "lint": "npm run lint:css"
+  },
+  "lint-staged": {
+    "*.css": [
+      "stylelint --fix",
+      "git add"
+    ],
+    "*.py": [
+      "python -m pytest -q"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^8.0.0",
+    "lint-staged": "16.2.7",
+    "stylelint": "^15.0.0",
+    "stylelint-config-standard": "^33.0.0"
+  }
+}

@@ -35,7 +35,7 @@
                 {% for art in selling %}
                     <a href="/shop/{{ art[0] }}" class="art-card">
                         <div style="position: relative; display: inline-block;">
-                            <img src="{{ url_for('static', filename=art[3]) }}" style="max-width:200px" oncontextmenu="return false;">
+                            <img src="{{ url_for('static', filename=art[3]) }}" class="preview-img small" oncontextmenu="return false;">
                             <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
                         </div>
                         <p>{{ art[1] }}</p>
@@ -56,7 +56,7 @@
                 {% for art in owned %}
                     <a href="/shop/{{ art[0] }}" class="art-card">
                         <div style="position: relative; display: inline-block;">
-                            <img src="{{ url_for('static', filename=art[2]) }}" style="max-width:200px" oncontextmenu="return false;">
+                            <img src="{{ url_for('static', filename=art[2]) }}" class="preview-img small" oncontextmenu="return false;">
                             <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
                         </div>
                         <p>{{ art[1] }}</p>

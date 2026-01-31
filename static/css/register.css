@@ -1,6 +1,6 @@
 :root {
     --primary-bg: #8860cc;
-    --primary-text: rgb(247, 235, 78);
+    --primary-text: rgb(247 235 78);
     --accent-color: #f7eb4e;
     --transition-speed: 0.3s;
 }
@@ -8,13 +8,13 @@
 
 /* Form container */
 form {
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(247, 235, 78, 0.6);
+    background: rgb(255 255 255 / 8%);
+    border: 2px solid rgb(247 235 78 / 60%);
     border-radius: 15px;
     padding: 30px 40px;
     min-width: 200px;
     max-width: 600px;
-    box-shadow: 0 0 15px rgba(247, 235, 78, 0.1);
+    box-shadow: 0 0 15px rgb(247 235 78 / 10%);
     backdrop-filter: blur(6px);
     position: relative;
     z-index: 1;
@@ -41,14 +41,14 @@ label {
     padding: 10px;
     border-radius: 8px;
     border: none;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgb(255 255 255 / 10%);
     color: white;
     outline: none;
     margin-bottom: 15px;
 }
 
 .input:focus {
-    box-shadow: 0 0 10px rgba(247, 235, 78, 0.7);
+    box-shadow: 0 0 10px rgb(247 235 78 / 70%);
 }
 
 /* Submit button */
@@ -66,7 +66,7 @@ label {
 .submit:hover {
     transform: scale(1.05);
     background: linear-gradient(90deg, #b391ff, #9c7cff);
-    box-shadow: 0 0 10px rgba(247, 235, 78, 0.6);
+    box-shadow: 0 0 10px rgb(247 235 78 / 60%);
 }
 
 .drawCreateForm{

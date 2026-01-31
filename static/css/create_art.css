@@ -1,9 +1,9 @@
 :root {
     --primary-bg: #8860cc;
-    --primary-text: rgb(247, 235, 78);
+    --primary-text: rgb(247 235 78);
     --accent-color: #f7eb4e;
-    --glass-bg: rgba(255,255,255,0.12);
-    --glass-border: rgba(255,255,255,0.25);
+    --glass-bg: rgb(255 255 255 / 12%);
+    --glass-border: rgb(255 255 255 / 25%);
     --transition-speed: 0.3s;
 }
 
@@ -12,7 +12,7 @@
     font-size: 2.5rem;
     margin-bottom: 25px;
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(247,235,78,0.6);
+    text-shadow: 0 0 10px rgb(247 235 78 / 60%);
     animation: float 6s ease-in-out infinite;
 }
 
@@ -31,7 +31,7 @@
     backdrop-filter: blur(6px);
     border-radius: 20px;
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 15px rgb(0 0 0 / 25%);
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -42,7 +42,7 @@
     color: var(--primary-text);
     font-weight: bold;
     margin-top: 5px;
-    text-shadow: 0 0 5px rgba(247,235,78,0.3);
+    text-shadow: 0 0 5px rgb(247 235 78 / 30%);
 }
 
 /* Inputs */
@@ -50,7 +50,7 @@
     padding: 10px 15px;
     border-radius: 12px;
     border: 2px solid transparent;
-    background: rgba(255,255,255,0.15);
+    background: rgb(255 255 255 / 15%);
     color: var(--primary-text);
     font-size: 1rem;
     outline: none;
@@ -59,7 +59,7 @@
 
 .form-input:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 10px rgba(247,235,78,0.5);
+    box-shadow: 0 0 10px rgb(247 235 78 / 50%);
     transform: scale(1.02);
 }
 
@@ -79,7 +79,7 @@
 
 .submit-btn:hover {
     transform: scale(1.07);
-    box-shadow: 0 0 15px rgba(247,235,78,0.6);
+    box-shadow: 0 0 15px rgb(247 235 78 / 60%);
     background: linear-gradient(90deg, #b391ff, #9a7cff);
 }
 
@@ -90,5 +90,5 @@
     object-fit: cover;
     margin-top: 10px;
     border-radius: 12px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 3px 12px rgb(0 0 0 / 30%);
 }

@@ -1,6 +1,6 @@
 :root {
     --primary-bg: #8860cc;
-    --primary-text: rgb(247, 235, 78);
+    --primary-text: rgb(247 235 78);
     --accent-color: #f7eb4e;
     --transition-speed: 0.3s;
 }
@@ -15,10 +15,10 @@
 
 .settings-sidebar {
     width: 220px;
-    background: rgba(255,255,255,0.1);
+    background: rgb(255 255 255 / 10%);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    box-shadow: 0 0 10px rgb(0 0 0 / 25%);
 }
 
 .settings-link {
@@ -26,26 +26,26 @@
     padding: 12px 15px;
     margin-bottom: 8px;
     border-radius: 10px;
-    background: rgba(136,96,204,0.3);
+    background: rgb(136 96 204 / 30%);
     color: var(--primary-text);
     transition: 0.3s;
 }
 
 .settings-link:hover {
-    background: rgba(247,235,78,0.3);
+    background: rgb(247 235 78 / 30%);
 }
 
 .settings-link.danger {
-    background: rgba(255,80,80,0.3);
+    background: rgb(255 80 80 / 30%);
 }
 
 .settings-content {
     flex: 1;
-    background: rgba(255,255,255,0.08);
+    background: rgb(255 255 255 / 8%);
     padding: 30px;
     border-radius: 15px;
     text-align: left;
-    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    box-shadow: 0 0 10px rgb(0 0 0 / 25%);
 }
 
 input, textarea {

@@ -643,12 +643,6 @@ def draw(room_ID):
         cursor.execute("SELECT default_brush_size FROM preferences WHERE user_id=(SELECT id FROM users WHERE username=?)",(username,))
         brush = cursor.fetchone()
 
-#TODO: json ro draw.html to draw.js 
-#        brushPr = {
-#            "brushSize": brush;
-#        }
-
-
     finally:
         conn.close()
     

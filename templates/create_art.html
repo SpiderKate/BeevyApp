@@ -31,17 +31,26 @@
     <!-- Type -->
     <label class="form-label">Type</label>
     <select name="type" class="input" required>
-        <option value="art">Art</option>
-        <option value="commission">Commission</option>
+        <option id="option" value="art">Art</option>
+        <option id="option" value="commission" selected>Commission</option>
     </select>
 
 <!--TODO: art/comms rozdeleni-->
 <!--TODO: slots pouze v comms-->
 <!--TODO: save metadata in the file directly-->
-
+<div class="slots hidden">
     <!-- Slots -->
     <label for="commission" class="form-label">Slots (optional)</label>
     <input for="commission" type="number" name="slots" min="1" class="input">
+</div>
+
+<script>
+    const option = document.getElementById("option").value;
+    if(option == "Art"){
+        document.getElementById("slots") 
+        // TODO: add class name hidden
+    }
+</script>
 
    <!-- Thumbnail -->
 <label class="form-label">Thumbnail (cover image)</label>

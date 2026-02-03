@@ -46,12 +46,13 @@ let drawing = false;
 let lastX = 0;
 let lastY = 0;
 let currentColor = '#000';
-let brushSize;
-//BUG: brushsize fix, from db i get users preference for bs, real output differs...
+let brushSize = document.getElementById("size").value;
 let slider = document.getElementById("sizeSlider");
 let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
 let canvasSnapshot = null;
+
+
 
 
 //odposlouchava slider a meni velikost stetce
@@ -318,13 +319,16 @@ colorPicker.on('color:change', function(color) {
     currentColor=color.hexString;
 });
 
-function saveCanvasLocally(){
-    canvas.toBlob((blob)=>{
-        const a = document.createElement("a");
-        url = URL.createObjectURL(blob);
-        a.src = url;
-        a.download = 'beevy_canvas_${Date.now()}.png';
-        a.click();
-        URL.revokeObjectURL(a.href);
-    }, "image/png");
-}
+
+const saveImg = document.getElementById("saveImg").
+addEventListener("click", ()=>{
+    const dataURL = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    const filename = prompt("Name your drawing","myDrawing");
+    if(!filename) return;
+    link.href = dataURL;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+})  

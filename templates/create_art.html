@@ -44,13 +44,20 @@
     <input for="commission" type="number" name="slots" min="1" class="input">
 </div>
 
+<!--
 <script>
     const option = document.getElementById("option").value;
+    document.getElementById("slots").classList.toggle("hidden");
+
     if(option == "Art"){
-        document.getElementById("slots") 
+        document.getElementById("slots").classList.add("hidden");
         // TODO: add class name hidden
     }
+    else if(option == "Commission"){
+         document.getElementById("slots").classList.remove("hidden");
+    }
 </script>
+-->
 
    <!-- Thumbnail -->
 <label class="form-label">Thumbnail (cover image)</label>

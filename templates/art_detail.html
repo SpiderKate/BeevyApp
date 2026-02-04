@@ -14,12 +14,29 @@
 <p>Description: {{ item[3] }}</p>
 <p>Turnaround time: {{ item[4] }} days</p>
 
-<h3>Thumbnail</h3>
-{% if item[7] %}
-    <div style="position: relative; display: inline-block;">
-        <img src="{{ url_for('static', filename=item[7]) }}" alt="Thumbnail" class="preview-img" oncontextmenu="return false;">
-        <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
-    </div>
+{% if owns %}
+    <h3>Owned preview</h3>
+    {% if owned_image %}
+        <div style="position: relative; display: inline-block;">
+            <img src="{{ url_for('static', filename=owned_image) }}" alt="Owned preview" class="preview-img" oncontextmenu="return false;">
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        </div>
+    {% else %}
+        <p><em>No owned preview available.</em></p>
+    {% endif %}
+{% else %}
+    <h3>Shop preview</h3>
+    {% if item[8] %}
+        <div style="position: relative; display: inline-block;">
+            <img src="{{ url_for('static', filename=item[8]) }}" alt="Shop preview" class="preview-img" oncontextmenu="return false;">
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        </div>
+    {% elif item[7] %}
+        <div style="position: relative; display: inline-block;">
+            <img src="{{ url_for('static', filename=item[7]) }}" alt="Thumbnail" class="preview-img" oncontextmenu="return false;">
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        </div>
+    {% endif %}
 {% endif %}
 
 {% if examples_list %}

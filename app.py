@@ -1022,23 +1022,32 @@ def art_detail(art_id):
     # Prepare examples list
     examples_list = item[10].split(",") if item[10] else []
 
-    # Check if the current user owns the artwork
+    # Check if the current user owns the artwork and determine which image to show
     user_id = None
     owns = False
+    owned_image = None
+    is_author = False
     if "username" in session:
         # Get user id first
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE username=?", (session["username"],))
         row = cursor.fetchone()
-        conn.close()
         if row:
             user_id = row[0]
             owns = user_owns_art(user_id, art_id)
+            is_author = (session.get("username") == item[-1])
+            if owns:
+                # Prefer owner-specific source if author deleted and we created copies
+                cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+                src_row = cursor.fetchone()
+                if src_row and src_row[0]:
+                    owned_image = src_row[0]
+                else:
+                    owned_image = item[9]  # original_path
+        conn.close()
 
-#BUG: preview/view mode instead only shop view
-
-    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns)
+    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author)
 
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
@@ -1079,12 +1088,88 @@ def editArt(username, art_id):
                 flash("Wrong password.", "error")
                 return redirect(request.url)
 
-            cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
+            # Determine owners for this artwork
+            cursor.execute("SELECT id, owner_id FROM art_ownership WHERE art_id = ?", (art_id,))
+            owners = cursor.fetchall()
+
+            thumb_rel = item[7]
+            preview_rel = item[8]
+            original_rel = item[9]
+            examples_rel = item[10] or ""
+
+            def rel_to_full(rel):
+                if not rel:
+                    return None
+                return os.path.join(STATIC_ROOT, rel)
+
+            # If no owners, remove all files and DB row
+            if not owners:
+                for rel in (thumb_rel, preview_rel, original_rel):
+                    if rel:
+                        full = rel_to_full(rel)
+                        try:
+                            if os.path.exists(full):
+                                os.remove(full)
+                        except Exception:
+                            pass
+                if examples_rel:
+                    for ex in examples_rel.split(","):
+                        full = rel_to_full(ex)
+                        try:
+                            if os.path.exists(full):
+                                os.remove(full)
+                        except Exception:
+                            pass
+                cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
+                conn.commit()
+                conn.close()
+                flash("Artwork deleted permanently.", "success")
+                return redirect(url_for("shop"))
+
+            # Owners exist: copy original (or best available) for each owner and update art_ownership.source
+            owned_dir = os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "owned")
+            os.makedirs(owned_dir, exist_ok=True)
+
+            src_rel = original_rel or preview_rel or thumb_rel
+            src_full = rel_to_full(src_rel)
+
+            for ownership_id, owner_id in owners:
+                try:
+                    if src_full and os.path.exists(src_full):
+                        dest_filename = f"{uuid.uuid4().hex}_{os.path.basename(src_rel)}"
+                        dest_rel = os.path.join(UPLOAD_FOLDER, "owned", dest_filename).replace("\\", "/")
+                        dest_full = os.path.join(STATIC_ROOT, dest_rel)
+                        shutil.copy2(src_full, dest_full)
+                        cursor.execute("UPDATE art_ownership SET source = ? WHERE id = ?", (dest_rel, ownership_id))
+                except Exception as e:
+                    print("Failed to create owner copy:", e)
+
+            # Remove public files and anonymize/hide the art from the shop
+            for rel in (thumb_rel, preview_rel, original_rel):
+                if rel:
+                    full = rel_to_full(rel)
+                    try:
+                        if os.path.exists(full):
+                            os.remove(full)
+                    except Exception:
+                        pass
+            if examples_rel:
+                for ex in examples_rel.split(","):
+                    full = rel_to_full(ex)
+                    try:
+                        if os.path.exists(full):
+                            os.remove(full)
+                    except Exception:
+                        pass
+
+            deleted_username = get_unique_deleted_username(cursor)
+            cursor.execute("""
+                UPDATE art SET author_name = ?, author_id = NULL, is_active = 0, thumbnail_path = NULL, preview_path = NULL, original_path = NULL
+                WHERE id = ?
+            """, (deleted_username, art_id))
             conn.commit()
             conn.close()
-#TODO: if art deleted owned stays, examples get deleted
-#TODO: if no one owns delete everything
-            flash("Artwork deleted permanently.", "success")
+            flash("Artwork deleted from shop; owner copies preserved.", "success")
             return redirect(url_for("shop"))
 
         # === HIDE ARTWORK ===
@@ -1295,11 +1380,11 @@ def download_art(art_id):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT art.original_path, ao.can_download
-        FROM art
-        JOIN art_ownership ao ON art.id = ao.art_id
+        SELECT COALESCE(NULLIF(ao.source, ''), art.original_path) as path, ao.can_download
+        FROM art_ownership ao
+        LEFT JOIN art ON ao.art_id = art.id
         JOIN users u ON ao.owner_id = u.id
-        WHERE art.id = ? AND u.username = ?
+        WHERE ao.art_id = ? AND u.username = ?
     """, (art_id, session["username"]))
     row = cursor.fetchone()
     conn.close()

@@ -73,6 +73,33 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
         assert f"/download/{art_id}".encode() in rv2.data
         assert b"Buy for" not in rv2.data, "Buy button should not appear on owner-only page"
 
+        # Owned preview endpoint should return an image
+        rv3 = client.get(f'/owned/{art_id}/preview')
+        assert rv3.status_code == 200
+        assert rv3.content_type and rv3.content_type.startswith('image/'), f"Unexpected content type: {rv3.content_type}"
+
+    # Public preview should be inaccessible to a different logged-in user when art is inactive
+    conn = sqlite3.connect('beevy.db')
+    cursor = conn.cursor()
+    pw2 = bcrypt.hashpw(b'pass123', bcrypt.gensalt()).decode('utf-8')
+    cursor.execute("INSERT INTO users (username, password) VALUES (?,?)", ('other_user', pw2))
+    oid = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    with app.test_client() as client:
+        rv = client.post('/login', data={'username': 'other_user', 'password': 'pass123'}, follow_redirects=True)
+        assert b"Succesfully logged in" in rv.data
+        rv4 = client.get(f'/preview/{art_id}')
+        assert rv4.status_code == 404
+
+    # cleanup other_user
+    conn = sqlite3.connect('beevy.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM users WHERE id = ?", (oid,))
+    conn.commit()
+    conn.close()
+
     # Cleanup created files and DB rows
     try:
         # remove the created owner copy

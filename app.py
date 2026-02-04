@@ -1570,16 +1570,53 @@ def create_art():
 @app.route("/preview/<int:art_id>")
 @login_required
 def preview_art(art_id):
+    """Serve a preview image. If the current user owns the art, prefer their owner-specific source or original; otherwise serve the public preview."""
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT preview_path FROM art WHERE id = ?", (art_id,))
+    cursor.execute("SELECT preview_path, original_path, is_active, author_id FROM art WHERE id = ?", (art_id,))
     row = cursor.fetchone()
-    conn.close()
 
     if not row:
+        conn.close()
         abort(404)
 
-    file_path = os.path.join(STATIC_ROOT, row[0])
+    preview_rel, orig_rel, is_active, author_id = row
+
+    # Determine if requester is owner or author
+    user_id = None
+    is_owner = False
+    is_author = False
+    chosen_rel = None
+    if "username" in session:
+        cursor.execute("SELECT id FROM users WHERE username = ?", (session.get("username"),))
+        urow = cursor.fetchone()
+        if urow:
+            user_id = urow[0]
+            is_owner = user_owns_art(user_id, art_id)
+            is_author = (user_id == author_id)
+            if is_owner:
+                cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+                src_row = cursor.fetchone()
+                if src_row and src_row[0]:
+                    chosen_rel = src_row[0]
+                elif orig_rel:
+                    chosen_rel = orig_rel
+
+    # Access rules: inactive art only visible to owner/author
+    if not is_active and not is_owner and not is_author:
+        conn.close()
+        abort(404)
+
+    # If no owner-specific file chosen, fall back to public preview
+    if not chosen_rel:
+        chosen_rel = preview_rel
+
+    conn.close()
+
+    if not chosen_rel:
+        abort(404)
+
+    file_path = os.path.join(STATIC_ROOT, chosen_rel)
     real_path = os.path.realpath(file_path)
 
     if not real_path.startswith(os.path.realpath(STATIC_ROOT)):
@@ -1587,8 +1624,63 @@ def preview_art(art_id):
     if not os.path.exists(real_path):
         abort(404)
 
-    # Read metadata (can be passed to template if needed)
-    metadata = read_png_metadata(real_path)
+    return send_from_directory(
+        STATIC_ROOT,
+        os.path.relpath(real_path, STATIC_ROOT)
+    )
+
+
+@app.route('/owned/<int:art_id>/preview')
+@login_required
+def owned_preview(art_id):
+    """Owner-only preview — ensures only owners/authors can access owner copies."""
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT preview_path, original_path, author_id, is_active FROM art WHERE id = ?", (art_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        abort(404)
+
+    preview_rel, orig_rel, author_id, is_active = row
+
+    # get user id
+    cursor.execute("SELECT id FROM users WHERE username = ?", (session.get('username'),))
+    urow = cursor.fetchone()
+    if not urow:
+        conn.close()
+        abort(403)
+    user_id = urow[0]
+
+    owns = user_owns_art(user_id, art_id)
+    is_author = (user_id == author_id)
+    if not owns and not is_author:
+        conn.close()
+        abort(403)
+
+    # Prefer owner-specific source, then original, then preview
+    cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+    src_row = cursor.fetchone()
+    chosen_rel = None
+    if src_row and src_row[0]:
+        chosen_rel = src_row[0]
+    elif orig_rel:
+        chosen_rel = orig_rel
+    elif preview_rel:
+        chosen_rel = preview_rel
+
+    conn.close()
+
+    if not chosen_rel:
+        abort(404)
+
+    file_path = os.path.join(STATIC_ROOT, chosen_rel)
+    real_path = os.path.realpath(file_path)
+
+    if not real_path.startswith(os.path.realpath(STATIC_ROOT)):
+        abort(403)
+    if not os.path.exists(real_path):
+        abort(404)
 
     return send_from_directory(
         STATIC_ROOT,

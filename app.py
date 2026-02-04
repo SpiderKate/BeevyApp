@@ -78,7 +78,7 @@ def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
     watermark = Image.new("RGBA", img.size, (0, 0, 0, 0))
 
     # choose a slightly larger font so watermark is more prominent but lower opacity
-    font_size = max(img.size) // 12
+    font_size = max(img.size) // 20
     try:
         font = ImageFont.truetype("arial.ttf", font_size)
     except Exception:
@@ -100,8 +100,8 @@ def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
     tile_draw = ImageDraw.Draw(text_img)
 
     # outline (dark) and main fill (light) with semi-transparent alpha
-    outline_alpha = 160  # stronger outline for contrast
-    fill_alpha = 90      # softer main text fill
+    outline_alpha = 70  # stronger outline for contrast
+    fill_alpha = 30      # softer main text fill
     outline_color = (0, 0, 0, outline_alpha)
     fill_color = (255, 255, 255, fill_alpha)
 
@@ -982,7 +982,7 @@ def settingsDelete(username):
 
 @app.route('/shop')
 
-#TODO only max 15 on page then click next (smth like carousel)
+#TODO only max 15 on page then click next (smth like carousel) and randomly mix them up to refersh the content
 @login_required
 def shop():
 
@@ -1042,15 +1042,9 @@ def art_detail(art_id):
 
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
+@login_required
+@no_trespass
 def editArt(username, art_id):
-    if "username" not in session:
-        flash("Login first.", "error")
-        return redirect(url_for("login"))
-
-    if session["username"] != username:
-        flash("Unauthorized access.", "error")
-        return redirect(url_for("index"))
-
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
 
@@ -1129,6 +1123,7 @@ def editArt(username, art_id):
 
         thumbnail_path = item[7]
         examples_path = item[10]
+        original_path = item[9]
 
         # thumbnail upload
         if thumb_file and thumb_file.filename:
@@ -1156,6 +1151,7 @@ def editArt(username, art_id):
             # save with watermark + metadata
             thumb_watermarked, thumb_original = process_uploaded_image(thumb_file, session['username'], prefix="thumb", author_name=author_name)
             thumbnail_path = thumb_watermarked
+            original_path = thumb_original
 
         # example images
         if examples_files and examples_files[0].filename:
@@ -1184,7 +1180,7 @@ def editArt(username, art_id):
 
         cursor.execute("""
             UPDATE art
-            SET title = ?, description = ?, slots = ?, thumbnail_path = ?, examples_path = ?
+            SET title = ?, description = ?, slots = ?, thumbnail_path = ?, examples_path = ?, original_path = ?
             WHERE id = ?
         """, (
             new_title,
@@ -1192,9 +1188,10 @@ def editArt(username, art_id):
             new_slots,
             thumbnail_path,
             examples_path,
+            original_path,
             art_id
         ))
-
+#TODO: example original path not stored for now
         conn.commit()
         conn.close()
 

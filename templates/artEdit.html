@@ -41,12 +41,15 @@
            data-max-size="{{ max_file_size }}" data-allowed="{{ allowed_extensions | join(',') }}"
            title="Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}"
            aria-describedby="examplesHint">
-    {% for ex in examples_list %}
-    <div style="position: relative; display: inline-block;">
-        <img src="{{ url_for('static', filename=ex) }}" alt="Example" class="preview-img" >
-        <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+    <div id="existingExamples">
+        {% for ex in examples_list %}
+            <div style="position: relative; display: inline-block;">
+                <img src="{{ url_for('static', filename=ex) }}" alt="Example" class="preview-img">
+                <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+            </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+
     <div id="examplesPreview" class="preview-container"></div>
     <div id="examplesError" class="file-error" style="color:#b00020; margin-top:6px;"></div>
     <div id="examplesHint" class="file-hint" style="font-size:0.9em; color:#666; margin-top:4px;">Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.</div>
@@ -153,6 +156,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const exAllowed = (examplesInput.dataset.allowed || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
         examplesInput.addEventListener('change', function() {
+        // 🔹 hide previously saved examples
+        const existing = document.getElementById('existingExamples');
+            if (existing) {
+                existing.style.display = 'none';
+            }
             examplesPreview.innerHTML = '';
             exError.textContent = '';
             let invalid = false;

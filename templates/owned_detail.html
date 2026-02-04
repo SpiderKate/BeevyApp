@@ -38,13 +38,17 @@
         Download Original
     </a>
     
+    <!-- TODO:later enable viewing on shop again and the whole logic
     {% if is_active %}
         <a href="{{ url_for('art_detail', art_id=item[0]) }}" class="btn">
             View on Shop
         </a>
     {% endif %}
-    
+
+-->
+
     <form method="POST" action="{{ url_for('remove_ownership', art_id=item[0]) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn delete" onclick="return confirm('Are you sure you want to remove this from your library?');">Remove from library</button>
     </form>
 </div>

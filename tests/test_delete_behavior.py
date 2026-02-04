@@ -50,6 +50,8 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
         assert b"Succesfully logged in" in rv.data
 
         rv2 = client.post(f'/author_del/{art_id}/edit', data={'confirmDelete': 'DELETE', 'password': 'pass123'}, follow_redirects=True)
+        # ensure request succeeded and not a 500
+        assert rv2.status_code == 200, f"Expected 200, got {rv2.status_code}"
         assert b"owner copies preserved" in rv2.data.lower() or b"deleted from shop" in rv2.data.lower()
 
     # Check DB: ownership should have source set and file exists

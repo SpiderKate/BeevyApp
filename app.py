@@ -1059,6 +1059,44 @@ def art_detail(art_id):
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
 
 
+@app.route('/owned/<int:art_id>')
+@login_required
+def owned_view(art_id):
+    """Owner-only minimal view route — shows 'By ####', description, owned preview and download link."""
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT art.*, users.username FROM art LEFT JOIN users ON art.author_id = users.id WHERE art.id = ?", (art_id,))
+    item = cursor.fetchone()
+    if not item:
+        conn.close()
+        abort(404)
+
+    # get current user id
+    cursor.execute("SELECT id FROM users WHERE username = ?", (session.get('username'),))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        abort(403)
+    user_id = row[0]
+
+    owns = user_owns_art(user_id, art_id)
+    is_author = (session.get('username') == item[-1])
+    if not owns and not is_author:
+        conn.close()
+        abort(403)
+
+    cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+    src_row = cursor.fetchone()
+    owned_image = src_row[0] if src_row and src_row[0] else item[9]
+    examples_list = item[10].split(",") if item[10] else []
+
+    # minimal owner presentation
+    author_display = "####"
+    is_active = False
+    conn.close()
+    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
+
+
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
 @login_required
 @no_trespass
@@ -1097,22 +1135,66 @@ def editArt(username, art_id):
                 flash("Wrong password.", "error")
                 return redirect(request.url)
 
-            # Determine owners for this artwork
-            cursor.execute("SELECT id, owner_id FROM art_ownership WHERE art_id = ?", (art_id,))
-            owners = cursor.fetchall()
+            try:
+                # Determine owners for this artwork
+                cursor.execute("SELECT id, owner_id FROM art_ownership WHERE art_id = ?", (art_id,))
+                owners = cursor.fetchall()
 
-            thumb_rel = item[7]
-            preview_rel = item[8]
-            original_rel = item[9]
-            examples_rel = item[10] or ""
+                thumb_rel = item[7]
+                preview_rel = item[8]
+                original_rel = item[9]
+                examples_rel = item[10] or ""
 
-            def rel_to_full(rel):
-                if not rel:
-                    return None
-                return os.path.join(STATIC_ROOT, rel)
+                def rel_to_full(rel):
+                    if not rel:
+                        return None
+                    return os.path.join(STATIC_ROOT, rel)
 
-            # If no owners, remove all files and DB row
-            if not owners:
+                # If no owners, remove all files and DB row
+                if not owners:
+                    for rel in (thumb_rel, preview_rel, original_rel):
+                        if rel:
+                            full = rel_to_full(rel)
+                            try:
+                                if os.path.exists(full):
+                                    os.remove(full)
+                            except Exception:
+                                pass
+                    if examples_rel:
+                        for ex in examples_rel.split(","):
+                            full = rel_to_full(ex)
+                            try:
+                                if os.path.exists(full):
+                                    os.remove(full)
+                            except Exception:
+                                pass
+                    cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
+                    conn.commit()
+                    conn.close()
+                    flash("Artwork deleted permanently.", "success")
+                    return redirect(url_for("shop"))
+
+                # Owners exist: copy original (or best available) for each owner and update art_ownership.source
+                owned_dir = os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "owned")
+                os.makedirs(owned_dir, exist_ok=True)
+
+                src_rel = original_rel or preview_rel or thumb_rel
+                src_full = rel_to_full(src_rel)
+
+                for ownership_id, owner_id in owners:
+                    try:
+                        if src_full and os.path.exists(src_full):
+                            dest_filename = f"{uuid.uuid4().hex}_{os.path.basename(src_rel)}"
+                            dest_rel = os.path.join(UPLOAD_FOLDER, "owned", dest_filename).replace("\\", "/")
+                            dest_full = os.path.join(STATIC_ROOT, dest_rel)
+                            # ensure parent dir exists
+                            os.makedirs(os.path.dirname(dest_full), exist_ok=True)
+                            shutil.copy2(src_full, dest_full)
+                            cursor.execute("UPDATE art_ownership SET source = ? WHERE id = ?", (dest_rel, ownership_id))
+                    except Exception as e:
+                        print("Failed to create owner copy:", e)
+
+                # Remove public files and anonymize/hide the art from the shop
                 for rel in (thumb_rel, preview_rel, original_rel):
                     if rel:
                         full = rel_to_full(rel)
@@ -1129,57 +1211,26 @@ def editArt(username, art_id):
                                 os.remove(full)
                         except Exception:
                             pass
-                cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
+
+                deleted_username = get_unique_deleted_username(cursor)
+                cursor.execute("""
+                    UPDATE art SET author_name = ?, author_id = NULL, is_active = 0, thumbnail_path = NULL, preview_path = NULL, original_path = NULL
+                    WHERE id = ?
+                """, (deleted_username, art_id))
                 conn.commit()
                 conn.close()
-                flash("Artwork deleted permanently.", "success")
+                flash("Artwork deleted from shop; owner copies preserved.", "success")
                 return redirect(url_for("shop"))
-
-            # Owners exist: copy original (or best available) for each owner and update art_ownership.source
-            owned_dir = os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "owned")
-            os.makedirs(owned_dir, exist_ok=True)
-
-            src_rel = original_rel or preview_rel or thumb_rel
-            src_full = rel_to_full(src_rel)
-
-            for ownership_id, owner_id in owners:
+            except Exception as e:
+                # Rollback and surface an error instead of 500
                 try:
-                    if src_full and os.path.exists(src_full):
-                        dest_filename = f"{uuid.uuid4().hex}_{os.path.basename(src_rel)}"
-                        dest_rel = os.path.join(UPLOAD_FOLDER, "owned", dest_filename).replace("\\", "/")
-                        dest_full = os.path.join(STATIC_ROOT, dest_rel)
-                        shutil.copy2(src_full, dest_full)
-                        cursor.execute("UPDATE art_ownership SET source = ? WHERE id = ?", (dest_rel, ownership_id))
-                except Exception as e:
-                    print("Failed to create owner copy:", e)
-
-            # Remove public files and anonymize/hide the art from the shop
-            for rel in (thumb_rel, preview_rel, original_rel):
-                if rel:
-                    full = rel_to_full(rel)
-                    try:
-                        if os.path.exists(full):
-                            os.remove(full)
-                    except Exception:
-                        pass
-            if examples_rel:
-                for ex in examples_rel.split(","):
-                    full = rel_to_full(ex)
-                    try:
-                        if os.path.exists(full):
-                            os.remove(full)
-                    except Exception:
-                        pass
-
-            deleted_username = get_unique_deleted_username(cursor)
-            cursor.execute("""
-                UPDATE art SET author_name = ?, author_id = NULL, is_active = 0, thumbnail_path = NULL, preview_path = NULL, original_path = NULL
-                WHERE id = ?
-            """, (deleted_username, art_id))
-            conn.commit()
-            conn.close()
-            flash("Artwork deleted from shop; owner copies preserved.", "success")
-            return redirect(url_for("shop"))
+                    conn.rollback()
+                except Exception:
+                    pass
+                conn.close()
+                print("Delete artwork failed:", e)
+                flash(f"Failed to delete artwork: {e}", "error")
+                return redirect(request.url)
 
         # === HIDE ARTWORK ===
         if confirm_hide == "HIDE":

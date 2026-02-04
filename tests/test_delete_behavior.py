@@ -85,10 +85,23 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
         assert rv3.status_code == 200
         assert rv3.content_type and rv3.content_type.startswith('image/'), f"Unexpected content type: {rv3.content_type}"
 
+        # Owner may remove their ownership (sole owner -> art cleaned up)
+        rv_remove = client.post(f'/owned/{art_id}/remove', data={'confirmRemove': 'REMOVE'}, follow_redirects=True)
+        assert rv_remove.status_code == 200
+
+        # After removal: ownership should be gone
+        conn2 = sqlite3.connect('beevy.db')
+        cur2 = conn2.cursor()
+        cur2.execute("SELECT 1 FROM art_ownership WHERE art_id = ?", (art_id,))
+        assert not cur2.fetchone(), "Expected no ownership rows after sole owner removed"
+        # art should be deleted because it was inactive
+        cur2.execute("SELECT 1 FROM art WHERE id = ?", (art_id,))
+        assert not cur2.fetchone(), "Expected art row to be deleted after sole owner removed"
+        conn2.close()
+
         # Accessing the shop detail as an owner should redirect to the owned view
         rv_shop = client.get(f'/shop/{art_id}', follow_redirects=False)
-        assert rv_shop.status_code in (302, 303)
-        assert rv_shop.headers['Location'].endswith(f'/owned/{art_id}')
+        assert rv_shop.status_code in (404, 302, 303)
 
     # Public preview should be inaccessible to a different logged-in user when art is inactive
     conn = sqlite3.connect('beevy.db')

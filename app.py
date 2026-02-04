@@ -1064,7 +1064,7 @@ def art_detail(art_id):
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
 
 
-@app.route('/owned/<int:art_id>')
+@app.route('/owned/<int:art_id>', methods=['GET'])
 @login_required
 def owned_view(art_id):
     """Owner-only minimal view route — shows 'By ####', description, owned preview and download link."""
@@ -1113,6 +1113,95 @@ def owned_view(art_id):
         print("Owned view failed:", e)
         flash("Failed to load owned view.", "error")
         abort(500)
+
+
+@app.route('/owned/<int:art_id>/remove', methods=['POST'])
+@login_required
+def remove_ownership(art_id):
+    """Remove the current user's ownership of an artwork.
+    - If there are other owners, only remove the ownership record and delete the owner's copy.
+    - If the user was the only owner and the art is inactive, also delete the art row and any remaining files.
+    """
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+
+    # get current user id
+    cursor.execute("SELECT id FROM users WHERE username = ?", (session.get('username'),))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        abort(403)
+    user_id = row[0]
+
+    # verify ownership
+    cursor.execute("SELECT id, source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+    ownership = cursor.fetchone()
+    if not ownership:
+        conn.close()
+        flash("You do not own this artwork.", "error")
+        return redirect(url_for('userPage', username=session.get('username')))
+
+    ownership_id, source_rel = ownership
+
+    # count owners
+    cursor.execute("SELECT COUNT(*) FROM art_ownership WHERE art_id = ?", (art_id,))
+    owners_count = cursor.fetchone()[0]
+
+    # get art info
+    cursor.execute("SELECT thumbnail_path, preview_path, original_path, examples_path, is_active FROM art WHERE id = ?", (art_id,))
+    art_row = cursor.fetchone()
+    if not art_row:
+        # nothing to do
+        cursor.execute("DELETE FROM art_ownership WHERE id = ?", (ownership_id,))
+        conn.commit()
+        conn.close()
+        flash("Ownership removed.", "success")
+        return redirect(url_for('userPage', username=session.get('username')))
+
+    thumb_rel, preview_rel, orig_rel, examples_rel, is_active = art_row
+
+    # remove owner's copy file if present
+    if source_rel:
+        full = os.path.join(STATIC_ROOT, source_rel)
+        try:
+            if os.path.exists(full):
+                os.remove(full)
+        except Exception as e:
+            print("Failed to remove owner file:", e)
+
+    # delete ownership record
+    cursor.execute("DELETE FROM art_ownership WHERE id = ?", (ownership_id,))
+
+    # if this was the only owner and art is inactive => delete art and its files
+    if owners_count <= 1 and not is_active:
+        # delete any remaining stored files
+        for rel in (thumb_rel, preview_rel, orig_rel):
+            if rel:
+                full = os.path.join(STATIC_ROOT, rel)
+                try:
+                    if os.path.exists(full):
+                        os.remove(full)
+                except Exception:
+                    pass
+        if examples_rel:
+            for ex in examples_rel.split(','):
+                full = os.path.join(STATIC_ROOT, ex)
+                try:
+                    if os.path.exists(full):
+                        os.remove(full)
+                except Exception:
+                    pass
+        # delete art row
+        cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
+        conn.commit()
+        conn.close()
+        flash("Ownership removed and artwork cleaned up.", "success")
+        return redirect(url_for('userPage', username=session.get('username')))
+
+    conn.commit()
+    conn.close()
+    flash("Ownership removed.", "success")
+    return redirect(url_for('userPage', username=session.get('username')))
 
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])

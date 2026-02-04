@@ -22,3 +22,6 @@ node_modules/
 beevy.db.bak*
 migrations/backups/
 
+# Local developer helper (ignored)
+DEV_COMMANDS.md
+

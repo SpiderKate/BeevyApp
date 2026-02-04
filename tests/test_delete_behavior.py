@@ -68,6 +68,13 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
     with app.test_client() as client:
         rv = client.post('/login', data={'username': 'buyer_del', 'password': 'pass123'}, follow_redirects=True)
         assert b"Succesfully logged in" in rv.data
+
+        # Visit the buyer's profile page and ensure owned links point to the owned view and preview routes
+        rv_profile = client.get('/buyer_del')
+        assert rv_profile.status_code == 200
+        assert f"/owned/{art_id}".encode() in rv_profile.data
+        assert f"/preview/{art_id}".encode() in rv_profile.data
+
         rv2 = client.get(f'/owned/{art_id}')
         assert b"By ####" in rv2.data or b"by ####" in rv2.data.lower()
         assert f"/download/{art_id}".encode() in rv2.data

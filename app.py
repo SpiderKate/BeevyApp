@@ -1063,38 +1063,51 @@ def art_detail(art_id):
 @login_required
 def owned_view(art_id):
     """Owner-only minimal view route — shows 'By ####', description, owned preview and download link."""
-    conn = sqlite3.connect("beevy.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT art.*, users.username FROM art LEFT JOIN users ON art.author_id = users.id WHERE art.id = ?", (art_id,))
-    item = cursor.fetchone()
-    if not item:
+    try:
+        conn = sqlite3.connect("beevy.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT art.*, users.username FROM art LEFT JOIN users ON art.author_id = users.id WHERE art.id = ?", (art_id,))
+        item = cursor.fetchone()
+        if not item:
+            conn.close()
+            abort(404)
+
+        # get current user id
+        cursor.execute("SELECT id FROM users WHERE username = ?", (session.get('username'),))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            abort(403)
+        user_id = row[0]
+
+        owns = user_owns_art(user_id, art_id)
+        is_author = (session.get('username') == item[-1])
+        if not owns and not is_author:
+            conn.close()
+            abort(403)
+
+        cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+        src_row = cursor.fetchone()
+        owned_image = src_row[0] if src_row and src_row[0] else item[9]
+        examples_list = item[10].split(",") if item[10] else []
+
+        # minimal owner presentation
+        author_display = "####"
+        is_active = False
         conn.close()
-        abort(404)
-
-    # get current user id
-    cursor.execute("SELECT id FROM users WHERE username = ?", (session.get('username'),))
-    row = cursor.fetchone()
-    if not row:
-        conn.close()
-        abort(403)
-    user_id = row[0]
-
-    owns = user_owns_art(user_id, art_id)
-    is_author = (session.get('username') == item[-1])
-    if not owns and not is_author:
-        conn.close()
-        abort(403)
-
-    cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
-    src_row = cursor.fetchone()
-    owned_image = src_row[0] if src_row and src_row[0] else item[9]
-    examples_list = item[10].split(",") if item[10] else []
-
-    # minimal owner presentation
-    author_display = "####"
-    is_active = False
-    conn.close()
-    return render_template("owned_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
+        return render_template("owned_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
+    except Exception as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        try:
+            conn.close()
+        except Exception:
+            pass
+        print("Owned view failed:", e)
+        flash("Failed to load owned view.", "error")
+        abort(500)
 
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])

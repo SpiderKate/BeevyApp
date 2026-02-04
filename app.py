@@ -1052,9 +1052,68 @@ def art_detail(art_id):
         conn.close()
         abort(404)
 
+    # If the current user owns this art (and is not the author), redirect to owned view
+    if owns and not is_author:
+        conn.close()
+        return redirect(url_for('owned_view', art_id=art_id))
+
     conn.close()
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active)
 
+
+@app.route('/owned/<int:art_id>', methods=['GET'])
+@login_required
+def owned_view(art_id):
+    """Owner-only view showing artwork details, thumbnail, examples, download and remove ownership button."""
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+
+    # Fetch artwork and author
+    cursor.execute("""
+        SELECT art.*, users.username
+        FROM art
+        LEFT JOIN users ON art.author_id = users.id
+        WHERE art.id = ?
+    """, (art_id,))
+    item = cursor.fetchone()
+
+    if not item:
+        conn.close()
+        abort(404)
+
+    # Get current user id
+    cursor.execute("SELECT id FROM users WHERE username = ?", (session.get('username'),))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        abort(403)
+    user_id = row[0]
+
+    # Verify ownership
+    owns = user_owns_art(user_id, art_id)
+    is_author = (session.get('username') == item[-1])
+    if not owns and not is_author:
+        conn.close()
+        abort(403)
+
+    # Prepare examples list
+    examples_list = item[10].split(",") if item[10] else []
+
+    # Determine active state
+    is_active = bool(item[13])
+
+    # Get owned image (prefer owner-specific copy or original)
+    owned_image = None
+    if owns:
+        cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
+        src_row = cursor.fetchone()
+        if src_row and src_row[0]:
+            owned_image = src_row[0]
+        else:
+            owned_image = item[9]  # original_path
+
+    conn.close()
+    return render_template("owned_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active)
 
 
 @app.route('/owned/<int:art_id>/remove', methods=['POST'])

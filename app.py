@@ -1052,6 +1052,11 @@ def art_detail(art_id):
         conn.close()
         abort(404)
 
+    # If the current user already owns this art (and is not the author), redirect them to the owner view
+    if owns and not is_author:
+        conn.close()
+        return redirect(url_for('owned_view', art_id=art_id))
+
     # Author display for anonymized/removed authors should be obfuscated in owner view
     author_display = item[-1] if is_active else ("####" if owns else (item[-1] or item[1]))
 
@@ -1620,9 +1625,16 @@ def preview_art(art_id):
         conn.close()
         abort(404)
 
-    # If no owner-specific file chosen, fall back to public preview
+    # If no owner-specific file chosen, fall back to public preview, original, or thumbnail
     if not chosen_rel:
-        chosen_rel = preview_rel
+        chosen_rel = preview_rel or orig_rel or None
+
+    # Try thumbnail too if nothing else
+    if not chosen_rel:
+        cursor.execute("SELECT thumbnail_path FROM art WHERE id = ?", (art_id,))
+        trow = cursor.fetchone()
+        if trow and trow[0]:
+            chosen_rel = trow[0]
 
     conn.close()
 
@@ -1671,7 +1683,7 @@ def owned_preview(art_id):
         conn.close()
         abort(403)
 
-    # Prefer owner-specific source, then original, then preview
+    # Prefer owner-specific source, then original, then preview, then thumbnail
     cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
     src_row = cursor.fetchone()
     chosen_rel = None
@@ -1681,6 +1693,11 @@ def owned_preview(art_id):
         chosen_rel = orig_rel
     elif preview_rel:
         chosen_rel = preview_rel
+    else:
+        cursor.execute("SELECT thumbnail_path FROM art WHERE id = ?", (art_id,))
+        trow = cursor.fetchone()
+        if trow and trow[0]:
+            chosen_rel = trow[0]
 
     conn.close()
 

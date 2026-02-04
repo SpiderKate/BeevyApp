@@ -85,6 +85,11 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
         assert rv3.status_code == 200
         assert rv3.content_type and rv3.content_type.startswith('image/'), f"Unexpected content type: {rv3.content_type}"
 
+        # Accessing the shop detail as an owner should redirect to the owned view
+        rv_shop = client.get(f'/shop/{art_id}', follow_redirects=False)
+        assert rv_shop.status_code in (302, 303)
+        assert rv_shop.headers['Location'].endswith(f'/owned/{art_id}')
+
     # Public preview should be inaccessible to a different logged-in user when art is inactive
     conn = sqlite3.connect('beevy.db')
     cursor = conn.cursor()

@@ -1322,9 +1322,9 @@ def editArt(username, art_id):
 
                 deleted_username = get_unique_deleted_username(cursor)
                 cursor.execute("""
-                    UPDATE art SET author_name = ?, author_id = NULL, is_active = 0, thumbnail_path = '', preview_path = '', original_path = ''
+                    UPDATE art SET author_id = NULL, is_active = 0, thumbnail_path = '', preview_path = '', original_path = ''
                     WHERE id = ?
-                """, (deleted_username, art_id))
+                """, (art_id,))
                 conn.commit()
                 conn.close()
                 flash("Artwork deleted from shop; owner copies preserved.", "success")

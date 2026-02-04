@@ -578,7 +578,7 @@ def userPage(username):
     owned = []
     if is_owner:
         cursor.execute("""
-            SELECT art.id, art.title, art.thumbnail_path
+            SELECT art.id, art.title, art.thumbnail_path, art_ownership.source
             FROM art
             JOIN art_ownership ON art.id = art_ownership.art_id
             WHERE art_ownership.owner_id = ?

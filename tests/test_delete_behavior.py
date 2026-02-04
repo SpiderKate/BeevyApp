@@ -68,7 +68,7 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
     with app.test_client() as client:
         rv = client.post('/login', data={'username': 'buyer_del', 'password': 'pass123'}, follow_redirects=True)
         assert b"Succesfully logged in" in rv.data
-        rv2 = client.get(f'/shop/{art_id}')
+        rv2 = client.get(f'/owned/{art_id}')
         assert b"By ####" in rv2.data or b"by ####" in rv2.data.lower()
         assert f"/download/{art_id}".encode() in rv2.data
         assert b"Buy for" not in rv2.data, "Buy button should not appear on owner-only page"

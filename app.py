@@ -1094,7 +1094,7 @@ def owned_view(art_id):
     author_display = "####"
     is_active = False
     conn.close()
-    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
+    return render_template("owned_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
 
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
@@ -1214,7 +1214,7 @@ def editArt(username, art_id):
 
                 deleted_username = get_unique_deleted_username(cursor)
                 cursor.execute("""
-                    UPDATE art SET author_name = ?, author_id = NULL, is_active = 0, thumbnail_path = NULL, preview_path = NULL, original_path = NULL
+                    UPDATE art SET author_name = ?, author_id = NULL, is_active = 0, thumbnail_path = '', preview_path = '', original_path = ''
                     WHERE id = ?
                 """, (deleted_username, art_id))
                 conn.commit()

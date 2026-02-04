@@ -62,6 +62,15 @@ def test_author_delete_creates_owner_copies(tmp_path, monkeypatch):
     full = os.path.join(os.getcwd(), 'static', rel.replace('/', os.sep))
     assert os.path.exists(full), "Owner copy should exist on disk"
 
+    # Buyer should be able to view minimal owner page and see 'By ####' and download link
+    with app.test_client() as client:
+        rv = client.post('/login', data={'username': 'buyer_del', 'password': 'pass123'}, follow_redirects=True)
+        assert b"Succesfully logged in" in rv.data
+        rv2 = client.get(f'/shop/{art_id}')
+        assert b"By ####" in rv2.data or b"by ####" in rv2.data.lower()
+        assert f"/download/{art_id}".encode() in rv2.data
+        assert b"Buy for" not in rv2.data, "Buy button should not appear on owner-only page"
+
     # Cleanup created files and DB rows
     try:
         # remove the created owner copy

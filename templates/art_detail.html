@@ -9,10 +9,19 @@
 <div class="art-detail">
 
 <h2>{{ item[2] }}</h2>
-<p>By {{ item[-1] }}</p>
-<p>Price: {{ item[5] }} BP</p>
-<p>Description: {{ item[3] }}</p>
-<p>Turnaround time: {{ item[4] }} days</p>
+{% if not is_active and owns %}
+    <p>By ####</p>
+    {% if item[3] %}
+        <p>Description: {{ item[3] }}</p>
+    {% endif %}
+{% else %}
+    <p>By {{ author_display or (item[-1] or item[1]) }}</p>
+    {% if is_active %}
+        <p>Price: {{ item[5] }} BP</p>
+        <p>Turnaround time: {{ item[4] }} days</p>
+    {% endif %}
+    <p>Description: {{ item[3] }}</p>
+{% endif %}
 
 {% if owns %}
     <h3>Owned preview</h3>
@@ -53,14 +62,16 @@
     <a href="{{ url_for('download_art', art_id=item[0]) }}" class="btn download">
         Download Original
     </a>
-{% elif session.username == item[-1] %}
+{% elif is_author %}
     <a href="{{ url_for('editArt', username = session.get('username'), art_id=item[0]) }}">
         Edit artwork.
     </a>
-{% else %}
+{% elif is_active %}
     <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn buy">
         Buy for {{ item[5] }} BP
     </a>
+{% else %}
+    <p><em>This artwork has been removed from the shop.</em></p>
 {% endif %}
 
 </div>

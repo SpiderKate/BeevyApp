@@ -1006,21 +1006,24 @@ def art_detail(art_id):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
 
-    # Fetch artwork and author
+    # Fetch artwork and optional author (allow author to be NULL after deletion)
     cursor.execute("""
         SELECT art.*, users.username
         FROM art
-        JOIN users ON art.author_id = users.id
+        LEFT JOIN users ON art.author_id = users.id
         WHERE art.id = ?
     """, (art_id,))
     item = cursor.fetchone()
-    conn.close()
 
     if not item:
+        conn.close()
         return "Item not found", 404
 
     # Prepare examples list
     examples_list = item[10].split(",") if item[10] else []
+
+    # Determine active state
+    is_active = bool(item[13])
 
     # Check if the current user owns the artwork and determine which image to show
     user_id = None
@@ -1029,8 +1032,6 @@ def art_detail(art_id):
     is_author = False
     if "username" in session:
         # Get user id first
-        conn = sqlite3.connect("beevy.db")
-        cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE username=?", (session["username"],))
         row = cursor.fetchone()
         if row:
@@ -1038,16 +1039,24 @@ def art_detail(art_id):
             owns = user_owns_art(user_id, art_id)
             is_author = (session.get("username") == item[-1])
             if owns:
-                # Prefer owner-specific source if author deleted and we created copies
+                # Prefer owner-specific source if we created copies for owners
                 cursor.execute("SELECT source FROM art_ownership WHERE art_id = ? AND owner_id = ?", (art_id, user_id))
                 src_row = cursor.fetchone()
                 if src_row and src_row[0]:
                     owned_image = src_row[0]
                 else:
                     owned_image = item[9]  # original_path
-        conn.close()
 
-    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author)
+    # If item is inactive (deleted from shop) only allow owners or authors to view it
+    if not is_active and not owns and not is_author:
+        conn.close()
+        abort(404)
+
+    # Author display for anonymized/removed authors should be obfuscated in owner view
+    author_display = item[-1] if is_active else ("####" if owns else (item[-1] or item[1]))
+
+    conn.close()
+    return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active, author_display=author_display)
 
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])

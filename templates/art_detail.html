@@ -41,6 +41,11 @@
         <a href="{{ url_for('download_art', art_id=item[0]) }}" class="btn download">
             Download Original
         </a>
+        {% if is_active %}
+            <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn">
+                View on Shop
+            </a>
+        {% endif %}
         <form method="POST" action="{{ url_for('remove_ownership', art_id=item[0]) }}" style="display:inline;">
             <button type="submit" class="btn delete" onclick="return confirm('Are you sure you want to remove this from your library?');">Remove from library</button>
         </form>

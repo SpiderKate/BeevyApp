@@ -52,7 +52,10 @@ let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
 let canvasSnapshot = null;
 
-
+fillColor.addEventListener("checked", ()=>{
+    currentTool = "bucket";
+    fill(data);
+});
 
 
 //odposlouchava slider a meni velikost stetce
@@ -182,6 +185,16 @@ canvas.addEventListener("mousemove", (e) => {
         };
         circle(data);
     }
+    if (currentTool === "bucket") {
+        const data = { 
+            fromX: 0,
+            fromY: 0,
+            toX: 1000,
+            toY: 1000,
+            color: currentColor
+        };
+        fill(data);
+    }
 });
 
 function saveCanvasState() {
@@ -279,6 +292,16 @@ function circle(data){
     ctx.arc(x1, y1, c, 0, 2 * Math.PI);
     ctx.stroke();
 };
+// FIXME: fix it :3
+function fill(data){
+    const { fromX, fromY, toX, toY, color, width } = data;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    rectangle(data);
+    fill();
+
+};
 
 const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color picker
     width: 150,
@@ -332,3 +355,7 @@ addEventListener("click", ()=>{
     link.click();
     document.body.removeChild(link);
 })  
+
+// TODO: users history on the canvas so undo can work for the user and not the canvas
+// TODO: layers
+// TODO: cursors with mini pfp or universal icon is visible to everyone

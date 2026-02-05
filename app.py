@@ -1444,7 +1444,6 @@ def editArt(username, art_id):
             original_path,
             art_id
         ))
-#TODO: example original path not stored for now
         conn.commit()
         conn.close()
 

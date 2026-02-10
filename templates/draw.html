@@ -10,37 +10,38 @@
     <div class="container">
         <section class="toolsBoard">
             <div class="row">
-                <label class="title">Shapes</label> 
+                <label class="title">{{ g.trans.get('draw.shapes', g.user_language) }}</label> 
                 <ul class="options">
                     <li class="option tool" id="rectangle">
                         <img src="{{ url_for('static', filename='images/icons/rectangle.svg') }}">
-                        <span>Rectangle</span>
+                        <span>{{ g.trans.get('draw.rectangle', g.user_language) }}</span>
                     </li>
                      <li class="option tool" id="circle">
                         <img src="{{ url_for('static', filename='images/icons/circle.svg') }}">
-                        <span>Circle</span>
+                        <span>{{ g.trans.get('draw.circle', g.user_language) }}</span>
                     </li>
                     <li class="option tool" id="triangle">
                         <img src="{{ url_for('static', filename='images/icons/triangle.svg') }}">
-                        <span>Triangle</span>
+                        <span>{{ g.trans.get('draw.triangle', g.user_language) }}</span>
                     </li>
                      <li class="option tool" id="fillcolor">
                         <input type="checkbox" id="fillColor">
-                        <label for="fillColor">Fill color</label>
+                        <label for="fillColor">{{ g.trans.get('draw.color', g.user_language) }}</label>
                     </li>
                 </ul>
             </div>
 
             <div class="row">
-                <label class="title">Options</label> 
+                <label class="title">{{ g.trans.get('draw.options', g.user_language) }}</label> 
                 <ul class="options">
                     <li class="option active tool" id="brush">
                         <img src="{{ url_for('static', filename='images/icons/brush.svg') }}">
-                        <span>Brush</span>
+                        <span onclick="showTool('brush')">{{ g.trans.get('draw.brush', g.user_language) }}</span>
                     </li>
                     <li class="option tool" id="eraser">
                         <img src="{{ url_for('static', filename='images/icons/eraser.svg') }}">
-                        <span>Eraser</span>
+                    </li> <!--TODO:size updater while moving-->
+                        <span onclick="showTool('eraser')">{{ g.trans.get('draw.eraser', g.user_language) }}</span>
                     </li>
                     <li class="option">
                         <div id="size">{{ brush[0] }}</div>
@@ -56,8 +57,8 @@
 
 <br>
             <div class="row buttons">
-                <button class="clearCanvas">Clear canvas</button><br><br>
-                <button class="saveImg" id="saveImg">Save as image</button>
+                <button class="clearCanvas">{{ g.trans.get('buttons.clear', g.user_language) }} {{ g.trans.get('draw.canvas', g.user_language) }}</button><br><br>
+                <button class="saveImg" id="saveImg">{{ g.trans.get('buttons.save', g.user_language) }}</button>
 <!--TODO: save image to db to userpage-->
             </div>
         </section>

@@ -8,16 +8,16 @@
 
 {% block content %}
 
-<h1 class="page-title">Create New Art / Commission</h1>
+<h1 class="page-title">{{ g.trans.get('art.create', g.user_language) }}</h1>
 
 <form action="/create_art" method="POST" enctype="multipart/form-data" class="create-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <!-- Title -->
-    <label class="form-label">Title</label>
+    <label class="form-label">{{ g.trans.get('art.title', g.user_language) }}</label>
     <input type="text" name="title" required class="input">
 
     <!-- Description -->
-    <label class="form-label">Description</label>
+    <label class="form-label">{{ g.trans.get('art.description', g.user_language) }}</label>
     <textarea name="description" rows="4" class="input"></textarea>
 
     <!-- TAT -->
@@ -25,22 +25,22 @@
     <input type="number" name="tat" min="1" required class="input">
 
     <!-- Price -->
-    <label class="form-label">Price (Beevy Points)</label>
+    <label class="form-label">{{ g.trans.get('art.price', g.user_language) }} (Beevy Points)</label>
     <input type="number" name="price" min="1" required class="input">
 
     <!-- Type -->
-    <label class="form-label">Type</label>
+    <label class="form-label">{{ g.trans.get('art.type', g.user_language) }}</label>
     <select name="type" class="input" required>
-        <option id="option" value="art">Art</option>
-        <option id="option" value="commission" selected>Commission</option>
+        <option id="option" value="art">{{ g.trans.get('art.selling', g.user_language) }}</option>
+        <option id="option" value="commission" selected>{{ g.trans.get('art.commission', g.user_language) }}</option>
     </select>
 
 <!--TODO: art/comms rozdeleni-->
 <!--TODO: slots pouze v comms-->
 <!--TODO: save metadata in the file directly-->
-<div class="slots hidden">
+<div class="slots">
     <!-- Slots -->
-    <label for="commission" class="form-label">Slots (optional)</label>
+    <label for="commission" class="form-label">{{ g.trans.get('art.commission_slots', g.user_language) }} (optional)</label>
     <input for="commission" type="number" name="slots" min="1" class="input">
 </div>
 

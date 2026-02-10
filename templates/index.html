@@ -2,9 +2,7 @@
 
 {% block title %}Beevy🐝{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/styles_test.css">
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 
 
@@ -13,23 +11,23 @@
         <div id="Beevy">Beevy</div> 
         <img src="/static/images/beee.svg" id="bee" width="40">
     </h1>
-    <p id="about">Beevy is a playful, welcoming art platform where creators can upload their work, collaborate on canvases, and even stream their drawing sessions. Whether you're a hobbyist or pro, there's a spot in the hive for you!</p>
+    <p id="about">{{ g.trans.get('home.subtitle', g.user_language) }}</p>
 
     <div class="hex-grid">
         {% if not session.username %}
         <div class="hex">
-            <a href="/login" class="hex-content">Login</a>
+            <a href="/login" class="hex-content">{{ g.trans.get('home.login', g.user_language) }}</a>
         </div>
         
         <div class="hex">
-            <a href="/register" class="hex-content">Register</a>
+            <a href="/register" class="hex-content">{{ g.trans.get('home.register', g.user_language) }}</a>
         </div>
         {% else %}
         <div class="hex">
-            <a href="/option" class="hex-content">Draw</a>
+            <a href="/option" class="hex-content">{{ g.trans.get('home.draw', g.user_language) }}</a>
         </div>
         <div class="hex">
-            <a href="/shop" class="hex-content">Shop</a>
+            <a href="/shop" class="hex-content">{{ g.trans.get('nav.shop', g.user_language) }}</a>
         </div>
         <div class="hex">
             <span class="hex-content">Community</span>
@@ -37,5 +35,5 @@
         {% endif %}
     </div>
 
-    <footer>footer :></footer>
+    <footer>Beevy 2026</footer>
 {% endblock %}

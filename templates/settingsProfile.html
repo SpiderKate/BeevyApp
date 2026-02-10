@@ -3,17 +3,17 @@
 {% block title %}Profile Settings{% endblock %}
 
 {% block settings_page %}
-<h2>Profile Settings</h2>
+<h2>{{ g.trans.get('settings.profile', g.user_language) }}</h2>
 
 <form method="POST" id="profileForm" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Username</label>
+    <label>{{ g.trans.get('auth.username', g.user_language) }}</label>
     <input type="text" name="username" value="{{ user[1] }}">
 
-    <label>Bio</label>
+    <label>{{ g.trans.get('settings.bio', g.user_language) }}</label>
     <textarea name="bio">{{ user[2] }}</textarea>
 
-    <label>Avatar</label>
+    <label>{{ g.trans.get('settings.avatar', g.user_language) }}</label>
     <input type="file" name="avatar" id="avatarInput">
 
     <img id="avatarPreview" 
@@ -37,6 +37,6 @@
 </script>
 
 
-    <button type="submit">Save</button>
+    <button type="submit">{{ g.trans.get('buttons.save', g.user_language) }}</button>
 </form>
 {% endblock %}

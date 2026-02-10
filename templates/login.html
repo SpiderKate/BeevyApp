@@ -9,21 +9,21 @@
 {% block content %}
     <form method="POST" action="/login">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="username">Username or E-mail:</label><br>
+        <label for="username">{{ g.trans.get('auth.username', g.user_language) }}:</label><br>
             <input type="text" id="username" name="username" class="input" required><br><br>
-        <label for="password">Password:</label><br>
+        <label for="password">{{ g.trans.get('auth.password', g.user_language) }}:</label><br>
             <input type="password" id="password" name="password" class="input" required><br><br>
-        <button type="submit" id="logIn" class="submit">Log in</button>
+        <button type="submit" id="logIn" class="submit">{{ g.trans.get('auth.login_button', g.user_language) }}</button>
         <p class="linkText">
-            Still not part of the hive? <a class="link" href="/register">Become part of the swarm today</a>
+            {{ g.trans.get('auth.create_account', g.user_language) }} <a class="link" href="/register">{{ g.trans.get('home.register', g.user_language) }}</a>
         </p>
     </form>
     <br>
     <p class="auth-alt">
         <a href="{{ url_for('recover_account') }}">
-            Recover deleted account
+            {{ g.trans.get('auth.password_recovery', g.user_language) }}
         </a>
     </p>
     <br>
-    <a href="/" class="link">Main page</a>
+    <a href="/" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
 {% endblock %}

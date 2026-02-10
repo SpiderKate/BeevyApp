@@ -1,36 +1,6 @@
-:root {
-    --primary-bg: #8860cc;
-    --primary-text: rgb(247 235 78);
-    --accent-color: #f7eb4e;
-    --transition-speed: 0.3s;
-    --glass-bg: rgb(255 255 255 / 12%);
-    --card-blur: blur(6px);
-    --radius: 18px;
-}
-
-/* Background same as homepage */
-body {
-    background: radial-gradient(circle at top left, #c683ec, #7060cc 70%);
-    color: var(--primary-text);
-    font-family: Poppins, sans-serif;
-    min-height: 100vh;
-    padding: 40px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    overflow-x: hidden;
-}
-
-body::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-        repeating-linear-gradient(30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px);
-    pointer-events: none;
-}
+/* ===========================
+   SHOP PAGE - Page Specific Styles
+   =========================== */
 
 /* Page title */
 .shop-title {
@@ -42,12 +12,7 @@ body::before {
     animation: float 6s ease-in-out infinite;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* SHOP GRID (honeycomb pattern) */
+/* Shop grid (honeycomb pattern) */
 .shop-grid {
     display: flex;
     flex-wrap: wrap;
@@ -58,12 +23,12 @@ body::before {
     position: relative;
 }
 
-/* Honeycomb-like card container */
+/* Shop item cards */
 .shop-item {
     width: 250px;
     height: 300px;
     background: var(--glass-bg);
-    backdrop-filter: var(--card-blur);
+    backdrop-filter: var(--glass-blur);
     padding: 15px;
     border-radius: var(--radius);
     box-shadow: 0 4px 10px rgb(0 0 0 / 25%);
@@ -72,22 +37,16 @@ body::before {
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
     position: relative;
     overflow: hidden;
-
-    /* Subtle "buzz" animation like hexes */
     animation: buzz 4s ease-in-out infinite alternate;
 }
 
-/* Staggered animation delay for nicer waving grid */
-.shop-item:nth-child(odd) { animation-delay: 0.3s; }
-.shop-item:nth-child(even) { animation-delay: 0.6s; }
+/* Staggered animation delay */
+.shop-item:nth-child(odd) {
+    animation-delay: 0.3s;
+}
 
-/* Buzz animation same as your hex elements */
-@keyframes buzz {
-    0%   { transform: scale(1) rotate(0deg); }
-    25%  { transform: scale(1.02) rotate(1deg); }
-    50%  { transform: scale(1) rotate(0deg); }
-    75%  { transform: scale(1.02) rotate(-1deg); }
-    100% { transform: scale(1) rotate(0deg); }
+.shop-item:nth-child(even) {
+    animation-delay: 0.6s;
 }
 
 .shop-item:hover {
@@ -112,7 +71,6 @@ body::before {
     text-shadow: 0 0 4px rgb(247 235 78 / 40%);
     margin-bottom: 5px;
 }
- 
 
 /* Author */
 .shop-author {

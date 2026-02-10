@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/base.css">    
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+    <!-- Load theme based on user preference -->
+    {% if g.user_theme and g.user_theme != 'bee' %}
+        <link rel="stylesheet" href="/static/css/theme-{{ g.user_theme }}.css">
+    {% endif %}
+    
     <link rel="icon" type="image/gif" href="/static/images/favicon/favicon.ico">
     {% block extra_css %}{% endblock %}
     <title>{% block title %}Beevy{% endblock %}</title>
@@ -60,9 +66,9 @@
         {{ session.get('username') }}
     </div>
     <div id="user-dropdown" class="dropdown hidden">
-        <a href="/{{ session.get('username') }}">Profile</a>
-        <a href="/create_art">Create a commission/art</a>
-        <a href="/{{ session.get('username') }}/settings">Settings</a>
+        <a href="/{{ session.get('username') }}">{{ g.trans.get('nav.profile', g.user_language) }}</a>
+        <a href="/create_art">{{ g.trans.get('art.create', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}/settings">{{ g.trans.get('nav.settings', g.user_language) }}</a>
     </div>
 </div>
 {% endif %}
@@ -72,9 +78,9 @@
         <h2 class="logo">🐝 Beevy</h2>
 
         <nav>
-            <a href="/">Home</a>
-            <a href="/shop">Shop</a>
-            <a href="/option">Draw</a>
+            <a href="/">{{ g.trans.get('home.title', g.user_language) }}</a>
+            <a href="/shop">{{ g.trans.get('nav.shop', g.user_language) }}</a>
+            <a href="/option">{{ g.trans.get('nav.draw', g.user_language) }}</a>
         </nav>
     </aside>
 {% endif %}

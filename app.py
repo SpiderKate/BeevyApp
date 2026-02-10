@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g, send_file, abort, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash as flask_flash, g, send_file, abort, send_from_directory
 import bcrypt
 import sqlite3
 import sys
@@ -17,15 +17,114 @@ from datetime import timedelta, datetime
 from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 from PIL.PngImagePlugin import PngInfo
 from functools import wraps
+from flask_apscheduler import APScheduler
+from backup_utils import backup_database, cleanup_old_backups
+from translations import translations
 
 load_dotenv()
 now = datetime.now()
+
+# ===== Flash Message Translation Mapping =====
+FLASH_MESSAGE_KEYS = {
+    "Log in first.": "flash.login_first",
+    "You shall not trespass in other's property.": "flash.trespass",
+    "You are already logged in.": "flash.already_logged_in",
+    "This account has been deleted. You can restore it if you want.": "flash.account_deleted",
+    "Succesfully logged in.": "flash.login_success",
+    "You are already registered.": "flash.already_registered",
+    "Username is too long.": "flash.username_too_long",
+    "Registration was successful.": "flash.registration_success",
+    "Username is already taken.": "flash.username_taken",
+    "Email is already in use.": "flash.email_in_use",
+    "Please enter your email and password.": "flash.enter_credentials",
+    "Invalid email or password.": "flash.invalid_credentials",
+    "This account is already active.": "flash.account_already_active",
+    "Username is already in use, please choose another one.": "flash.username_in_use",
+    "Settings saved successfully.": "flash.settings_saved",
+    "New password cannot be empty.": "flash.password_empty",
+    "Current password is incorrect.": "flash.password_incorrect",
+    "Passwords do not match.": "flash.passwords_mismatch",
+    "Successfully logged out.": "flash.logout_success",
+    "You must type DELETE exactly.": "flash.must_type_delete",
+    "User not found or already deleted.": "flash.user_not_found",
+    "Wrong password.": "flash.wrong_password",
+    "Account and related content deactivated successfully.": "flash.account_deactivated",
+    "You do not own this artwork.": "flash.not_owner",
+    "Ownership removed.": "flash.ownership_removed",
+    "Ownership removed and artwork cleaned up.": "flash.ownership_removed_cleanup",
+    "Password required.": "flash.password_required",
+    "Artwork deleted permanently.": "flash.artwork_deleted",
+    "Artwork deleted from shop; owner copies preserved.": "flash.artwork_deleted_shop",
+    "Artwork hidden.": "flash.artwork_hidden",
+    "Artwork unhidden.": "flash.artwork_unhidden",
+    "Room not found.": "flash.room_not_found",
+}
+
+def flash(message, category="info"):
+    """
+    Wrapper for Flask's flash() that automatically translates known messages.
+    Falls back to original message if translation key is not found.
+    """
+    user_language = session.get('user_language', 'en')
+    
+    # Check if message matches a known pattern
+    translation_key = FLASH_MESSAGE_KEYS.get(message)
+    
+    if translation_key:
+        translated_message = translations.get(translation_key, user_language)
+        flask_flash(translated_message, category)
+    else:
+        # Check for messages with variables (e.g., "Something went wrong: {e}")
+        if "Something went wrong:" in message:
+            base_message = translations.get("flash.error_occurred", user_language)
+            # Keep the error details but with translated prefix
+            error_detail = message.replace("Something went wrong:", "").strip()
+            flask_flash(f"{base_message} {error_detail}", category)
+        elif "Failed to delete artwork:" in message:
+            base_message = translations.get("flash.delete_failed", user_language)
+            error_detail = message.replace("Failed to delete artwork:", "").strip()
+            flask_flash(f"{base_message} {error_detail}", category)
+        else:
+            # Unknown message, use as-is
+            flask_flash(message, category)
 
 #print('some debug', file=sys.stderr)
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 csrf = CSRFProtect(app)
+
+# ===== Database Backup Scheduler =====
+# Configure APScheduler for weekly database backups
+app.config['SCHEDULER_API_ENABLED'] = True
+scheduler = APScheduler()
+
+def weekly_backup_job():
+    """Runs every Sunday at 2 AM"""
+    try:
+        success, backup_path, message = backup_database()
+        if success:
+            print(f"✓ Weekly backup completed: {message}", file=sys.stderr)
+            # Clean up old backups (keep last 10)
+            removed, cleanup_msg = cleanup_old_backups(keep_count=10)
+            print(f"✓ {cleanup_msg}", file=sys.stderr)
+        else:
+            print(f"✗ Weekly backup failed: {message}", file=sys.stderr)
+    except Exception as e:
+        print(f"✗ Backup job error: {str(e)}", file=sys.stderr)
+
+# Initialize scheduler during app setup (not in before_request)
+scheduler.init_app(app)
+scheduler.add_job(
+    func=weekly_backup_job,
+    trigger='cron',
+    day_of_week='sun',
+    hour=2,
+    minute=0,
+    id='weekly_backup',
+    name='Weekly Database Backup'
+)
+scheduler.start()
 
 #TODO: create canvas folder for saved collab drawings
 STATIC_ROOT = "static"
@@ -65,6 +164,16 @@ def get_unique_deleted_username(cursor):
         cursor.execute("SELECT 1 FROM users WHERE username=?", (username,))
         if not cursor.fetchone():
             return username
+
+def flash_translated(message_key, category="info"):
+    """
+    Flash a translated message based on the key.
+    Usage: flash_translated('flash.login_success', 'success')
+    """
+    # Get user's language from session or default to 'en'
+    user_language = session.get('user_language', 'en')
+    translated_message = translations.get(message_key, user_language)
+    flash(translated_message, category)
 
 def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
     """Draws a tiled, rotated watermark that remains visible on both light and dark images.
@@ -312,15 +421,28 @@ app.permanent_session_lifetime = timedelta(days=7)
 @app.before_request
 def load_logged_in_user():
     g.avatar_path = None
+    g.user_theme = 'bee'  # Default theme
+    g.user_language = 'en'  # Default language
+    g.trans = translations  # Make translations available in templates
     username = session.get('username')
     if username:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
         cursor.execute("SELECT avatar_path FROM users WHERE username=?", (username,))
         row = cursor.fetchone()
-        conn.close()
         if row and row[0]:
             g.avatar_path = row[0]
+        
+        # Load user's theme and language preferences
+        cursor.execute("SELECT theme, language FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (username,))
+        pref_row = cursor.fetchone()
+        if pref_row:
+            if pref_row[0]:
+                g.user_theme = pref_row[0]
+            if pref_row[1]:
+                g.user_language = pref_row[1]
+        
+        conn.close()
 
 #hlavni stranka..
 @app.route('/')
@@ -1444,7 +1566,6 @@ def editArt(username, art_id):
             original_path,
             art_id
         ))
-#TODO: example original path not stored for now
         conn.commit()
         conn.close()
 
@@ -1807,8 +1928,6 @@ def owned_preview(art_id):
         os.path.relpath(real_path, STATIC_ROOT)
     )
 
-
-
 @socketio.on('join_room')
 def handle_join(data):
     room = data['room']
@@ -1831,4 +1950,4 @@ def handle_draw(data):
     emit('draw', data, to=room, skip_sid=request.sid)
     
 if __name__ == "__main__":
-    socketio.run(app, debug=False)#, use_reloader=False -> stranky se sami nereload
+    socketio.run(app)#, use_reloader=False -> stranky se sami nereload

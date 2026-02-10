@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Join a room🐝{% endblock %}
+{% block title %}{{ g.trans.get('draw.join_room', g.user_language) }}🐝{% endblock %}
 
 {% block extra_css %}
 {% endblock %}
 
 {% block content %}
-    <a href="/join/public">Join a public room🐝</a>
-    <a href="/join/private">Join a private room🐝</a>
+    <a href="/join/public">{{ g.trans.get('draw.public_room', g.user_language) }}🐝</a>
+    <a href="/join/private">{{ g.trans.get('draw.private_room', g.user_language) }}🐝</a>
     <br>
 
-    <a href="/option" class="link">Back</a>
+    <a href="/option" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
 {% endblock %}

@@ -1,14 +1,11 @@
+/* ===========================
+   DRAWING PAGE - Page Specific Styles
+   =========================== */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Poppins, sans-serif;
-}
-
 .content {
-    padding: 20px 40px 40px; /* less top padding */
+    padding: 20px 40px 40px;
     margin: 0 auto;
 }
 
@@ -24,71 +21,78 @@
     top: 20px;
 }
 
-section{
+section {
     flex: 1;
     background: rgb(255 255 255 / 8%);
-    border-radius: 15px;
+    border-radius: var(--radius-md);
     text-align: left;
     box-shadow: 0 0 10px rgb(0 0 0 / 25%);
     z-index: 20;
 }
 
 .toolsBoard {
-    flex: 0 0 220px; /* fixed on small screens */
+    flex: 0 0 220px;
     max-width: 30vw;
     background: rgb(255 255 255 / 8%);
     padding: 15px;
-    border-radius: 15px;
+    border-radius: var(--radius-md);
     box-shadow: 0 0 10px rgb(0 0 0 / 25%);
     position: relative;
     z-index: 10;
 }
 
-.toolsBoard .row{
+.toolsBoard .row {
     margin-bottom: 20px;
 }
 
-.row .options{
+.row .options {
     list-style: none;
     margin: 10px 0 0 5px;
 }
 
-.row .options .option{
+.row .options .option {
     display: flex;
     cursor: pointer;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.option:is(:hover, .active) img{
+.option:is(:hover, .active) img {
     filter: invert(91%) sepia(87%) saturate(747%) hue-rotate(1deg) brightness(103%) contrast(102%);
-
 }
 
-.option:is(:hover, .active) :where(span, label){
-    color:  rgb(255 176 0);
+.option:is(:hover, .active) :where(span, label) {
+    color: rgb(255 176 0);
 }
 
-.option :where(span, label){
-    color:rgb(46 46 46);
+.option :where(span, label) {
+    color: rgb(46 46 46);
     cursor: pointer;
     padding-left: 10px;
 }
 
-.option #fillColor{
+.option #fillColor {
     cursor: pointer;
     height: 14px;
     width: 14px;
 }
 
-#fillColor:checked ~ label{
+#fillColor:checked ~ label {
     color: #0095f3;
 }
 
-.option #sizeSlider{
+.option #sizeSlider {
     width: 100%;
-    height: 3px;
-    margin-top: 10px;
+    height: 30px;
+    margin-top: -10px;
+}
+/*TODO: change color*/
+input[type='range']{
+    accent-color: rgb(255 176 0);
+}
+
+input[type='range']:hover{
+    accent-color: rgb(245, 179, 92);
 }
 
 .drawingBoard {
@@ -100,15 +104,27 @@ section{
     align-items: center;
 }
 
-
 .drawingBoard canvas {
     background-color: white;
     width: 100%;
     height: auto;
-    border-radius: 14px;
-    box-shadow:
-        0 0 25px rgb(247 235 78 / 15%),
-        inset 0 0 10px rgb(0 0 0 / 8%);
+    border-radius: var(--radius-xs);
+    box-shadow: 0 0 25px rgb(247 235 78 / 15%), inset 0 0 10px rgb(0 0 0 / 8%);
+}
+
+#colorPicker,
+.IroWheel,
+.option #size,
+.IroSlider {
+    text-align: center;
+    margin: 0 auto;
+    justify-content: center;
+    align-items: center;
+}
+
+.buttons {
+    text-align: center;
+    margin: 0 auto;
 }
 
 @media (width <= 768px) {
@@ -124,33 +140,11 @@ section{
     }
 }
 
-#colorPicker{
-    text-align: center;
-    margin: 0 auto;
-    justify-content: center;
-    align-items: center;
+.tool{
+    color:rgb(46 46 46);
 }
 
-.IroWheel{
-    text-align: center;
-    margin: 0 auto;
-    justify-content: center;
-    align-items: center;
+.tool .active{
+    color:  rgb(255 176 0);
 }
 
-.option #size{
-    text-align: center;
-    margin: 0 auto;
-    justify-content: center;
-    align-items: center;
-}
-
-.IroSlider{
-    margin: 0 auto;
-}
-
-
-.buttons{
-    text-align: center;
-    margin: 0 auto;
-}

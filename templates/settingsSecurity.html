@@ -3,7 +3,7 @@
 {% block title %}Security Settings{% endblock %}
 
 {% block settings_page %}
-<h2>Security Settings</h2>
+<h2>{{ g.trans.get('settings.security', g.user_language) }}</h2>
 {% if error %}
         <p class = "error">
             {% for msg in error %}
@@ -14,16 +14,16 @@
 
 <form method="POST" id="securityForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<label>Change Password</label>
+<label>{{ g.trans.get('settings.security', g.user_language) }}</label>
 <ul class="password">
-    <label>Current Password</label>
-    <input type="password" name="curPassword" placeholder="Please type your current password." required>
+    <label>{{ g.trans.get('auth.password', g.user_language) }} ({{ g.trans.get('messages.current', g.user_language) }})</label>
+    <input type="password" name="curPassword" placeholder="{{ g.trans.get('auth.password', g.user_language) }}" required>
 
-    <label>New Password</label>
-    <input type="password" name="newPassword" placeholder="Please type your new password." required>
+    <label>{{ g.trans.get('auth.password', g.user_language) }} ({{ g.trans.get('messages.new', g.user_language) }})</label>
+    <input type="password" name="newPassword" placeholder="{{ g.trans.get('auth.password', g.user_language) }}" required>
 
-    <label>New Password Again</label>
-    <input type="password" name="newPassword2" placeholder="Please type your new password again." required>
+    <label>{{ g.trans.get('auth.password', g.user_language) }} ({{ g.trans.get('messages.confirm', g.user_language) }})</label>
+    <input type="password" name="newPassword2" placeholder="{{ g.trans.get('auth.password', g.user_language) }}" required>
 </ul>
 
     <label>Last Login</label>

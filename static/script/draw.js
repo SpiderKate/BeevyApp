@@ -11,6 +11,11 @@ function sendDrawData(drawData) {
     socket.emit('draw', { room: room_ID, ...drawData });
 }
 
+function showTool(name) {
+    document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+}
+
 const BASE_WIDTH = 1600;
 const BASE_HEIGHT = 1200;
 
@@ -51,13 +56,13 @@ let slider = document.getElementById("sizeSlider");
 let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
 let canvasSnapshot = null;
-
-
-
+fillColor.addEventListener("checked", ()=>{
+    currentTool = "bucket";
+    fill(data);
+});
 
 //odposlouchava slider a meni velikost stetce
-slider.addEventListener("change", (e)=>{brushSize=e.target.value
-    console.log(brushSize);
+slider.addEventListener("input", (e)=>{brushSize=e.target.value
     document.getElementById("size").innerHTML=brushSize;
 
 });
@@ -123,7 +128,7 @@ canvas.addEventListener("mousemove", (e) => {
             toX: pos.x,
             toY: pos.y,
             color: currentColor,
-            width: brushSize
+            width: slider.value
         };
         sendDrawData({ type: "line", ...data });
         draw(data);
@@ -181,6 +186,16 @@ canvas.addEventListener("mousemove", (e) => {
             width: brushSize
         };
         circle(data);
+    }
+    if (currentTool === "bucket") {
+        const data = { 
+            fromX: 0,
+            fromY: 0,
+            toX: 1000,
+            toY: 1000,
+            color: currentColor
+        };
+        fill(data);
     }
 });
 
@@ -279,6 +294,16 @@ function circle(data){
     ctx.arc(x1, y1, c, 0, 2 * Math.PI);
     ctx.stroke();
 };
+// FIXME: fix it :3
+function fill(data){
+    const { fromX, fromY, toX, toY, color, width } = data;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    rectangle(data);
+    fill();
+
+};
 
 const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color picker
     width: 150,
@@ -332,3 +357,7 @@ addEventListener("click", ()=>{
     link.click();
     document.body.removeChild(link);
 })  
+
+// TODO: users history on the canvas so undo can work for the user and not the canvas
+// TODO: layers
+// TODO: cursors with mini pfp or universal icon is visible to everyone

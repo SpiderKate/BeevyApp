@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Join a private room🐝{% endblock %}
+{% block title %}{{ g.trans.get('draw.private_room', g.user_language) }}🐝{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/room.css">
@@ -8,7 +8,7 @@
 
 <!-- mistnostiPrivate -->
 {% block content %}
-    <h2>Seznam místností:</h2>
+    <h2>{{ g.trans.get('messages.room_list', g.user_language) }}:</h2>
     {% for name, room_id, deleted in rooms %}
         {% if not deleted %}
             <ul>
@@ -18,5 +18,5 @@
     {% endfor %}
     <br>
 
-    <a href="/join" class="link">Back</a>
+    <a href="/join" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
 {% endblock %}

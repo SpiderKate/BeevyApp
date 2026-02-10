@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Art Details{% endblock %}
+{% block title %}{{ g.trans.get('art.details', g.user_language) }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/art_detail.css">
@@ -8,15 +8,15 @@
 {% block content %}
 <div class="art-detail">
     <h2>{{ item[2] }}</h2>
-    <p>By {{ item[1] }}</p>
+    <p>{{ g.trans.get('shop.artist', g.user_language) }} {{ item[1] }}</p>
     {% if item[3] %}
-        <p>Description: {{ item[3] }}</p>
+        <p>{{ g.trans.get('art.description', g.user_language) }}: {{ item[3] }}</p>
     {% endif %}
     {% if is_active %}
-        <p>Price: {{ item[5] }} BP</p>
-        <p>Turnaround time: {{ item[4] }} days</p>
+        <p>{{ g.trans.get('shop.price', g.user_language) }}: {{ item[5] }} BP</p>
+        <p>{{ g.trans.get('art.turnaround', g.user_language) }}: {{ item[4] }} {{ g.trans.get('art.days', g.user_language) }}</p>
     {% if item[11] %}
-        <p>Slots: {{ item[11] }}</p>
+        <p>{{ g.trans.get('art.slots', g.user_language) }}: {{ item[11] }}</p>
     {% endif %}
     {% endif %}
     
@@ -29,7 +29,7 @@
     {% endif %}
 
     {% if examples_list %}
-        <h3>Example images</h3>
+        <h3>{{ g.trans.get('art.examples', g.user_language) }}</h3>
         {% for ex in examples_list %}
             <div style="position: relative; display: inline-block;">
                 <img src="{{ url_for('static', filename=ex) }}" alt="Example" class="preview-img" oncontextmenu="return false;">
@@ -41,11 +41,11 @@
     
     {% if is_author %}
         <a href="{{ url_for('editArt', username = session.get('username'), art_id=item[0]) }}" class="btn">
-            Edit artwork
+            {{ g.trans.get('art.edit_artwork', g.user_language) }}
         </a>
     {% elif is_active %}
         <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn buy">
-            Buy for {{ item[5] }} BP
+            {{ g.trans.get('shop.buy_for', g.user_language) }} {{ item[5] }} BP
         </a>
     {% else %}
         <p><em>This artwork has been removed from the shop.</em></p>

@@ -6,8 +6,10 @@ Run with: .venv\Scripts\python.exe scripts/migrate_db.py
 """
 import sqlite3
 import os
+import sys
 import shutil
 from datetime import datetime
+from pathlib import Path
 
 OLD_DB = 'beevy.db'
 NEW_DB = 'beevy_new.db'
@@ -233,11 +235,17 @@ def migrate():
     print(f"Users: old={len(users_rows)} new={users_new}")
     print(f"Art: old={len(art_rows)} new={art_new}")
 
-    # Backup old DB
+    # Backup old DB to Documents/BeevyApp/backup
     ts = datetime.now().strftime('%Y%m%d%H%M%S')
     backup_name = BACKUP_FMT.format(ts=ts)
-    print(f"Backing up {OLD_DB} -> {backup_name}")
-    shutil.copy2(OLD_DB, backup_name)
+    
+    # Create backup directory in Documents
+    backup_dir = Path.home() / "Documents" / "BeevyApp" / "backup"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    backup_path = backup_dir / backup_name
+    
+    print(f"Backing up {OLD_DB} -> {backup_path}")
+    shutil.copy2(OLD_DB, str(backup_path))
 
     # Replace DB
     print(f"Swapping in new DB ({NEW_DB} -> {OLD_DB})")
@@ -249,7 +257,7 @@ def migrate():
     migrations_dir = os.path.join(os.path.dirname(__file__), '..', 'migrations')
     os.makedirs(migrations_dir, exist_ok=True)
     log_path = os.path.join(migrations_dir, 'migration_log.txt')
-    entry = (f"{datetime.now().isoformat()} - Migration completed. Backup: {backup_name}. "
+    entry = (f"{datetime.now().isoformat()} - Migration completed. Backup: {backup_path} "
              f"Users: old={len(users_rows)} new={users_new}; Art: old={len(art_rows)} new={art_new}\n")
     try:
         with open(log_path, 'a', encoding='utf-8') as fh:

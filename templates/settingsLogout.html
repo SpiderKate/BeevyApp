@@ -1,11 +1,11 @@
 {% extends "settings.html" %}
 
-{% block title %}Log Out{% endblock %}
+{% block title %}{{ g.trans.get('nav.logout', g.user_language) }}{% endblock %}
 
 {% block settings_page %}
-<h2>Log out</h2>
+<h2>{{ g.trans.get('nav.logout', g.user_language) }}</h2>
     <form method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit">Log out</button>
+        <button type="submit">{{ g.trans.get('nav.logout', g.user_language) }}</button>
     </form>
 {% endblock %}

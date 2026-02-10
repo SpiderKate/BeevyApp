@@ -1,29 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Edit{% endblock %}
+{% block title %}{{ g.trans.get('art.edit', g.user_language) }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/register.css">
 {% endblock %}
 
 {% block content %}
-<h1 class="shop-title">Edit an artwork</h1>
+<h1 class="shop-title">{{ g.trans.get('art.edit', g.user_language) }}</h1>
 
 <form method="POST" enctype="multipart/form-data" class="edit-form">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <!-- Title -->
-    <label class="form-label">Title</label>
+    <label class="form-label">{{ g.trans.get('art.title', g.user_language) }}</label>
     <input type="text" name="title" required class="input" value="{{ item[2] }}">
 
     <!-- Description -->
-    <label class="form-label">Description</label>
+    <label class="form-label">{{ g.trans.get('art.description', g.user_language) }}</label>
     <textarea class="desc" name="description">{{ item[3] }}</textarea>
 
     <!-- Slots -->
-    <label class="form-label">Slots (optional)</label>
+    <label class="form-label">{{ g.trans.get('art.slots', g.user_language) }}</label>
     <input type="number" name="slots" min="1" class="input" value="{{ item[11] }}">
 
     <!-- Thumbnail -->
-    <label class="form-label">Thumbnail (cover image)</label>
+    <label class="form-label">{{ g.trans.get('art.thumbnail', g.user_language) }}</label>
     <input type="file" id="thumbInput" name="thumbnail" accept="image/*" class="input"
            data-max-size="{{ max_file_size }}" data-allowed="{{ allowed_extensions | join(',') }}"
            title="Max file size: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}"
@@ -36,7 +36,7 @@
     <div id="thumbHint" class="file-hint" style="font-size:0.9em; color:#666; margin-top:4px;">Max file size: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.</div>
 
     <!-- Examples -->
-    <label class="form-label">Example images (optional)</label>
+    <label class="form-label">{{ g.trans.get('art.examples', g.user_language) }}</label>
     <input type="file" id="examplesInput" name="examples" accept="image/*" multiple class="input"
            data-max-size="{{ max_file_size }}" data-allowed="{{ allowed_extensions | join(',') }}"
            title="Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}"

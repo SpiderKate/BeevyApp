@@ -12,8 +12,8 @@
 
     <label>Language</label>
     <select name="language" class="input">
-        <option value="en" {% if user[2] == 'en' %}selected{% endif %}>English</option>
-        <option value="cs" {% if user[2] == 'cs' %}selected{% endif %}>Čeština (Czech)</option>
+        <option value="en" {% if g.user_language== 'en' %}selected{% endif %}>English</option>
+        <option value="cs" {% if g.user_language == 'cs' %}selected{% endif %}>Čeština (Czech)</option>
     </select>
     <br><br>
     <label>Theme</label>

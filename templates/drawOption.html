@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Draw Option🐝{% endblock %}
+{% block title %}{{ g.trans.get('nav.draw', g.user_language) }}🐝{% endblock %}
 
 {% block extra_css %}
 {% endblock %}
 
 {% block content %}
-    <a href="/create" class="link">Create a room</a>
-    <a href="/join" class="link">Join a room</a>
+    <a href="/create" class="link">{{ g.trans.get('draw.create_room', g.user_language) }}</a>
+    <a href="/join" class="link">{{ g.trans.get('draw.join_room', g.user_language) }}</a>
     <br>
-    <a href="{{url_for('userPage', username=session['username'])}}" class="link">Back</a>
+    <a href="{{url_for('userPage', username=session['username'])}}" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
 <!--TODO: zmensit cestu k draw. vyuzivat lepe template-->
 {% endblock %}

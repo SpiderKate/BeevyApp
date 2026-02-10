@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Confirm Purchase{% endblock %}
+{% block title %}{{ g.trans.get('messages.confirm_purchase', g.user_language) }}{% endblock %}
 
 {% block content %}
-<h2>Confirm Purchase</h2>
+<h2>{{ g.trans.get('messages.confirm_purchase', g.user_language) }}</h2>
 
 <p><strong>{{ title }}</strong></p>
-<p>Price: {{ price }} BeePoints</p>
-<p>Your balance: {{ user_points }} BeePoints</p>
+<p>{{ g.trans.get('shop.price', g.user_language) }}: {{ price }} BeePoints</p>
+<p>{{ g.trans.get('messages.your_balance', g.user_language) }}: {{ user_points }} BeePoints</p>
 
 {% if user_points < price %}
-    <p class="error">You do not have enough BeePoints.</p>
-    <a href="{{ url_for('art_detail', art_id=art_id) }}">Go back</a>
+    <p class="error">{{ g.trans.get('messages.insufficient_points', g.user_language) }}</p>
+    <a href="{{ url_for('art_detail', art_id=art_id) }}">{{ g.trans.get('buttons.back', g.user_language) }}</a>
 {% else %}
     <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <a href="{{ url_for('art_detail', art_id=art_id) }}">Cancel</a>
-        <button type="submit">Confirm Purchase</button>
+        <a href="{{ url_for('art_detail', art_id=art_id) }}">{{ g.trans.get('buttons.cancel', g.user_language) }}</a>
+        <button type="submit">{{ g.trans.get('messages.confirm_purchase', g.user_language) }}</button>
         
     </form>
 {% endif %}

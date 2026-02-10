@@ -8,16 +8,16 @@
 <div class="settings-container">
 
     <div class="settings-sidebar">
-        <a href="/{{ session.get('username') }}/settings/profile" class="settings-link">Profile</a>
-        <a href="/{{ session.get('username') }}/settings/account" class="settings-link">Account</a>
-        <a href="/{{ session.get('username') }}/settings/security" class="settings-link">Security</a>
-        <a href="/{{ session.get('username') }}/settings/logout" class="settings-link">Log Out</a>
-        <a href="/{{ session.get('username') }}/settings/delete" class="settings-link danger">Delete Account</a>
+        <a href="/{{ session.get('username') }}/settings/profile" class="settings-link">{{ g.trans.get('nav.settings', g.user_language) }} - {{ g.trans.get('settings.profile', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}/settings/account" class="settings-link">{{ g.trans.get('settings.account', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}/settings/security" class="settings-link">{{ g.trans.get('settings.security', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}/settings/logout" class="settings-link">{{ g.trans.get('nav.logout', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}/settings/delete" class="settings-link danger">{{ g.trans.get('settings.delete_account', g.user_language) }}</a>
     </div>
 
     <div class="settings-content">
         {% block settings_page %}
-        Select a category from the left.
+        {{ g.trans.get('settings.title', g.user_language) }}
         {% endblock %}
     </div>
 

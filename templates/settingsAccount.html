@@ -11,17 +11,16 @@
     <input type="email" name="email" value="{{ user[1] }}">
 
     <label>Language</label>
-    <select name="language">
+    <select name="language" class="input">
         <option value="en" {% if user[2] == 'en' %}selected{% endif %}>English</option>
-        <option value="cz" {% if user[2] == 'cz' %}selected{% endif %}>Čeština</option>
-        <option value="sk" {% if user[2] == 'sk' %}selected{% endif %}>Slovenčina</option>
+        <option value="cs" {% if user[2] == 'cs' %}selected{% endif %}>Čeština (Czech)</option>
     </select>
     <br><br>
     <label>Theme</label>
-    <select name="theme">
+    <select name="theme" class="input">
+        <option value="bee" {% if user[3] == 'bee' %}selected{% endif %}>Bee (Original)</option>
         <option value="dark" {% if user[3] == 'dark' %}selected{% endif %}>Dark</option>
         <option value="light" {% if user[3] == 'light' %}selected{% endif %}>Light</option>
-        <option value="bee" {% if user[3] == 'bee' %}selected{% endif %}>Bee</option>
     </select>
 
 <!--TODO: themes-->

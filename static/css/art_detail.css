@@ -1,41 +1,11 @@
-:root {
-    --primary-bg: #8860cc;
-    --primary-text: rgb(247 235 78);
-    --accent-color: #f7eb4e;
-    --transition-speed: 0.3s;
-    --glass-bg: rgb(255 255 255 / 12%);
-    --card-blur: blur(6px);
-    --radius: 18px;
-}
+/* ===========================
+   ART DETAIL PAGE - Page Specific Styles
+   =========================== */
 
-/* Background style same as your homepage */
-body {
-    background: radial-gradient(circle at top left, #c683ec, #7060cc 70%);
-    color: var(--primary-text);
-    font-family: Poppins, sans-serif;
-    min-height: 100vh;
-    padding: 40px 20px;
-    display: flex;
-    justify-content: center;
-    position: relative;
-    overflow-x: hidden;
-}
-
-/* The faint honeycomb pattern overlay */
-body::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-        repeating-linear-gradient(30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px);
-    pointer-events: none;
-}
-
-/* Main card */
+/* Main container for art detail */
 .art-container {
     background: var(--glass-bg);
-    backdrop-filter: var(--card-blur);
+    backdrop-filter: var(--glass-blur);
     padding: 30px;
     border-radius: var(--radius);
     max-width: 900px;
@@ -54,7 +24,7 @@ body::before {
     text-shadow: 0 0 6px rgb(247 235 78 / 40%);
 }
 
-/* Author under title */
+/* Author  */
 .art-author {
     font-size: 1.2rem;
     opacity: 0.9;
@@ -70,13 +40,7 @@ body::before {
     animation: float 6s ease-in-out infinite;
 }
 
-/* Floating animation like your logo */
-@keyframes float {
-    0%, 100% { transform: translateY(0);}
-    50% { transform: translateY(-8px);}
-}
-
-/* Glassy info boxes */
+/* Info boxes */
 .info-box {
     background: rgb(255 255 255 / 10%);
     padding: 18px;
@@ -94,14 +58,14 @@ body::before {
     text-shadow: 0 0 4px rgb(247 235 78 / 50%);
 }
 
-/* BUY BUTTON following your button theme */
+/* Buy button */
 .buy-btn {
     display: block;
     width: 100%;
     margin-top: 25px;
     padding: 14px;
-    border-radius: 12px;
-    background: linear-gradient(90deg, #a77bff, #8860cc);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
     color: var(--primary-text);
     font-weight: bold;
     text-align: center;
@@ -122,25 +86,18 @@ body::before {
     display: inline-block;
     margin-top: 20px;
     font-weight: bold;
-    color: rgb(247 235 78);
+    color: var(--primary-text);
     transition: var(--transition-speed);
     text-decoration: none;
 }
 
 .back-link:hover {
-    color: #fff6a3;
+    color: var(--accent-light);
     text-shadow: 0 0 10px rgb(255 255 200 / 70%);
     transform: scale(1.05);
 }
 
-/* Fade animation */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-
-.art-detail{
-  position: relative;
-  z-index: 10;
+.art-detail {
+    position: relative;
+    z-index: 10;
 }   

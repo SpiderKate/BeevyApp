@@ -1,11 +1,6 @@
-:root {
-    --primary-bg: #8860cc;
-    --primary-text: rgb(247 235 78);
-    --accent-color: #f7eb4e;
-    --glass-bg: rgb(255 255 255 / 12%);
-    --glass-border: rgb(255 255 255 / 25%);
-    --transition-speed: 0.3s;
-}
+/* ===========================
+   CREATE ART PAGE - Page Specific Styles
+   =========================== */
 
 /* Page title */
 .page-title {
@@ -16,20 +11,14 @@
     animation: float 6s ease-in-out infinite;
 }
 
-/* Floating animation */
-@keyframes float {
-    0%,100% { transform: translateY(0);}
-    50% { transform: translateY(-10px);}
-}
-
 /* Form container */
 .create-form {
     width: 100%;
     max-width: 550px;
     padding: 25px;
     background: var(--glass-bg);
-    backdrop-filter: blur(6px);
-    border-radius: 20px;
+    backdrop-filter: var(--glass-blur);
+    border-radius: var(--radius-md);
     border: 1px solid var(--glass-border);
     box-shadow: 0 4px 15px rgb(0 0 0 / 25%);
     display: flex;
@@ -48,7 +37,7 @@
 /* Inputs */
 .form-input {
     padding: 10px 15px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     border: 2px solid transparent;
     background: rgb(255 255 255 / 15%);
     color: var(--primary-text);
@@ -65,11 +54,11 @@
 
 /* Submit button */
 .submit-btn {
-    background: linear-gradient(90deg, #a77bff, #8860cc);
+    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
     color: var(--primary-text);
     border: none;
     padding: 12px 25px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 1.2rem;
     font-weight: bold;
@@ -89,6 +78,6 @@
     max-height: 200px;
     object-fit: cover;
     margin-top: 10px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     box-shadow: 0 3px 12px rgb(0 0 0 / 30%);
 }

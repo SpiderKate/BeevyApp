@@ -3,21 +3,21 @@
 {% block title %}Log Out{% endblock %}
 
 {% block settings_page %}
-<h2>Delete account</h2>
+<h2>{{ g.trans.get('settings.delete_account', g.user_language) }}</h2>
     <form method="POST" class="danger-zone">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <p class="warning">⚠️ This action is irreversible. Your account will be deactivated.</p>
+    <p class="warning">⚠️ {{ g.trans.get('messages.delete_confirm', g.user_language) }}</p>
         <label>
-            Type <b>DELETE</b> to confirm:
+            {{ g.trans.get('messages.type_delete', g.user_language) }} <b>DELETE</b> {{ g.trans.get('messages.to_confirm', g.user_language) }}:
             <input type="text" name="confirm" required>
         </label>
 
         <label>
-            Confirm password:
+            {{ g.trans.get('auth.password', g.user_language) }}:
             <input type="password" name="password" required>
         </label>
 
-        <button type="submit" class="danger">Delete my account</button>
+        <button type="submit" class="danger">{{ g.trans.get('settings.delete_account', g.user_language) }}</button>
     </form>
 
 {% endblock %}

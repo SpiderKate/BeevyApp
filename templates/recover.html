@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Recover account{% endblock %}
+{% block title %}{{ g.trans.get('auth.password_recovery', g.user_language) }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/register.css">
@@ -8,27 +8,27 @@
 {% block content %}
 <div class="form-container">
 
-    <h2>Recover your account</h2>
+    <h2>{{ g.trans.get('auth.password_recovery', g.user_language) }}</h2>
 
     <p class="muted">
-        If your account was previously deleted, you can recover it using your email.
+        {{ g.trans.get('messages.account_recovery_help', g.user_language) }}
     </p>
 
     <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if ask_username %}
-            <label for="username">Username</label>
+            <label for="username">{{ g.trans.get('auth.username', g.user_language) }}</label>
             <input type="username" id="username" name="username" required class="input">
         {% endif %}
-        <label for="email">Email</label>
+        <label for="email">{{ g.trans.get('auth.email', g.user_language) }}</label>
         <input type="email" id="email" name="email" required class="input" placeholder="you@example.com" value="{{email}}">
-        <label for="password">Password</label>
+        <label for="password">{{ g.trans.get('auth.password', g.user_language) }}</label>
         <input type="password" id="password" name="password" required class="input">
-        <button type="submit" class="submit">Recover account</button>
+        <button type="submit" class="submit">{{ g.trans.get('auth.recover_button', g.user_language) }}</button>
     </form>
 
     <p class="auth-alt">
-        <a href="{{ url_for('login') }}">Back to login</a>
+        <a href="{{ url_for('login') }}">{{ g.trans.get('buttons.back', g.user_language) }}</a>
     </p>
 
 </div>

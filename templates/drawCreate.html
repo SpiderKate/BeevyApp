@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Create a room🐝{% endblock %}
+{% block title %}{{ g.trans.get('draw.create_room', g.user_language) }}🐝{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/register.css">
@@ -9,12 +9,12 @@
 {% block content %}
     <form action="/create" method="post" class="drawCreateForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>Name for the room</label>
+        <label>{{ g.trans.get('draw.room_name', g.user_language) }}</label>
         <input type="text" name="name" id="name" class="input" required>
-        <label>Add a password for a private room</label>
+        <label>{{ g.trans.get('draw.password', g.user_language) }}</label>
         <input type="password" name="password" id="password" class="input">
         <br><br>
-        <button type="submit">Create</button>
+        <button type="submit">{{ g.trans.get('buttons.submit', g.user_language) }}</button>
     </form>
-    <a href="/option">Back</a>
+    <a href="/option">{{ g.trans.get('buttons.back', g.user_language) }}</a>
 {% endblock %}

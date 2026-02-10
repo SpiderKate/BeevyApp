@@ -1,9 +1,6 @@
-:root {
-    --primary-bg: #8860cc;
-    --primary-text: rgb(247 235 78);
-    --accent-color: #f7eb4e;
-    --transition-speed: 0.3s;
-}
+/* ===========================
+   SETTINGS PAGE - Page Specific Styles
+   =========================== */
 
 .settings-container {
     display: flex;
@@ -17,7 +14,7 @@
     width: 220px;
     background: rgb(255 255 255 / 10%);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: var(--radius-md);
     box-shadow: 0 0 10px rgb(0 0 0 / 25%);
 }
 
@@ -25,10 +22,10 @@
     display: block;
     padding: 12px 15px;
     margin-bottom: 8px;
-    border-radius: 10px;
+    border-radius: var(--radius-xs);
     background: rgb(136 96 204 / 30%);
     color: var(--primary-text);
-    transition: 0.3s;
+    transition: var(--transition-speed);
 }
 
 .settings-link:hover {
@@ -43,37 +40,51 @@
     flex: 1;
     background: rgb(255 255 255 / 8%);
     padding: 30px;
-    border-radius: 15px;
+    border-radius: var(--radius-md);
     text-align: left;
     box-shadow: 0 0 10px rgb(0 0 0 / 25%);
 }
 
-input, textarea {
+/* Form inputs */
+input[type="text"],
+input[type="email"],
+textarea {
     width: 100%;
     padding: 10px;
-    border-radius: 10px;
+    border-radius: var(--radius-xs);
     border: none;
     margin-bottom: 20px;
+    background: rgb(255 255 255 / 10%);
+    color: var(--primary-text);
 }
 
-button {
-    background: linear-gradient(90deg, #a77bff, #8860cc);
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Settings button */
+.settings-content button {
+    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
     color: var(--primary-text);
     padding: 12px 20px;
     border: none;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: 0.3s;
+    transition: var(--transition-speed);
+    font-weight: bold;
 }
 
-button:hover {
+.settings-content button:hover {
     transform: scale(1.05);
+    background: linear-gradient(90deg, #b391ff, #9c7cff);
+    box-shadow: 0 0 10px rgb(247 235 78 / 60%);
 }
 
 .avatar-preview {
     width: 120px;
     height: 120px;
-    border-radius: 15px;
+    border-radius: var(--radius-md);
     margin-bottom: 15px;
     object-fit: cover;
 }

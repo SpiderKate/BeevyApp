@@ -11,6 +11,11 @@ function sendDrawData(drawData) {
     socket.emit('draw', { room: room_ID, ...drawData });
 }
 
+function showTool(name) {
+    document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+}
+
 const BASE_WIDTH = 1600;
 const BASE_HEIGHT = 1200;
 
@@ -51,16 +56,13 @@ let slider = document.getElementById("sizeSlider");
 let clearcanvas = document.getElementById("clearCanvas");
 let fillColor = document.getElementById("fillColor");
 let canvasSnapshot = null;
-
 fillColor.addEventListener("checked", ()=>{
     currentTool = "bucket";
     fill(data);
 });
 
-
 //odposlouchava slider a meni velikost stetce
-slider.addEventListener("change", (e)=>{brushSize=e.target.value
-    console.log(brushSize);
+slider.addEventListener("input", (e)=>{brushSize=e.target.value
     document.getElementById("size").innerHTML=brushSize;
 
 });
@@ -126,7 +128,7 @@ canvas.addEventListener("mousemove", (e) => {
             toX: pos.x,
             toY: pos.y,
             color: currentColor,
-            width: brushSize
+            width: slider.value
         };
         sendDrawData({ type: "line", ...data });
         draw(data);

@@ -36,12 +36,12 @@
                 <ul class="options">
                     <li class="option active tool" id="brush">
                         <img src="{{ url_for('static', filename='images/icons/brush.svg') }}">
-                        <span>Brush</span>
+                        <span onclick="showTool('brush')">Brush</span>
                     </li>
                     <li class="option tool" id="eraser">
                         <img src="{{ url_for('static', filename='images/icons/eraser.svg') }}">
-                        <span>Eraser</span>
-                    </li>
+                        <span onclick="showTool('eraser')">Eraser</span>
+                    </li> <!--TODO:size updater while moving-->
                     <li class="option">
                         <div id="size">{{ brush[0] }}</div>
                     </li>

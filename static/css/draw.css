@@ -83,8 +83,16 @@ section {
 
 .option #sizeSlider {
     width: 100%;
-    height: 3px;
-    margin-top: 10px;
+    height: 30px;
+    margin-top: -10px;
+}
+/*TODO: change color*/
+input[type='range']{
+    accent-color: rgb(255 176 0);
+}
+
+input[type='range']:hover{
+    accent-color: rgb(245, 179, 92);
 }
 
 .drawingBoard {
@@ -131,3 +139,12 @@ section {
         margin-bottom: 20px;
     }
 }
+
+.tool{
+    color:rgb(46 46 46);
+}
+
+.tool .active{
+    color:  rgb(255 176 0);
+}
+

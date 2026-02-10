@@ -36,11 +36,12 @@
                 <ul class="options">
                     <li class="option active tool" id="brush">
                         <img src="{{ url_for('static', filename='images/icons/brush.svg') }}">
-                        <span>{{ g.trans.get('draw.brush', g.user_language) }}</span>
+                        <span onclick="showTool('brush')">{{ g.trans.get('draw.brush', g.user_language) }}</span>
                     </li>
                     <li class="option tool" id="eraser">
                         <img src="{{ url_for('static', filename='images/icons/eraser.svg') }}">
-                        <span>{{ g.trans.get('draw.eraser', g.user_language) }}</span>
+                    </li> <!--TODO:size updater while moving-->
+                        <span onclick="showTool('eraser')">{{ g.trans.get('draw.eraser', g.user_language) }}</span>
                     </li>
                     <li class="option">
                         <div id="size">{{ brush[0] }}</div>

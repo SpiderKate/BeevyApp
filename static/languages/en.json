@@ -1,11 +1,13 @@
 {
   "nav": {
-    "logout": "Logout",
+    "logout": "Log out",
     "settings": "Settings",
     "profile": "Profile",
     "shop": "Shop",
     "draw": "Draw",
-    "user_page": "My Page"
+    "user_page": "My Page",
+    "community": "Community",
+    "main_page": "Main Page"
   },
   "home": {
     "title": "Beevy",
@@ -15,11 +17,13 @@
     "draw": "Draw",
     "browse_shop": "Browse Shop",
     "my_art": "My Art",
-    "collaborations": "Collaborations"
+    "collaborations": "Collaborations",
+
+    "community": "Community"
   },
   "auth": {
-    "login_title": "Login",
-    "register_title": "Register",
+    "login_title": "Login to Beevy",
+    "register_title": "Register to Beevy",
     "username": "Username",
     "password": "Password",
     "email": "Email",
@@ -32,7 +36,8 @@
     "create_account": "Don't have an account?",
     "forgot_password": "Forgot password?",
     "password_recovery": "Password Recovery",
-    "recover_button": "Send Recovery Email"
+    "recover_button": "Send Recovery Email",
+    "recover_account": "Recover deleted account"
   },
   "settings": {
     "title": "Settings",
@@ -54,7 +59,17 @@
     "bio": "Bio",
     "social_links": "Social Links",
     "notifications": "Notifications",
-    "enable_notifications": "Enable Notifications"
+    "enable_notifications": "Enable Notifications",
+
+    "def_brush_size": "Default Brush Size",
+    "email": "Email",
+    "account_settings": "Account Settings",
+    "profile_settings": "Profile Settings",
+    "preferences_settings": "Preferences",
+    "danger_zone": "Danger Zone",
+    "security_settings": "Security Settings",
+    "choose_file": "Choose file",
+    "no_file_selected": "No file selected"
   },
   "shop": {
     "title": "Shop",
@@ -103,7 +118,16 @@
     "examples": "Example images",
     "details": "Art Details",
     "turnaround": "Turnaround time",
-    "days": "days"
+    "days": "days",
+
+    "hide_artwork": "Hide artwork in shop",
+    "show_artwork": "Show artwork in shop",
+    "max_file_size":"Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.",
+    "delete_permanent": "Delete artwork permanently",
+    "danger_zone": "Danger Zone",
+    "type_delete": "Type DELETE to confirm",
+    "action_irreversible": "This action cannot be undone.",
+    "confirm_password": "Confirm with your password"
   },
   "messages": {
     "success": "Success!",

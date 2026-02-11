@@ -354,28 +354,36 @@ app.permanent_session_lifetime = timedelta(days=7)
 @app.before_request
 def load_logged_in_user():
     g.avatar_path = None
-    g.user_theme = 'bee'  # Default theme
-    g.user_language = 'en'  # Default language
-    g.trans = translations  # Make translations available in templates
+    g.user_theme = 'bee'
+    g.user_language = session.get("user_language", "en")
+    g.trans = translations
+
     username = session.get('username')
     if username:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
+
         cursor.execute("SELECT avatar_path FROM users WHERE username=?", (username,))
         row = cursor.fetchone()
         if row and row[0]:
             g.avatar_path = row[0]
-        
-        # Load user's theme and language preferences
-        cursor.execute("SELECT theme, language FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (username,))
+
+        cursor.execute("SELECT theme FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (username,))
         pref_row = cursor.fetchone()
-        if pref_row:
-            if pref_row[0]:
-                g.user_theme = pref_row[0]
-            if pref_row[1]:
-                g.user_language = pref_row[1]
-        
+        if pref_row and pref_row[0]:
+            g.user_theme = pref_row[0]
+
         conn.close()
+        
+@app.context_processor
+def inject_t():
+    def t(key, **kwargs):
+        text = translations.get(key, g.user_language, default=key)
+        if kwargs:
+            text = text.format(**kwargs)
+        return text
+    return dict(t=t)
+
 
 #hlavni stranka..
 @app.route('/')
@@ -402,6 +410,12 @@ def login():
             cursor.execute("SELECT password,username,last_login_at,id, deleted FROM users WHERE email=? OR username=?",(usEm, usEm))
             #vysledek se popripadne ulozi sem
             result = cursor.fetchone()
+            cursor.execute("SELECT language FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (session['username'],)) 
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                session["user_language"] = row[0]
+            
             
             #a kdyz to najde heslo k danému username ci email tak ho zkontroluje
             if result:
@@ -418,8 +432,8 @@ def login():
                     session['username'] = result[1]
                     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute("UPDATE users SET last_login_at=? WHERE id=?",(now,result[3]))
-                    #print("Rows updated:", cursor.rowcount)
                     conn.commit()
+                    #print("Rows updated:", cursor.rowcount)
                     flash_translated("flash.login_success", "success")
                     return redirect(url_for("userPage", username=session['username']))
                 else:
@@ -428,7 +442,7 @@ def login():
                 flash_translated("flash.invalid_credentials", "error")
             return redirect(request.url,page="login")
         except Exception as e:
-            flash_translated("flash.error_occurred", "error")
+            flash_translated("flash.error_occurred", "error", e=str(e))
             return redirect(url_for("index"))
         finally:
             conn.close()
@@ -605,7 +619,8 @@ def userPage(username):
 
     if not user:
         conn.close()
-        return flash_translated("flash.user_not_found", "error"),404
+        flash_translated("flash.user_not_found", "error")
+        return "", 404
     #if username == "SpiderKate":
      #   cursor.execute("UPDATE users SET bee_points=? WHERE id=?",(1000000,user[0]))
       #  conn.commit()
@@ -802,7 +817,8 @@ def settingsProfile(username):
         user = cursor.fetchone()
         if not user:
             conn.close()
-            return flash_translated("flash.user_not_found", "error"),404
+            flash_translated("flash.user_not_found", "error")
+            return "", 404
 
         if request.method == "POST":
             new_username = request.form.get("username")
@@ -835,32 +851,31 @@ def settingsProfile(username):
             flash_translated("flash.settings_saved", "success")
             return redirect(url_for("settingsProfile", username=new_username))
     except Exception as e:
-        flash_translated("flash.error_occurred", "error")
+        flash_translated("flash.error_occurred", "error", e=str(e))
         return redirect(url_for("index"))    
     finally:
         conn.close()
     return render_template("settingsProfile.html", user=user)
 
 
-
-@app.route("/<username>/settings/account", methods=["GET","POST"])
+@app.route("/<username>/settings/preferences", methods=["GET", "POST"])
 @login_required
 @no_trespass
-def settingsAccount(username):
+def settingsPreferences(username):
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
     try:
         # get basic user info
-        cursor.execute("SELECT id, email FROM users WHERE username=?", (username,))
-        user_row = cursor.fetchone()
+        cursor.execute("SELECT id FROM users WHERE username=?", (username,))
+        user_id = cursor.fetchone()[0]
+        
 
-        if not user_row:
+        if not user_id:
             conn.close()
-            return flash_translated("flash.user_not_found", "error"),404
-
-        user_id, email = user_row
-
-        # get preferences (create defaults if missing)
+            flash_translated("flash.user_not_found", "error")
+            return "", 404
+        
+    # get preferences (create defaults if missing)
         cursor.execute("SELECT language, theme, default_brush_size, notifications FROM preferences WHERE user_id = ?", (user_id,))
         prefs = cursor.fetchone()
         if not prefs:
@@ -870,22 +885,16 @@ def settingsAccount(username):
                 (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
             )
             conn.commit()
-
-        # assemble tuple expected by template: (id, email, language, theme, default_brush_size, notifications)
-        user = (user_id, email, prefs[0], prefs[1], prefs[2], prefs[3])
+        
+        # assemble tuple expected by template: (id, language, theme, default_brush_size, notifications)
+        user = (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
 
         if request.method == "POST":
-            new_email = request.form.get("email")
             new_language = request.form.get("language")
             new_theme = request.form.get("theme")
             new_brush = int(request.form.get("brush") or prefs[2])
             new_not = 1 if request.form.get("not") else 0  # handle checkbox
 
-            # update users email
-            cursor.execute(
-                "UPDATE users SET email = ? WHERE id = ?",
-                (new_email, user_id)
-            )
             # update or insert preferences
             cursor.execute("SELECT 1 FROM preferences WHERE user_id = ?", (user_id,))
             if cursor.fetchone():
@@ -901,9 +910,48 @@ def settingsAccount(username):
             conn.commit()
             session["user_language"] = new_language
             flash_translated("flash.settings_saved", "success")
+            return redirect(url_for("settingsPreferences", username=username))
+    except Exception as e:
+        flash_translated("flash.error_occurred", "error", e=str(e))
+        return redirect(url_for("index"))
+    finally:
+        conn.close()
+    return render_template("settingsPreferences.html", user=user)
+
+
+@app.route("/<username>/settings/account", methods=["GET","POST"])
+@login_required
+@no_trespass
+def settingsAccount(username):
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    try:
+        # get basic user info
+        cursor.execute("SELECT id, email FROM users WHERE username=?", (username,))
+        user_row = cursor.fetchone()
+
+        if not user_row:
+            conn.close()
+            flash_translated("flash.user_not_found", "error")
+            return "", 404
+
+        user_id, email = user_row
+        
+        # assemble tuple expected by template: (id, email)
+        user = (user_id, email)
+
+        if request.method == "POST":
+            new_email = request.form.get("email")
+
+            # update users email
+            cursor.execute(
+                "UPDATE users SET email = ? WHERE id = ?",
+                (new_email, user_id)
+            )
+            flash_translated("flash.settings_saved", "success")
             return redirect(url_for("settingsAccount", username=username))
     except Exception as e:
-        flash_translated("flash.error_occurred", "error")
+        flash_translated("flash.error_occurred", "error", e=str(e))
         return redirect(url_for("index"))
     finally:
         conn.close()
@@ -923,7 +971,8 @@ def settingsSecurity(username):
     user = cursor.fetchone()
     if not user:
         conn.close()
-        return flash_translated("flash.user_not_found", "error"),404
+        flash_translated("flash.user_not_found", "error")
+        return "", 404
 
     if request.method == "POST":
         curPassword = request.form.get('curPassword')
@@ -1016,7 +1065,7 @@ def settingsDelete(username):
 
         except Exception as e:
             conn.rollback()
-            flash_translated("flash.error_occurred", "error")
+            flash_translated("flash.error_occurred", "error", e=str(e))
 
         finally:
             conn.close()
@@ -1871,4 +1920,4 @@ def handle_draw(data):
     emit('draw', data, to=room, skip_sid=request.sid)
     
 if __name__ == "__main__":
-    socketio.run(app)#, use_reloader=False -> stranky se sami nereload
+    socketio.run(app,debug=True)#, use_reloader=False -> stranky se sami nereload

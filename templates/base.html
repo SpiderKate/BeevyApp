@@ -66,9 +66,9 @@
         {{ session.get('username') }}
     </div>
     <div id="user-dropdown" class="dropdown hidden">
-        <a href="/{{ session.get('username') }}">{{ g.trans.get('nav.profile', g.user_language) }}</a>
-        <a href="/create_art">{{ g.trans.get('art.create', g.user_language) }}</a>
-        <a href="/{{ session.get('username') }}/settings">{{ g.trans.get('nav.settings', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}">{{ t('nav.profile') }}</a>
+        <a href="/create_art">{{ t('art.create') }}</a>
+        <a href="/{{ session.get('username') }}/settings">{{ t('nav.settings') }}</a>
     </div>
 </div>
 {% endif %}
@@ -78,9 +78,9 @@
         <h2 class="logo">🐝 Beevy</h2>
 
         <nav>
-            <a href="/">{{ g.trans.get('home.title', g.user_language) }}</a>
-            <a href="/shop">{{ g.trans.get('nav.shop', g.user_language) }}</a>
-            <a href="/option">{{ g.trans.get('nav.draw', g.user_language) }}</a>
+            <a href="/">{{ t('home.title') }}</a>
+            <a href="/shop">{{ t('nav.shop') }}</a>
+            <a href="/option">{{ t('nav.draw') }}</a>
         </nav>
     </aside>
 {% endif %}

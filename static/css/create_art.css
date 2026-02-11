@@ -7,7 +7,8 @@
     font-size: 2.5rem;
     margin-bottom: 25px;
     font-weight: bold;
-    text-shadow: 0 0 10px rgb(247 235 78 / 60%);
+    color: var(--text-main);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
     animation: float 6s ease-in-out infinite;
 }
 
@@ -20,7 +21,7 @@
     backdrop-filter: var(--glass-blur);
     border-radius: var(--radius-md);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 15px rgb(0 0 0 / 25%);
+    box-shadow: 0 4px 15px color-mix(in srgb, var(--bg-dark) 25%, transparent);
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -28,10 +29,10 @@
 
 /* Labels */
 .form-label {
-    color: var(--primary-text);
+    color: var(--text-main);
     font-weight: bold;
     margin-top: 5px;
-    text-shadow: 0 0 5px rgb(247 235 78 / 30%);
+    text-shadow: 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 /* Inputs */
@@ -39,8 +40,8 @@
     padding: 10px 15px;
     border-radius: var(--radius-sm);
     border: 2px solid transparent;
-    background: rgb(255 255 255 / 15%);
-    color: var(--primary-text);
+    background: var(--glass-bg-light);
+    color: var(--text-main);
     font-size: 1rem;
     outline: none;
     transition: border var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
@@ -48,14 +49,14 @@
 
 .form-input:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 10px rgb(247 235 78 / 50%);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
     transform: scale(1.02);
 }
 
 /* Submit button */
 .submit-btn {
-    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
-    color: var(--primary-text);
+    background: var(--btn-bg);
+    color: var(--text-main);
     border: none;
     padding: 12px 25px;
     border-radius: var(--radius-sm);
@@ -68,8 +69,8 @@
 
 .submit-btn:hover {
     transform: scale(1.07);
-    box-shadow: 0 0 15px rgb(247 235 78 / 60%);
-    background: linear-gradient(90deg, #b391ff, #9a7cff);
+    background: var(--btn-bg-hover);
+    box-shadow: var(--btn-shadow-hover);
 }
 
 /* Image preview */
@@ -79,5 +80,5 @@
     object-fit: cover;
     margin-top: 10px;
     border-radius: var(--radius-sm);
-    box-shadow: 0 3px 12px rgb(0 0 0 / 30%);
+    box-shadow: 0 3px 12px color-mix(in srgb, var(--bg-dark) 30%, transparent);
 }

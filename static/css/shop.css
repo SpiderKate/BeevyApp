@@ -10,6 +10,7 @@
     position: relative;
     z-index: 2;
     animation: float 6s ease-in-out infinite;
+    color: var(--text-main);
 }
 
 /* Shop grid (honeycomb pattern) */
@@ -31,7 +32,7 @@
     backdrop-filter: var(--glass-blur);
     padding: 15px;
     border-radius: var(--radius);
-    box-shadow: 0 4px 10px rgb(0 0 0 / 25%);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--bg-dark) 25%, transparent);
     text-align: center;
     cursor: pointer;
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
@@ -51,7 +52,7 @@
 
 .shop-item:hover {
     transform: scale(1.08) rotate(3deg);
-    box-shadow: 0 0 15px rgb(247 235 78 / 70%);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 /* Thumbnail image */
@@ -60,7 +61,7 @@
     height: 180px;
     object-fit: cover;
     border-radius: var(--radius);
-    box-shadow: 0 3px 12px rgb(0 0 0 / 25%);
+    box-shadow: 0 3px 12px color-mix(in srgb, var(--bg-dark) 25%, transparent);
     margin-bottom: 12px;
 }
 
@@ -68,8 +69,9 @@
 .shop-title-item {
     font-size: 1.3rem;
     font-weight: bold;
-    text-shadow: 0 0 4px rgb(247 235 78 / 40%);
+    text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent);
     margin-bottom: 5px;
+    color: var(--text-main);
 }
 
 /* Author */
@@ -77,6 +79,7 @@
     font-size: 0.9rem;
     opacity: 0.85;
     margin-bottom: 5px;
+    color: var(--text-main);
 }
 
 /* Price */
@@ -85,7 +88,7 @@
     font-size: 1.1rem;
     font-weight: bold;
     color: var(--accent-color);
-    text-shadow: 0 0 6px rgb(247 235 78 / 50%);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .art-link {

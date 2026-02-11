@@ -1,14 +1,12 @@
-{% extends "base.html" %}
+{% extends "drawOption.html" %}
 
-{% block title %}{{ g.trans.get('draw.join_room', g.user_language) }}🐝{% endblock %}
+{% block title %}{{ t('draw.join_room') }}{% endblock %}
 
-{% block extra_css %}
-{% endblock %}
+{% block option_page %}
+<div class="draw-links">
+    <a href="/join/public" class="draw-btn">{{ t('draw.public_room') }}</a>
+    <a href="/join/private" class="draw-btn">{{ t('draw.private_room') }}</a>
+</div>
 
-{% block content %}
-    <a href="/join/public">{{ g.trans.get('draw.public_room', g.user_language) }}🐝</a>
-    <a href="/join/private">{{ g.trans.get('draw.private_room', g.user_language) }}🐝</a>
-    <br>
-
-    <a href="/option" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
+{% block join_page %}{% endblock %}
 {% endblock %}

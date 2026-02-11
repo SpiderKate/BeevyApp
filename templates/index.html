@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Beevy🐝{% endblock %}
+{% block title %}Beevy{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
@@ -11,26 +11,26 @@
         <div id="Beevy">Beevy</div> 
         <img src="/static/images/beee.svg" id="bee" width="40">
     </h1>
-    <p id="about">{{ g.trans.get('home.subtitle', g.user_language) }}</p>
+    <p id="about">{{ t('home.subtitle') }}</p>
 
     <div class="hex-grid">
         {% if not session.username %}
         <div class="hex">
-            <a href="/login" class="hex-content">{{ g.trans.get('home.login', g.user_language) }}</a>
+            <a href="/login" class="hex-content">{{ t('home.login') }}</a>
         </div>
         
         <div class="hex">
-            <a href="/register" class="hex-content">{{ g.trans.get('home.register', g.user_language) }}</a>
+            <a href="/register" class="hex-content">{{ t('home.register') }}</a>
         </div>
         {% else %}
         <div class="hex">
-            <a href="/option" class="hex-content">{{ g.trans.get('home.draw', g.user_language) }}</a>
+            <a href="/option" class="hex-content">{{ t('home.draw') }}</a>
         </div>
         <div class="hex">
-            <a href="/shop" class="hex-content">{{ g.trans.get('nav.shop', g.user_language) }}</a>
+            <a href="/shop" class="hex-content">{{ t('nav.shop') }}</a>
         </div>
         <div class="hex">
-            <span class="hex-content">Community</span>
+            <span class="hex-content">{{ t('home.community') }}</span>
         </div>
         {% endif %}
     </div>

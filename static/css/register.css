@@ -11,13 +11,13 @@
 
 /* Form container */
 form {
-    background: rgb(255 255 255 / 8%);
-    border: 2px solid rgb(247 235 78 / 60%);
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
     border-radius: var(--radius-md);
     padding: 30px 40px;
     min-width: 200px;
     max-width: 600px;
-    box-shadow: 0 0 15px rgb(247 235 78 / 10%);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--bg-dark) 10%, transparent);
     backdrop-filter: var(--glass-blur);
     position: relative;
     z-index: 1;
@@ -25,7 +25,7 @@ form {
 
 /* Labels and inputs */
 label {
-    color: var(--primary-text);
+    color: var(--text-main);
     font-weight: bold;
     display: block;
     margin-bottom: 6px;
@@ -37,20 +37,21 @@ label {
     padding: 10px;
     border-radius: var(--radius-xs);
     border: none;
-    background: rgb(255 255 255 / 10%);
-    color: white;
+    background: var(--glass-bg-light);
+    color: var(--text-main);
     outline: none;
     margin-bottom: 15px;
+    transition: var(--transition-speed);
 }
 
 .input:focus {
-    box-shadow: 0 0 10px rgb(247 235 78 / 70%);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 /* Submit button */
 .submit {
-    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
-    color: var(--primary-text);
+    background: var(--btn-bg);
+    color: var(--text-main);
     border: none;
     padding: 10px 25px;
     border-radius: var(--radius-xs);
@@ -61,8 +62,8 @@ label {
 
 .submit:hover {
     transform: scale(1.05);
-    background: linear-gradient(90deg, #b391ff, #9c7cff);
-    box-shadow: 0 0 10px rgb(247 235 78 / 60%);
+    background: var(--btn-bg-hover);
+    box-shadow: var(--btn-shadow-hover);
 }
 
 .drawCreateForm {

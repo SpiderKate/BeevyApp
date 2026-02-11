@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ g.trans.get('art.details', g.user_language) }}{% endblock %}
+{% block title %}{{ t('art.details') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/art_detail.css">
@@ -8,15 +8,15 @@
 {% block content %}
 <div class="art-detail">
     <h2>{{ item[2] }}</h2>
-    <p>{{ g.trans.get('shop.artist', g.user_language) }} {{ item[1] }}</p>
+    <p>{{ t('shop.artist') }} {{ item[1] }}</p>
     {% if item[3] %}
-        <p>{{ g.trans.get('art.description', g.user_language) }}: {{ item[3] }}</p>
+        <p>{{ t('art.description') }}: {{ item[3] }}</p>
     {% endif %}
     {% if is_active %}
-        <p>{{ g.trans.get('shop.price', g.user_language) }}: {{ item[5] }} BP</p>
-        <p>{{ g.trans.get('art.turnaround', g.user_language) }}: {{ item[4] }} {{ g.trans.get('art.days', g.user_language) }}</p>
+        <p>{{ t('shop.price') }}: {{ item[5] }} BP</p>
+        <p>{{ t('art.turnaround') }}: {{ item[4] }} {{ t('art.days') }}</p>
     {% if item[11] %}
-        <p>{{ g.trans.get('art.slots', g.user_language) }}: {{ item[11] }}</p>
+        <p>{{ t('art.slots') }}: {{ item[11] }}</p>
     {% endif %}
     {% endif %}
     
@@ -41,14 +41,14 @@
     
     {% if is_author %}
         <a href="{{ url_for('editArt', username = session.get('username'), art_id=item[0]) }}" class="btn">
-            {{ g.trans.get('art.edit_artwork', g.user_language) }}
+            {{ t('art.edit_artwork') }}
         </a>
     {% elif is_active %}
         <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn buy">
-            {{ g.trans.get('shop.buy_for', g.user_language) }} {{ item[5] }} BP
+            {{ t('shop.buy_for') }} {{ item[5] }} BP
         </a>
     {% else %}
-        <p><em>This artwork has been removed from the shop.</em></p>
+        <p><em>{{ t('messages.removed_from_shop') }}</em></p>
     {% endif %}
 </div>
 {% endblock %}

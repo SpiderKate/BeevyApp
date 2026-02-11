@@ -1,0 +1,110 @@
+.draw-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background: var(--glass-bg);
+    border-radius: var(--radius);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--bg-dark) 25%, transparent);
+    border-radius: var(--radius-md);
+}
+
+.draw-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+}
+
+.draw-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.draw-btn {
+    background: var(--btn-bg);
+    padding: 12px 20px;
+    border-radius: var(--radius-xs);
+    color: var(--text-main);
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.draw-btn:hover {
+    background: var(--btn-bg-hover);
+    box-shadow: var(--btn-shadow-hover);
+}
+
+.draw-content {
+    margin-top: 20px;
+}
+
+.draw-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.room-list {
+    list-style: none;
+    padding: 0;
+}
+
+.room-list li {
+    margin: 10px 0;
+}
+
+.room-link {
+    color: var(--accent);
+    font-weight: bold;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, var(--glass-bg) 40%, transparent);
+    transition: var(--transition);
+}
+
+.room-link:hover {
+    background: var(--glass-bg-light);
+    box-shadow: var(--shadow-accent);
+}
+
+.draw-back {
+    display: inline-block;
+    margin-top: 20px;
+    color: var(--accent-light);
+    text-decoration: none;
+    font-weight: bold;
+}
+/* Universal Beevy Input */
+.input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-xs);
+    border: 2px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: var(--transition);
+    backdrop-filter: blur(6px);
+}
+
+/* Hover */
+.input:hover {
+    background: var(--glass-bg-light);
+}
+
+/* Focus */
+.input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background: var(--glass-bg-light);
+    box-shadow: var(--input-shadow-focus);
+}
+
+/* Placeholder */
+.input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+}

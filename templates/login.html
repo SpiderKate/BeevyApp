@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Login to Beevy🐝{% endblock %}
+{% block title %}{{ t('auth.login_title') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/register.css">
@@ -9,21 +9,21 @@
 {% block content %}
     <form method="POST" action="/login">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="username">{{ g.trans.get('auth.username', g.user_language) }}:</label><br>
+        <label for="username">{{ t('auth.username') }}:</label><br>
             <input type="text" id="username" name="username" class="input" required><br><br>
-        <label for="password">{{ g.trans.get('auth.password', g.user_language) }}:</label><br>
+        <label for="password">{{ t('auth.password') }}:</label><br>
             <input type="password" id="password" name="password" class="input" required><br><br>
-        <button type="submit" id="logIn" class="submit">{{ g.trans.get('auth.login_button', g.user_language) }}</button>
+        <button type="submit" id="logIn" class="submit">{{ t('auth.login_button') }}</button>
         <p class="linkText">
-            {{ g.trans.get('auth.create_account', g.user_language) }} <a class="link" href="/register">{{ g.trans.get('home.register', g.user_language) }}</a>
+            {{ t('auth.create_account') }} <a class="link" href="/register">{{ t('home.register') }}</a>
         </p>
     </form>
     <br>
     <p class="auth-alt">
         <a href="{{ url_for('recover_account') }}">
-            {{ g.trans.get('auth.password_recovery', g.user_language) }}
+            {{ t('auth.password_recovery') }}
         </a>
     </p>
     <br>
-    <a href="/" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
+    <a href="/" class="link">{{ t('buttons.back') }}</a>
 {% endblock %}

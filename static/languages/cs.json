@@ -5,7 +5,8 @@
     "profile": "Profil",
     "shop": "Obchod",
     "draw": "Kreslit",
-    "user_page": "Moje stránka"
+    "user_page": "Moje stránka",
+    "community": "Komunita"
   },
   "home": {
     "title": "Beevy",
@@ -15,7 +16,8 @@
     "draw": "Kreslit",
     "browse_shop": "Prohlédnout obchod",
     "my_art": "Moje kresby",
-    "collaborations": "Spolupráce"
+    "collaborations": "Spolupráce",
+    "community": "Komunita"
   },
   "auth": {
     "login_title": "Přihlášení",
@@ -54,7 +56,17 @@
     "bio": "Bio",
     "social_links": "Sociální sítě",
     "notifications": "Oznámení",
-    "enable_notifications": "Povolit oznámení"
+    "enable_notifications": "Povolit oznámení",
+
+    "def_brush_size": "Výchozí velikost štětce",
+    "email": "E-mail",
+    "account_settings": "Nastavení účtu",
+    "profile_settings": "Nastavení profilu",
+    "preferences_settings": "Předvolby",
+    "danger_zone": "Nebezpečná zóna",
+    "security_settings": "Nastavení bezpečnosti",
+    "choose_file": "Vyberte soubor",
+    "no_file_selected": "Soubor nevybrán"
   },
   "shop": {
     "title": "Obchod",
@@ -71,8 +83,8 @@
     "create_room": "Vytvořit místnost",
     "join_room": "Připojit se k místnosti",
     "room_name": "Zadejte heslo pro místnost.",
-    "public_room": "Připojit se k veřejné místnosti 🐝",
-    "private_room": "Soukromá místnost",
+    "public_room": "Připojit se k veřejné místnosti",
+    "private_room": "Připojit se k soukromé místnosti",
     "start_drawing": "Začít kreslit",
     "shapes": "Tvary",
     "rectangle": "Obdélník",
@@ -146,24 +158,24 @@
     "update": "Aktualizovat"
   },
   "flash": {
-    "trespass": "You shall not trespass in other's property.",
-    "account_deleted": "This account has been deleted. You can restore it if you want.",
-    "if_account_exists": "If an account with this email exists, you can recover it.",
-    "error_occurred": "Something went wrong: {e}",
-    "already_registered": "You are already registered.",
-    "username_too_long": "Username is too long.",
-    "registration_success": "Registration was successful.",
-    "username_taken": "Username is already taken.",
-    "email_in_use": "Email is already in use.",
-    "account_recovery_help": "If your account was previously deleted, you can recover it using your email.",
-    "account_already_active": "This account is already active.",
-    "username_in_use": "Username is already in use, please choose another one.",
-    "settings_saved": "Settings saved successfully.",
-    "must_type_delete": "You must type DELETE exactly.",
-    "user_not_found": "User not found.",
-    "account_deactivated": "Account and related content deactivated successfully.",
-    "ownership_removed": "Ownership removed.",
-    "ownership_removed_cleanup": "Ownership removed and artwork cleaned up.",
+    "trespass": "Neměli byste být tady.",
+    "account_deleted": "Tento účet byl smazán, ale můžete ho obnovit pomocí svého e-mailu.",
+    "if_account_exists": "Pokud účet s touto e-mailovou adresou existuje, obdržíte e-mail s pokyny pro obnovení hesla.",
+    "error_occurred": "Něco se pokazilo: {e}",
+    "already_registered": "Již jste zaregistrován.",
+    "username_too_long": "Uživatelské jméno je příliš dlouhé.",
+    "registration_success": "Registrace byla úspěšná.",
+    "username_taken": "Uživatelské jméno je již používáno.",
+    "email_in_use": "Email je již používán.",
+    "account_recovery_help": "Pokud byl váš účet dříve smazán, můžete ho obnovit pomocí svého e-mailu.",
+    "account_already_active": "Tento účet je již aktivní.",
+    "username_in_use": "Uživatelské jméno je již používáno, prosím zvolte jiné.",
+    "settings_saved": "Nastavení úspěšně uloženo.",
+    "must_type_delete": "Musíte přesně napsat DELETE.",
+    "user_not_found": "Uživatel nenalezen.",
+    "account_deactivated": "Účet a související obsah byly úspěšně deaktivovány.",
+    "ownership_removed": "Vlastnictví odebráno.",
+    "ownership_removed_cleanup": "Vlastnictví odebráno a kresba vyčištěna.",
 
     "_comment_log": "Log-related flash messages",
     "login_first": "Přihlaste se prve.",

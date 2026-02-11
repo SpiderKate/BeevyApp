@@ -1,20 +1,25 @@
 {% extends "settings.html" %}
 
-{% block title %}Profile Settings{% endblock %}
+{% block title %}{{ t('settings.profile_settings') }}{% endblock %}
 
 {% block settings_page %}
-<h2>{{ g.trans.get('settings.profile', g.user_language) }}</h2>
+<h2>{{ t('settings.profile') }}</h2>
 
 <form method="POST" id="profileForm" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>{{ g.trans.get('auth.username', g.user_language) }}</label>
+    <label>{{ t('auth.username') }}</label>
     <input type="text" name="username" value="{{ user[1] }}">
 
-    <label>{{ g.trans.get('settings.bio', g.user_language) }}</label>
+    <label>{{ t('settings.bio') }}</label>
     <textarea name="bio">{{ user[2] }}</textarea>
 
-    <label>{{ g.trans.get('settings.avatar', g.user_language) }}</label>
-    <input type="file" name="avatar" id="avatarInput">
+    <label>{{ t('settings.avatar') }}</label>
+    <div class="file-wrapper"> 
+        <label for="avatarInput" class="file-label"> {{ t('settings.choose_file') }} </label> 
+        <span id="fileName" class="file-name"> {{ t('settings.no_file_selected') }} </span> 
+        <input type="file" name="avatar" id="avatarInput"> 
+    </div>
+
 
     <img id="avatarPreview" 
      src="{{ url_for('static', filename=user[3]) if user[3] else url_for('static', filename='images/default_avatar.png') }}" 
@@ -23,20 +28,15 @@
     <script>
     const avatarInput = document.getElementById('avatarInput');
     const avatarPreview = document.getElementById('avatarPreview');
+    const fileName = document.getElementById('fileName');
 
-    avatarInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                avatarPreview.src = e.target.result; // show preview
-            }
-            reader.readAsDataURL(file);
-        }
+    avatarInput.addEventListener('change', () => {
+        fileName.textContent = avatarInput.files[0]?.name || "{{ t('settings.no_file') }}";
     });
+
 </script>
 
 
-    <button type="submit">{{ g.trans.get('buttons.save', g.user_language) }}</button>
+    <button type="submit">{{ t('buttons.save') }}</button>
 </form>
 {% endblock %}

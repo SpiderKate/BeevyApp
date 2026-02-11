@@ -23,20 +23,20 @@
 
 section {
     flex: 1;
-    background: rgb(255 255 255 / 8%);
+    background: var(--glass-bg);
     border-radius: var(--radius-md);
     text-align: left;
-    box-shadow: 0 0 10px rgb(0 0 0 / 25%);
+    box-shadow: 0 0 10px var(--glass-border);
     z-index: 20;
 }
 
 .toolsBoard {
     flex: 0 0 220px;
     max-width: 30vw;
-    background: rgb(255 255 255 / 8%);
+    background: var(--glass-bg);
     padding: 15px;
     border-radius: var(--radius-md);
-    box-shadow: 0 0 10px rgb(0 0 0 / 25%);
+    box-shadow: 0 0 10px var(--glass-border);
     position: relative;
     z-index: 10;
 }
@@ -57,16 +57,17 @@ section {
     margin-bottom: 10px;
 }
 
+/* Hover + active highlight */
 .option:is(:hover, .active) img {
-    filter: invert(91%) sepia(87%) saturate(747%) hue-rotate(1deg) brightness(103%) contrast(102%);
+    filter: brightness(1.2) drop-shadow(0 0 4px var(--accent));
 }
 
 .option:is(:hover, .active) :where(span, label) {
-    color: rgb(255 176 0);
+    color: var(--accent);
 }
 
 .option :where(span, label) {
-    color: rgb(46 46 46);
+    color: var(--text-main);
     cursor: pointer;
     padding-left: 10px;
 }
@@ -78,7 +79,7 @@ section {
 }
 
 #fillColor:checked ~ label {
-    color: #0095f3;
+    color: var(--accent);
 }
 
 .option #sizeSlider {
@@ -86,15 +87,17 @@ section {
     height: 30px;
     margin-top: -10px;
 }
-/*TODO: change color*/
-input[type='range']{
-    accent-color: rgb(255 176 0);
+
+/* Slider */
+input[type='range'] {
+    accent-color: var(--accent);
 }
 
-input[type='range']:hover{
-    accent-color: rgb(245, 179, 92);
+input[type='range']:hover {
+    accent-color: var(--accent-light);
 }
 
+/* Drawing board */
 .drawingBoard {
     aspect-ratio: 4 / 3;
     width: 100%;
@@ -109,9 +112,12 @@ input[type='range']:hover{
     width: 100%;
     height: auto;
     border-radius: var(--radius-xs);
-    box-shadow: 0 0 25px rgb(247 235 78 / 15%), inset 0 0 10px rgb(0 0 0 / 8%);
+    box-shadow: 
+        0 0 25px color-mix(in srgb, var(--accent) 15%, transparent),
+        inset 0 0 10px rgb(0 0 0 / 8%);
 }
 
+/* Color picker + sliders */
 #colorPicker,
 .IroWheel,
 .option #size,
@@ -127,6 +133,7 @@ input[type='range']:hover{
     margin: 0 auto;
 }
 
+/* Mobile */
 @media (width <= 768px) {
     .container {
         flex-direction: column;
@@ -140,11 +147,11 @@ input[type='range']:hover{
     }
 }
 
-.tool{
-    color:rgb(46 46 46);
+/* Tool text colors */
+.tool {
+    color: var(--text-main);
 }
 
-.tool .active{
-    color:  rgb(255 176 0);
+.tool.active {
+    color: var(--accent);
 }
-

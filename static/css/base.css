@@ -6,27 +6,71 @@
     --primary-bg: #8860cc;
     --primary-bg-light: #9b78f2;
     --primary-bg-dark: #7060cc;
+
+    /* Text */
     --primary-text: rgb(247 235 78);
+    --text-main: var(--primary-text);
+    --text-muted: rgba(255, 255, 255, 0.7);
+
+    /* Accents */
     --accent-color: #f7eb4e;
     --accent-light: #fff6a3;
-    
+    --accent: var(--accent-color);
+
+    /* Backgrounds (derived) */
+    --bg-main: var(--primary-bg);
+    --bg-light: var(--primary-bg-light);
+    --bg-dark: var(--primary-bg-dark);
+
     /* Glass & Transparency */
     --glass-bg: rgb(255 255 255 / 12%);
     --glass-bg-light: rgb(255 255 255 / 15%);
     --glass-border: rgb(255 255 255 / 25%);
     --glass-border-light: rgb(255 255 255 / 60%);
-    --glass-blur: blur(6px);
-    
-    /* Secondary Colors */
-    --details: #bea4e7;
-    --text-outline: transparent;
-    
-    /* Spacing & Animation */
-    --transition-speed: 0.3s;
+    --glass: var(--glass-bg);
+    --glass-light: var(--glass-bg-light);
+
+    /* Shadows */
+    --shadow-accent: 0 0 10px var(--accent-color);
+
+    /* Buttons */
+    --btn-bg: linear-gradient(90deg, var(--primary-bg-light), var(--primary-bg));
+    --btn-bg-hover: linear-gradient(90deg, var(--primary-bg), var(--primary-bg-dark));
+    --btn-shadow-hover: 0 0 10px var(--accent-color);
+
+    /* Sidebar */
+    --sidebar-bg: rgba(0, 0, 0, 0.2);
+    --sidebar-border: var(--glass-border);
+
+    /* Inputs */
+    --input-bg: var(--glass-bg);
+    --input-bg-focus: var(--glass-bg-light);
+    --input-border: var(--glass-border);
+    --input-border-focus: var(--accent-color);
+    --input-shadow-focus: 0 0 10px var(--accent-color);
+
+    /* Error */
+    --error-color: #ff4d4d;
+
+    /* Message colors */
+    --msg-info-bg: rgba(147, 197, 253, 0.18);
+    --msg-info-text: #305dda;
+    --msg-info-outline: rgba(147, 197, 253, 0.50);
+
+    --msg-success-bg: rgba(111, 207, 151, 0.18);
+    --msg-success-text: #145a32;
+    --msg-success-outline: rgba(111, 207, 151, 0.50);
+
+    --msg-error-bg: rgba(248, 113, 113, 0.18);
+    --msg-error-text: #7f1d1d;
+    --msg-error-outline: rgba(248, 113, 113, 0.50);
+
+    /* Radius & Transition */
     --radius: 18px;
     --radius-md: 15px;
     --radius-sm: 12px;
     --radius-xs: 10px;
+    --transition: 0.3s;
 }
 
 /* ===========================
@@ -91,8 +135,8 @@ html, body {
 }
 
 body {
-    background: radial-gradient(circle at top left, #c683ec, var(--primary-bg-dark) 70%);
-    color: var(--primary-text);
+    background: radial-gradient(circle at top left, var(--bg-light), var(--bg-dark) 70%);
+    color: var(--text-main);
     font-family: Poppins, sans-serif;
     min-height: 100vh;
     display: flex;
@@ -109,8 +153,8 @@ body::before {
     position: absolute;
     inset: 0;
     background-image: 
-        repeating-linear-gradient(30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-30deg, rgb(247 235 78 / 3%) 0, rgb(247 235 78 / 3%) 1px, transparent 1px, transparent 20px);
+        repeating-linear-gradient(30deg, color-mix(in srgb, var(--accent) 3%, transparent) 0, color-mix(in srgb, var(--accent) 3%, transparent) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(-30deg, color-mix(in srgb, var(--accent) 3%, transparent) 0, color-mix(in srgb, var(--accent) 3%, transparent) 1px, transparent 1px, transparent 20px);
     background-size: 40px 70px;
     pointer-events: none;
     z-index: 0;
@@ -143,9 +187,9 @@ body::before {
     left: 0;
     height: 100vh;
     padding: 20px;
-    background: rgb(136 96 204 / 35%);
+    background: color-mix(in srgb, var(--primary-bg) 35%, transparent);
     backdrop-filter: blur(14px);
-    border-right: 1px solid rgb(247 235 78 / 25%);
+    border-right: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
     transition: transform 0.3s ease;
     transform: translateX(-100%);
     z-index: 200;
@@ -184,13 +228,13 @@ a {
 
 a:hover {
     color: var(--accent-light);
-    text-shadow: 0 0 10px rgb(255 255 200 / 70%);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent-light) 70%, transparent);
     transform: scale(1.05);
 }
 
 button {
-    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
-    color: var(--primary-text);
+    background: var(--btn-bg);
+    color: var(--text-main);
     border: none;
     padding: 10px 25px;
     border-radius: var(--radius-xs);
@@ -203,8 +247,8 @@ button {
 
 button:hover {
     transform: scale(1.05);
-    background: linear-gradient(90deg, #b391ff, #9c7cff);
-    box-shadow: 0 0 10px rgb(247 235 78 / 60%);
+    background: var(--btn-bg-hover);
+    box-shadow: var(--btn-shadow-hover);
 }
 
 /* Sidebar Navigation Links */
@@ -223,7 +267,7 @@ button:hover {
 }
 
 .sidebar nav a:hover {
-    background: #6f569e;
+    background: color-mix(in srgb, var(--primary-bg) 60%, var(--primary-bg-dark));
 }
 
 /* ===========================
@@ -281,7 +325,7 @@ button:hover {
 }
 
 .dropdown a:hover {
-    background: #b391ff;
+    background: var(--primary-bg-light);
     color: white;
     border-radius: var(--radius-xs);
 }
@@ -309,7 +353,7 @@ button:hover {
     font-size: 0.9rem;
     font-weight: bold;
     color: var(--accent-color);
-    text-shadow: 0 0 6px rgb(0 0 0 / 50%);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--bg-dark) 50%, transparent);
     position: fixed;
     margin-left: 0;
     left: 20px;
@@ -346,7 +390,7 @@ body.register .menu-label {
     border-radius: var(--radius-xs);
     max-width: 400px;
     margin: 15px auto;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--bg-dark) 12%, transparent);
     border: 1px solid transparent;
     font-weight: 500;
     text-shadow: -1px -1px 0 var(--text-outline),
@@ -363,27 +407,24 @@ body.register .menu-label {
 }
 
 .msg.info {
-    --text-outline: rgb(147 197 253 / 50%);
-
-    background: rgb(219 234 254 / 18%);
-    color: #305dda;
-    border-color: var(--text-outline);
+    --text-outline: var(--msg-info-outline);
+    background: var(--msg-info-bg);
+    color: var(--msg-info-text); 
+    border-color: var(--msg-info-outline);
 }
 
 .msg.success {
-    --text-outline: rgb(111 207 151 / 50%);
-
-    background: rgb(200 241 209 / 18%);
-    color: #145a32;
-    border-color: var(--text-outline);
+    --text-outline: var(--msg-success-outline); 
+    background: var(--msg-success-bg); 
+    color: var(--msg-success-text); 
+    border-color: var(--msg-success-outline);
 }
 
 .msg.error {
-    --text-outline: rgb(248 113 113 / 50%);
-
-    background: rgb(253 226 226 / 18%);
-    color: #7f1d1d;
-    border-color: var(--text-outline);
+    --text-outline: var(--msg-error-outline); 
+    background: var(--msg-error-bg); 
+    color: var(--msg-error-text); 
+    border-color: var(--msg-error-outline);
 }
 
 .msg .close-btn {
@@ -394,7 +435,8 @@ body.register .menu-label {
 }
 
 .msg .close-btn:hover {
-    color: #1b1817;
+    color: var(--text-main);
+    opacity: 0.7;
 }
 
 /* ===========================
@@ -418,7 +460,7 @@ body.register .menu-label {
     position: absolute;
     width: 60px;
     height: 70px;
-    background-color: rgb(247 235 78 / 10%);
+    background-color: color-mix(in srgb, var(--accent) 10%, transparent);
     clip-path: polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%);
     top: var(--y);
     left: var(--x);
@@ -479,21 +521,21 @@ body.register .menu-label {
 }
 
 .danger-zone {
-    background: rgb(136 96 204 / 40%);
+    background: color-mix(in srgb, var(--primary-bg) 40%, transparent);
     color: var(--primary-text);
     border: none;
     transition: var(--transition-speed);
 }
 
 .danger-zone:hover {
-    background: rgb(136 96 204 / 60%);
+    background: color-mix(in srgb, var(--primary-bg) 60%, transparent);
     box-shadow: 0 0 8px var(--accent-color);
 }
 
 .danger-title {
     color: var(--accent-color);
     font-weight: bold;
-    text-shadow: 0 0 4px rgb(247 235 78 / 60%);
+    text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
 /* ===========================
@@ -501,13 +543,13 @@ body.register .menu-label {
    =========================== */
 .file-hint {
     font-size: 0.9rem;
-    color: #9ca3af;
+    color: var(--text-muted);
     margin-top: 6px;
     text-align: left;
 }
 
 .file-error {
-    color: #b00020;
+    color: var(--error-color);
     font-size: 0.95rem;
     margin-top: 6px;
 }
@@ -537,25 +579,25 @@ body.register .menu-label {
 
 /* File input styling */
 input[type="file"] {
-    padding: 10px;
-    border-radius: var(--radius-xs);
-    border: 2px dashed rgb(247 235 78 / 50%);
-    background: rgb(255 255 255 / 5%);
-    color: var(--primary-text);
-    cursor: pointer;
-    transition: var(--transition-speed);
+    padding: 12px; 
+    border-radius: var(--radius-xs); 
+    border: 2px dashed color-mix(in srgb, var(--accent) 50%, transparent); 
+    background: color-mix(in srgb, var(--glass-bg) 40%, transparent); 
+    color: var(--text-main); 
+    cursor: pointer; 
+    transition: var(--transition); 
     font-size: 0.95rem;
 }
 
 input[type="file"]:hover {
-    border-color: var(--accent-color);
-    background: rgb(255 255 255 / 10%);
+    border-color: var(--accent);
+    background: var(--glass-light);
 }
 
 input[type="file"]:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 10px rgb(247 235 78 / 40%);
+    box-shadow: var(--btn-shadow-hover);
 }
 
 /* Number input styling */
@@ -580,7 +622,7 @@ input[type="button"] {
     padding: 10px 20px;
     border-radius: var(--radius-xs);
     border: none;
-    background: linear-gradient(90deg, #a77bff, var(--primary-bg));
+    background: var(--btn-bg);
     color: var(--primary-text);
     font-weight: bold;
     cursor: pointer;
@@ -590,7 +632,7 @@ input[type="button"] {
 
 input[type="button"]:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(247, 235, 78, 0.4);
+    box-shadow: var(--btn-shadow-hover);
 }
 
 input[type="button"]:active {
@@ -679,7 +721,7 @@ img {
 /* Hover effect stays on top */
 .hex:hover {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 15px rgb(247 235 78 / 70%);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 /* Hex Content */

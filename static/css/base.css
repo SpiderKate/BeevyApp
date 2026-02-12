@@ -10,7 +10,7 @@
     /* Text */
     --primary-text: rgb(247 235 78);
     --text-main: var(--primary-text);
-    --text-muted: rgba(255, 255, 255, 0.7);
+    --text-muted: rgb(255 255 255 / 70%);
 
     /* Accents */
     --accent-color: #f7eb4e;
@@ -39,7 +39,7 @@
     --btn-shadow-hover: 0 0 10px var(--accent-color);
 
     /* Sidebar */
-    --sidebar-bg: rgba(0, 0, 0, 0.2);
+    --sidebar-bg: rgb(0 0 0 / 20%);
     --sidebar-border: var(--glass-border);
 
     /* Inputs */
@@ -53,17 +53,15 @@
     --error-color: #ff4d4d;
 
     /* Message colors */
-    --msg-info-bg: rgba(147, 197, 253, 0.18);
+    --msg-info-bg: rgb(147 197 253 / 18%);
     --msg-info-text: #305dda;
-    --msg-info-outline: rgba(147, 197, 253, 0.50);
-
-    --msg-success-bg: rgba(111, 207, 151, 0.18);
+    --msg-info-outline: rgb(147 197 253 / 50%);
+    --msg-success-bg: rgb(111 207 151 / 18%);
     --msg-success-text: #145a32;
-    --msg-success-outline: rgba(111, 207, 151, 0.50);
-
-    --msg-error-bg: rgba(248, 113, 113, 0.18);
+    --msg-success-outline: rgb(111 207 151 / 50%);
+    --msg-error-bg: rgb(248 113 113 / 18%);
     --msg-error-text: #7f1d1d;
-    --msg-error-outline: rgba(248, 113, 113, 0.50);
+    --msg-error-outline: rgb(248 113 113 / 50%);
 
     /* Radius & Transition */
     --radius: 18px;
@@ -408,6 +406,7 @@ body.register .menu-label {
 
 .msg.info {
     --text-outline: var(--msg-info-outline);
+
     background: var(--msg-info-bg);
     color: var(--msg-info-text); 
     border-color: var(--msg-info-outline);
@@ -415,6 +414,7 @@ body.register .menu-label {
 
 .msg.success {
     --text-outline: var(--msg-success-outline); 
+
     background: var(--msg-success-bg); 
     color: var(--msg-success-text); 
     border-color: var(--msg-success-outline);
@@ -422,6 +422,7 @@ body.register .menu-label {
 
 .msg.error {
     --text-outline: var(--msg-error-outline); 
+
     background: var(--msg-error-bg); 
     color: var(--msg-error-text); 
     border-color: var(--msg-error-outline);

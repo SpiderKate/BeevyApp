@@ -11,7 +11,7 @@
     /* Text */
     --primary-text: #beb4d8;
     --text-main: #beb4d8;
-    --text-muted: rgba(190, 180, 216, 0.6);
+    --text-muted: rgb(190 180 216 / 60%);
 
     /* Accents */
     --accent-color: #00d4ff;
@@ -19,46 +19,44 @@
     --accent: #00d4ff;
 
     /* Glass & Transparency */
-    --glass-bg: rgba(45, 45, 68, 0.12);
-    --glass-bg-light: rgba(45, 45, 68, 0.18);
-    --glass-border: rgba(0, 212, 255, 0.20);
-    --glass-border-light: rgba(0, 212, 255, 0.30);
+    --glass-bg: rgb(45 45 68 / 12%);
+    --glass-bg-light: rgb(45 45 68 / 18%);
+    --glass-border: rgb(0 212 255 / 20%);
+    --glass-border-light: rgb(0 212 255 / 30%);
     --glass-blur: blur(6px);
 
     /* Shadows */
-    --shadow-accent: 0 0 10px rgba(0, 212, 255, 0.4);
+    --shadow-accent: 0 0 10px rgb(0 212 255 / 40%);
 
     /* Buttons */
     --btn-bg: linear-gradient(90deg, #0080a8, #005f80);
     --btn-bg-hover: linear-gradient(90deg, #00a0cc, #007aa3);
-    --btn-shadow-hover: 0 0 10px rgba(0, 212, 255, 0.4);
+    --btn-shadow-hover: 0 0 10px rgb(0 212 255 / 40%);
 
     /* Sidebar */
-    --sidebar-bg: rgba(15, 15, 31, 0.4);
-    --sidebar-border: rgba(0, 212, 255, 0.15);
+    --sidebar-bg: rgb(15 15 31 / 40%);
+    --sidebar-border: rgb(0 212 255 / 15%);
 
     /* Inputs */
-    --input-bg: rgba(45, 45, 68, 0.20);
-    --input-bg-focus: rgba(45, 45, 68, 0.30);
-    --input-border: rgba(0, 212, 255, 0.30);
+    --input-bg: rgb(45 45 68 / 20%);
+    --input-bg-focus: rgb(45 45 68 / 30%);
+    --input-border: rgb(0 212 255 / 30%);
     --input-border-focus: #00d4ff;
-    --input-shadow-focus: 0 0 10px rgba(0, 212, 255, 0.40);
+    --input-shadow-focus: 0 0 10px rgb(0 212 255 / 40%);
 
     /* Message Boxes */
-    --msg-info-bg: rgba(147, 197, 253, 0.12);
+    --msg-info-bg: rgb(147 197 253 / 12%);
     --msg-info-text: #8ccaff;
-    --msg-info-outline: rgba(147, 197, 253, 0.40);
-
-    --msg-success-bg: rgba(111, 207, 151, 0.12);
+    --msg-info-outline: rgb(147 197 253 / 40%);
+    --msg-success-bg: rgb(111 207 151 / 12%);
     --msg-success-text: #7cd9a3;
-    --msg-success-outline: rgba(111, 207, 151, 0.40);
-
-    --msg-error-bg: rgba(248, 113, 113, 0.12);
+    --msg-success-outline: rgb(111 207 151 / 40%);
+    --msg-error-bg: rgb(248 113 113 / 12%);
     --msg-error-text: #ff8a8a;
-    --msg-error-outline: rgba(248, 113, 113, 0.40);
+    --msg-error-outline: rgb(248 113 113 / 40%);
 
     /* Decorative */
-    --hex-bg: rgba(0, 212, 255, 0.10);
+    --hex-bg: rgb(0 212 255 / 10%);
 
     /* Radius & Transition */
     --radius: 18px;

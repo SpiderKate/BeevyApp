@@ -1,0 +1,35 @@
+{% extends "settings.html" %}
+
+{% block title %}{{ t('settings.preferences_settings') }}{% endblock %}
+
+{% block settings_page %}
+<h2>{{ t('settings.preferences_settings') }}</h2>
+
+<form id="accountForm" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <label>{{ t('settings.language') }}</label>
+    <select name="language" class="input">
+        <option value="en" {% if g.user_language== 'en' %}selected{% endif %}>English</option>
+        <option value="cs" {% if g.user_language == 'cs' %}selected{% endif %}>Čeština</option>
+    </select>
+
+    <br><br>
+    <label>{{ t('settings.theme') }}</label>
+    <select name="theme" class="input">
+        <option value="bee" {% if user[2] == 'bee' %}selected{% endif %}>{{ t('settings.bee_theme') }}</option>
+        <option value="dark" {% if user[2] == 'dark' %}selected{% endif %}>{{ t('settings.dark_theme') }}</option>
+        <option value="light" {% if user[2] == 'light' %}selected{% endif %}>{{ t('settings.light_theme') }}</option>
+    </select>
+
+<!--TODO: themes-->
+<!--TODO: languages-->
+<!--TODO: GET /SpiderKate/settings/account?user=1&user=kate.neckarova@gmail.com&user=en&user=light&user=30&user=0 HTTP/1.1  zkontrolovat bezpecnost-->
+    <br><br>
+    <label>{{ t('settings.def_brush_size') }}</label>
+    <input type="number" name="brush" min="1" max="300" value="{{ user[3] }}">
+
+    <button type="submit">{{ t('buttons.save') }}</button>
+
+</form>
+{% endblock %}

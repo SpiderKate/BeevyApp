@@ -1,14 +1,24 @@
 {% extends "base.html" %}
-
-{% block title %}{{ g.trans.get('nav.draw', g.user_language) }}🐝{% endblock %}
-
 {% block extra_css %}
+<link rel="stylesheet" href="/static/css/option.css">
 {% endblock %}
-
 {% block content %}
-    <a href="/create" class="link">{{ g.trans.get('draw.create_room', g.user_language) }}</a>
-    <a href="/join" class="link">{{ g.trans.get('draw.join_room', g.user_language) }}</a>
-    <br>
-    <a href="{{url_for('userPage', username=session['username'])}}" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
-<!--TODO: zmensit cestu k draw. vyuzivat lepe template-->
+<div class="draw-container">
+
+    <h1 class="draw-title">{{ t('draw.title') }}</h1>
+
+    <div class="draw-links">
+        <a href="/create" class="draw-btn">{{ t('draw.create_room') }}</a>
+        <a href="/join" class="draw-btn">{{ t('draw.join_room') }}</a>
+    </div>
+
+    <div class="draw-content">
+        {% block option_page %}{% endblock %}
+    </div>
+
+    <a href="{{ url_for('userPage', username=session['username']) }}" class="draw-back">
+        {{ t('buttons.back') }}
+    </a>
+
+</div>
 {% endblock %}

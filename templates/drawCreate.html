@@ -1,20 +1,17 @@
-{% extends "base.html" %}
+{% extends "drawOption.html" %}
 
-{% block title %}{{ g.trans.get('draw.create_room', g.user_language) }}🐝{% endblock %}
+{% block title %}{{ t('draw.create_room') }}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/register.css">
-{% endblock %}
+{% block option_page %}
+<form action="/create" method="post" class="draw-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-{% block content %}
-    <form action="/create" method="post" class="drawCreateForm">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>{{ g.trans.get('draw.room_name', g.user_language) }}</label>
-        <input type="text" name="name" id="name" class="input" required>
-        <label>{{ g.trans.get('draw.password', g.user_language) }}</label>
-        <input type="password" name="password" id="password" class="input">
-        <br><br>
-        <button type="submit">{{ g.trans.get('buttons.submit', g.user_language) }}</button>
-    </form>
-    <a href="/option">{{ g.trans.get('buttons.back', g.user_language) }}</a>
+    <label>{{ t('draw.room_name') }}</label>
+    <input type="text" name="name" class="input" required>
+
+    <label>{{ t('auth.password') }}</label>
+    <input type="password" name="password" class="input">
+
+    <button type="submit" class="draw-btn">{{ t('draw.create_room') }}</button>
+</form>
 {% endblock %}

@@ -24,70 +24,6 @@ from translations import translations
 load_dotenv()
 now = datetime.now()
 
-# ===== Flash Message Translation Mapping =====
-FLASH_MESSAGE_KEYS = {
-    "Log in first.": "flash.login_first",
-    "You shall not trespass in other's property.": "flash.trespass",
-    "You are already logged in.": "flash.already_logged_in",
-    "This account has been deleted. You can restore it if you want.": "flash.account_deleted",
-    "Succesfully logged in.": "flash.login_success",
-    "You are already registered.": "flash.already_registered",
-    "Username is too long.": "flash.username_too_long",
-    "Registration was successful.": "flash.registration_success",
-    "Username is already taken.": "flash.username_taken",
-    "Email is already in use.": "flash.email_in_use",
-    "Please enter your email and password.": "flash.enter_credentials",
-    "Invalid email or password.": "flash.invalid_credentials",
-    "This account is already active.": "flash.account_already_active",
-    "Username is already in use, please choose another one.": "flash.username_in_use",
-    "Settings saved successfully.": "flash.settings_saved",
-    "New password cannot be empty.": "flash.password_empty",
-    "Current password is incorrect.": "flash.password_incorrect",
-    "Passwords do not match.": "flash.passwords_mismatch",
-    "Successfully logged out.": "flash.logout_success",
-    "You must type DELETE exactly.": "flash.must_type_delete",
-    "User not found or already deleted.": "flash.user_not_found",
-    "Wrong password.": "flash.wrong_password",
-    "Account and related content deactivated successfully.": "flash.account_deactivated",
-    "You do not own this artwork.": "flash.not_owner",
-    "Ownership removed.": "flash.ownership_removed",
-    "Ownership removed and artwork cleaned up.": "flash.ownership_removed_cleanup",
-    "Password required.": "flash.password_required",
-    "Artwork deleted permanently.": "flash.artwork_deleted",
-    "Artwork deleted from shop; owner copies preserved.": "flash.artwork_deleted_shop",
-    "Artwork hidden.": "flash.artwork_hidden",
-    "Artwork unhidden.": "flash.artwork_unhidden",
-    "Room not found.": "flash.room_not_found",
-}
-
-def flash(message, category="info"):
-    """
-    Wrapper for Flask's flash() that automatically translates known messages.
-    Falls back to original message if translation key is not found.
-    """
-    user_language = session.get('user_language', 'en')
-    
-    # Check if message matches a known pattern
-    translation_key = FLASH_MESSAGE_KEYS.get(message)
-    
-    if translation_key:
-        translated_message = translations.get(translation_key, user_language)
-        flask_flash(translated_message, category)
-    else:
-        # Check for messages with variables (e.g., "Something went wrong: {e}")
-        if "Something went wrong:" in message:
-            base_message = translations.get("flash.error_occurred", user_language)
-            # Keep the error details but with translated prefix
-            error_detail = message.replace("Something went wrong:", "").strip()
-            flask_flash(f"{base_message} {error_detail}", category)
-        elif "Failed to delete artwork:" in message:
-            base_message = translations.get("flash.delete_failed", user_language)
-            error_detail = message.replace("Failed to delete artwork:", "").strip()
-            flask_flash(f"{base_message} {error_detail}", category)
-        else:
-            # Unknown message, use as-is
-            flask_flash(message, category)
-
 #print('some debug', file=sys.stderr)
 
 app = Flask(__name__)
@@ -165,15 +101,12 @@ def get_unique_deleted_username(cursor):
         if not cursor.fetchone():
             return username
 
-def flash_translated(message_key, category="info"):
-    """
-    Flash a translated message based on the key.
-    Usage: flash_translated('flash.login_success', 'success')
-    """
-    # Get user's language from session or default to 'en'
+def flash_translated(message_key, category="info", **kwargs):
     user_language = session.get('user_language', 'en')
-    translated_message = translations.get(message_key, user_language)
-    flash(translated_message, category)
+    translated = translations.get(message_key, language=user_language, default=message_key)
+    if kwargs:
+        translated = translated.format(**kwargs)
+    flask_flash(translated, category)
 
 def watermark_text_with_metadata(src_path, dest_path, text, metadata: dict):
     """Draws a tiled, rotated watermark that remains visible on both light and dark images.
@@ -302,7 +235,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'username' not in session:
-            flash("Log in first.", "error")
+            flash_translated("flash.login_first", "error")
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated
@@ -313,7 +246,7 @@ def no_trespass(f):
     def decorated(*args, **kwargs):
         username = kwargs.get('username')
         if session.get('username') != username:
-            flash("You shall not trespass in other's property.", "error")
+            flash_translated("flash.trespass", "error")
             return redirect(url_for("index"))
         return f(*args, **kwargs)
     return decorated
@@ -421,28 +354,36 @@ app.permanent_session_lifetime = timedelta(days=7)
 @app.before_request
 def load_logged_in_user():
     g.avatar_path = None
-    g.user_theme = 'bee'  # Default theme
-    g.user_language = 'en'  # Default language
-    g.trans = translations  # Make translations available in templates
+    g.user_theme = 'bee'
+    g.user_language = session.get("user_language", "en")
+    g.trans = translations
+
     username = session.get('username')
     if username:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()
+
         cursor.execute("SELECT avatar_path FROM users WHERE username=?", (username,))
         row = cursor.fetchone()
         if row and row[0]:
             g.avatar_path = row[0]
-        
-        # Load user's theme and language preferences
-        cursor.execute("SELECT theme, language FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (username,))
+
+        cursor.execute("SELECT theme FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (username,))
         pref_row = cursor.fetchone()
-        if pref_row:
-            if pref_row[0]:
-                g.user_theme = pref_row[0]
-            if pref_row[1]:
-                g.user_language = pref_row[1]
-        
+        if pref_row and pref_row[0]:
+            g.user_theme = pref_row[0]
+
         conn.close()
+        
+@app.context_processor
+def inject_t():
+    def t(key, **kwargs):
+        text = translations.get(key, g.user_language, default=key)
+        if kwargs:
+            text = text.format(**kwargs)
+        return text
+    return dict(t=t)
+
 
 #hlavni stranka..
 @app.route('/')
@@ -454,7 +395,7 @@ def login():
     login_errors = []
     # Only flash if they are visiting GET /login
     if 'username' in session and request.method == 'GET':
-        flash("You are already logged in.", "info")
+        flash_translated("flash.already_logged_in", "info")
         return redirect(url_for("userPage", username=session['username']))
     if request.method == 'POST':
         #bere input ze stranky
@@ -469,6 +410,12 @@ def login():
             cursor.execute("SELECT password,username,last_login_at,id, deleted FROM users WHERE email=? OR username=?",(usEm, usEm))
             #vysledek se popripadne ulozi sem
             result = cursor.fetchone()
+            cursor.execute("SELECT language FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (session['username'],)) 
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                session["user_language"] = row[0]
+            
             
             #a kdyz to najde heslo k danému username ci email tak ho zkontroluje
             if result:
@@ -478,26 +425,24 @@ def login():
                     
                 #kdyz je spravne posle uzivatele na userPage
                 if result[4]:
-                    flash("This account has been deleted. You can restore it if you want.", "info")
+                    flash_translated("flash.account_deleted", "info")
                     return redirect(request.url)
                 if bcrypt.checkpw(user_bytes, db_pass):
                     session.permanent = True
                     session['username'] = result[1]
                     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute("UPDATE users SET last_login_at=? WHERE id=?",(now,result[3]))
-                    #print("Rows updated:", cursor.rowcount)
                     conn.commit()
-                    flash("Succesfully logged in.","success")
+                    #print("Rows updated:", cursor.rowcount)
+                    flash_translated("flash.login_success", "success")
                     return redirect(url_for("userPage", username=session['username']))
                 else:
-                    login_errors.append("Incorrect username/e-mail or password")
+                    flash_translated("flash.invalid_credentials", "error")
             else:
-                login_errors.append("Incorrect username/e-mail or password")
-            for err in login_errors:
-                flash(err,"error")
+                flash_translated("flash.invalid_credentials", "error")
             return redirect(request.url,page="login")
         except Exception as e:
-            flash(f"Something went wrong: {e}", "error")
+            flash_translated("flash.error_occurred", "error", e=str(e))
             return redirect(url_for("index"))
         finally:
             conn.close()
@@ -509,7 +454,7 @@ def login():
 def register():
     # Only flash if they are visiting GET /login
     if 'username' in session and request.method == 'GET':
-        flash("You are already registered.", "info")
+        flash_translated("flash.already_registered", "info")
         return redirect(url_for("userPage", username=session['username']))
     #bere input ze stranky
     if request.method == 'POST':
@@ -522,7 +467,7 @@ def register():
         dob = request.form['dob']
 
         if len(username)>20:
-            flash("Username is too long.","error")
+            flash_translated("flash.username_too_long", "error")
             return render_template("register.html")
         #hash hesla
         hash = None if not password else bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -543,15 +488,15 @@ def register():
                 # create default preferences for new user
                 cursor.execute("INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)", (user_id, 'en', 'bee', 30, 1))
                 conn.commit()
-                flash("Registration was successful.","success")
+                flash_translated("flash.registration_success", "success")
                 return redirect(url_for("login", page="login"))
             if existing_user:
                 #print('username in use')
-                flash("Username is already taken.","error")
+                flash_translated("flash.username_taken", "error")
                 a = 1
             if existing_email:
                 #print('email in use')
-                flash("Email is already in use.","error")
+                flash_translated("flash.email_in_use", "error")
                 a = 1
             #kdyz nejsou zadne chyby tak input ze stranky zapise do db
             if a==1:
@@ -569,7 +514,7 @@ def recover_account():
         password = request.form.get("password")
 
         if not email or not password:
-            flash("Please enter your email and password.", "error")
+            flash_translated("flash.enter_credentials", "error")
             return render_template("recover.html")
 
         conn = sqlite3.connect("beevy.db")
@@ -584,19 +529,16 @@ def recover_account():
             user = cursor.fetchone()
 
             if not user:
-                flash(
-                    "If an account with this email exists, you can recover it.",
-                    "info"
-                )
+                flash_translated("flash.if_account_exists", "info")
                 return render_template("recover.html")
 
             user_id, password_hash, deleted, recovery_username = user
             if not bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
-                flash("Invalid email or password.", "error")
+                flash_translated("flash.invalid_credentials", "error")
                 return render_template("recover.html")
             
             if deleted == 0:
-                flash("This account is already active.", "info")
+                flash_translated("flash.account_already_active", "info")
                 return redirect(url_for("login"))
             
             #check old username
@@ -608,10 +550,7 @@ def recover_account():
                 taken = cursor.fetchone()
 
                 if taken:
-                    flash(
-                        "Your previous username is no longer available. Please choose a new one.",
-                        "error"
-                    )
+                    flash_translated("flash.username_in_use", "error")
                     return render_template(
                         "recover.html",
                         ask_username=True,
@@ -635,7 +574,7 @@ def recover_account():
                     (new_username,)
                 )
                 if cursor.fetchone():
-                    flash("Username is already in use.", "error")
+                    flash_translated("flash.username_in_use", "error")
                     return render_template(
                         "recover.html",
                         ask_username=True,
@@ -651,10 +590,7 @@ def recover_account():
                 """, (new_username, user_id))
                 conn.commit()
 
-            flash(
-                "Your account has been recovered. You can now log in.",
-                "success"
-            )
+            flash_translated("flash.account_recovery_help", "success")
             return redirect(url_for("login"))
 
         finally:
@@ -683,7 +619,8 @@ def userPage(username):
 
     if not user:
         conn.close()
-        return "User not found", 404
+        flash_translated("flash.user_not_found", "error")
+        return "", 404
     #if username == "SpiderKate":
      #   cursor.execute("UPDATE users SET bee_points=? WHERE id=?",(1000000,user[0]))
       #  conn.commit()
@@ -731,7 +668,7 @@ def join_room_page(room_ID):
     finally:
         conn.close()
     if not room:
-        flash("Room not found.","error")
+        flash_translated("flash.room_not_found", "error")
         return redirect(url_for("join"))
     room_name, password_hash, room_type = room
     if room_type == 1:
@@ -769,7 +706,7 @@ def draw(room_ID):
         conn.close()
     
     if not result:
-        flash("Room not found.","error")
+        flash_translated("flash.room_not_found", "error")
         return redirect(url_for("join"))
 
     room_type = result[0]
@@ -880,7 +817,8 @@ def settingsProfile(username):
         user = cursor.fetchone()
         if not user:
             conn.close()
-            return "User not found", 404
+            flash_translated("flash.user_not_found", "error")
+            return "", 404
 
         if request.method == "POST":
             new_username = request.form.get("username")
@@ -890,7 +828,7 @@ def settingsProfile(username):
             cursor.execute("SELECT username FROM users WHERE username = ?", (new_username,))
             db_user = cursor.fetchone()
             if db_user and username!=new_username:
-                flash("Username is already in use, please choose another one.","error")
+                flash_translated("flash.username_taken", "error")
                 return render_template("settingsProfile.html", user = user)
 
             avatar_path = user[3]  # default: keep old avatar
@@ -910,15 +848,75 @@ def settingsProfile(username):
             conn.commit()
             # Update session username if changed
             session["username"] = new_username
-            flash("Settings saved successfully.","success")
+            flash_translated("flash.settings_saved", "success")
             return redirect(url_for("settingsProfile", username=new_username))
     except Exception as e:
-        flash(f"Something went wrong: {e}", "error")
+        flash_translated("flash.error_occurred", "error", e=str(e))
         return redirect(url_for("index"))    
     finally:
         conn.close()
     return render_template("settingsProfile.html", user=user)
 
+
+@app.route("/<username>/settings/preferences", methods=["GET", "POST"])
+@login_required
+@no_trespass
+def settingsPreferences(username):
+    conn = sqlite3.connect("beevy.db")
+    cursor = conn.cursor()
+    try:
+        # get basic user info
+        cursor.execute("SELECT id FROM users WHERE username=?", (username,))
+        user_id = cursor.fetchone()[0]
+        
+
+        if not user_id:
+            conn.close()
+            flash_translated("flash.user_not_found", "error")
+            return "", 404
+        
+    # get preferences (create defaults if missing)
+        cursor.execute("SELECT language, theme, default_brush_size, notifications FROM preferences WHERE user_id = ?", (user_id,))
+        prefs = cursor.fetchone()
+        if not prefs:
+            prefs = ('en', 'bee', 30, 1)
+            cursor.execute(
+                "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
+            )
+            conn.commit()
+        
+        # assemble tuple expected by template: (id, language, theme, default_brush_size, notifications)
+        user = (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
+
+        if request.method == "POST":
+            new_language = request.form.get("language")
+            new_theme = request.form.get("theme")
+            new_brush = int(request.form.get("brush") or prefs[2])
+            new_not = 1 if request.form.get("not") else 0  # handle checkbox
+
+            # update or insert preferences
+            cursor.execute("SELECT 1 FROM preferences WHERE user_id = ?", (user_id,))
+            if cursor.fetchone():
+                cursor.execute(
+                    "UPDATE preferences SET language = ?, theme = ?, default_brush_size = ?, notifications = ? WHERE user_id = ?",
+                    (new_language, new_theme, new_brush, new_not, user_id)
+                )
+            else:
+                cursor.execute(
+                    "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
+                    (user_id, new_language, new_theme, new_brush, new_not)
+                )
+            conn.commit()
+            session["user_language"] = new_language
+            flash_translated("flash.settings_saved", "success")
+            return redirect(url_for("settingsPreferences", username=username))
+    except Exception as e:
+        flash_translated("flash.error_occurred", "error", e=str(e))
+        return redirect(url_for("index"))
+    finally:
+        conn.close()
+    return render_template("settingsPreferences.html", user=user)
 
 
 @app.route("/<username>/settings/account", methods=["GET","POST"])
@@ -934,53 +932,26 @@ def settingsAccount(username):
 
         if not user_row:
             conn.close()
-            return "User not found", 404
+            flash_translated("flash.user_not_found", "error")
+            return "", 404
 
         user_id, email = user_row
-
-        # get preferences (create defaults if missing)
-        cursor.execute("SELECT language, theme, default_brush_size, notifications FROM preferences WHERE user_id = ?", (user_id,))
-        prefs = cursor.fetchone()
-        if not prefs:
-            prefs = ('en', 'bee', 30, 1)
-            cursor.execute(
-                "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
-                (user_id, prefs[0], prefs[1], prefs[2], prefs[3])
-            )
-            conn.commit()
-
-        # assemble tuple expected by template: (id, email, language, theme, default_brush_size, notifications)
-        user = (user_id, email, prefs[0], prefs[1], prefs[2], prefs[3])
+        
+        # assemble tuple expected by template: (id, email)
+        user = (user_id, email)
 
         if request.method == "POST":
             new_email = request.form.get("email")
-            new_language = request.form.get("language")
-            new_theme = request.form.get("theme")
-            new_brush = int(request.form.get("brush") or prefs[2])
-            new_not = 1 if request.form.get("not") else 0  # handle checkbox
 
             # update users email
             cursor.execute(
                 "UPDATE users SET email = ? WHERE id = ?",
                 (new_email, user_id)
             )
-            # update or insert preferences
-            cursor.execute("SELECT 1 FROM preferences WHERE user_id = ?", (user_id,))
-            if cursor.fetchone():
-                cursor.execute(
-                    "UPDATE preferences SET language = ?, theme = ?, default_brush_size = ?, notifications = ? WHERE user_id = ?",
-                    (new_language, new_theme, new_brush, new_not, user_id)
-                )
-            else:
-                cursor.execute(
-                    "INSERT INTO preferences (user_id, language, theme, default_brush_size, notifications) VALUES (?,?,?,?,?)",
-                    (user_id, new_language, new_theme, new_brush, new_not)
-                )
-            conn.commit()
-            flash("Settings saved successfully.", "success")
+            flash_translated("flash.settings_saved", "success")
             return redirect(url_for("settingsAccount", username=username))
     except Exception as e:
-        flash(f"Something went wrong: {e}", "error")
+        flash_translated("flash.error_occurred", "error", e=str(e))
         return redirect(url_for("index"))
     finally:
         conn.close()
@@ -1000,7 +971,8 @@ def settingsSecurity(username):
     user = cursor.fetchone()
     if not user:
         conn.close()
-        return "User not found", 404
+        flash_translated("flash.user_not_found", "error")
+        return "", 404
 
     if request.method == "POST":
         curPassword = request.form.get('curPassword')
@@ -1008,13 +980,13 @@ def settingsSecurity(username):
         newPassword2 = request.form.get('newPassword2')
         a=0
         if not newPassword:
-            flash("New password cannot be empty.","error")
+            flash_translated("flash.password_empty", "error")
             a=1
         if not bcrypt.checkpw(curPassword.encode('utf-8'),user[3].encode('utf-8')):
-            flash("Current password is incorrect.","error")
+            flash_translated("flash.password_incorrect", "error")
             a=1
         if (newPassword!=newPassword2):
-            flash("Passwords do not match.","error")
+            flash_translated("flash.passwords_mismatch", "error")
             a=1
 
         if a==1:
@@ -1025,7 +997,7 @@ def settingsSecurity(username):
         cursor.execute("UPDATE users SET password=? WHERE id=?",(newHash,user[0]))
         conn.commit()
         conn.close()
-        flash("Settings saved successfully.","success")
+        flash_translated("flash.settings_saved", "success")
 
         return render_template("settingsSecurity.html", user=user)
     conn.close()
@@ -1037,7 +1009,7 @@ def settingsSecurity(username):
 def settingsLogout(username):
     if request.method == "POST":
         session.clear()
-        flash("Successfully logged out.","success")
+        flash_translated("flash.logout_success", "success")
         return redirect(url_for("index"))
     return render_template("settingsLogout.html")
 
@@ -1049,7 +1021,7 @@ def settingsDelete(username):
     if request.method == "POST":
         # DELETE confirmation
         if request.form.get("confirm") != "DELETE":
-            flash("You must type DELETE exactly.", "info")
+            flash_translated("flash.must_type_delete", "info")
             return render_template("settingsDelete.html")
 
         password = request.form.get("password")
@@ -1066,14 +1038,14 @@ def settingsDelete(username):
             user = cursor.fetchone()
 
             if not user:
-                flash("User not found or already deleted.", "error")
+                flash_translated("flash.user_not_found", "error")
                 return redirect(url_for("index"))
 
             user_id, password_hash = user
 
             # bcrypt check
             if not bcrypt.checkpw(password.encode("utf-8"),password_hash.encode("utf-8")):
-                flash("Wrong password.", "error")
+                flash_translated("flash.wrong_password", "error")
                 return redirect(request.url)
 
             # soft delete
@@ -1088,12 +1060,12 @@ def settingsDelete(username):
             conn.commit()
             
             session.clear()
-            flash("Account and related content deactivated successfully.", "success")
+            flash_translated("flash.account_deactivated", "success")
             return redirect(url_for("index"))
 
         except Exception as e:
             conn.rollback()
-            return f"Something went wrong: {e}"
+            flash_translated("flash.error_occurred", "error", e=str(e))
 
         finally:
             conn.close()
@@ -1261,7 +1233,7 @@ def remove_ownership(art_id):
     ownership = cursor.fetchone()
     if not ownership:
         conn.close()
-        flash("You do not own this artwork.", "error")
+        flash_translated("flash.not_owner", "error")
         return redirect(url_for('userPage', username=session.get('username')))
 
     ownership_id, source_rel = ownership
@@ -1278,7 +1250,7 @@ def remove_ownership(art_id):
         cursor.execute("DELETE FROM art_ownership WHERE id = ?", (ownership_id,))
         conn.commit()
         conn.close()
-        flash("Ownership removed.", "success")
+        flash_translated("flash.ownership_removed", "success")
         return redirect(url_for('userPage', username=session.get('username')))
 
     thumb_rel, preview_rel, orig_rel, examples_rel, is_active = art_row
@@ -1318,12 +1290,12 @@ def remove_ownership(art_id):
         cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
         conn.commit()
         conn.close()
-        flash("Ownership removed and artwork cleaned up.", "success")
+        flash_translated("flash.ownership_removed_cleanup", "success")
         return redirect(url_for('userPage', username=session.get('username')))
 
     conn.commit()
     conn.close()
-    flash("Ownership removed.", "success")
+    flash_translated("flash.ownership_removed", "success")
     return redirect(url_for('userPage', username=session.get('username')))
 
 
@@ -1358,11 +1330,11 @@ def editArt(username, art_id):
         # === DELETE ARTWORK ===
         if confirm_delete == "DELETE":
             if not password:
-                flash("Password required.", "error")
+                flash_translated("flash.password_required", "error")
                 return redirect(request.url)
 
             if not bcrypt.checkpw(password.encode(), item[-1].encode()):
-                flash("Wrong password.", "error")
+                flash_translated("flash.wrong_password", "error")
                 return redirect(request.url)
 
             try:
@@ -1401,7 +1373,7 @@ def editArt(username, art_id):
                     cursor.execute("DELETE FROM art WHERE id = ?", (art_id,))
                     conn.commit()
                     conn.close()
-                    flash("Artwork deleted permanently.", "success")
+                    flash_translated("flash.artwork_deleted", "success")
                     return redirect(url_for("shop"))
 
                 # Owners exist: copy original (or best available) for each owner and update art_ownership.source
@@ -1449,7 +1421,7 @@ def editArt(username, art_id):
                 """, (art_id,))
                 conn.commit()
                 conn.close()
-                flash("Artwork deleted from shop; owner copies preserved.", "success")
+                flash_translated("flash.artwork_deleted_shop", "success")
                 return redirect(url_for("shop"))
             except Exception as e:
                 # Rollback and surface an error instead of 500
@@ -1459,7 +1431,7 @@ def editArt(username, art_id):
                     pass
                 conn.close()
                 print("Delete artwork failed:", e)
-                flash(f"Failed to delete artwork: {e}", "error")
+                flash_translated("flash.delete_failed", "error")
                 return redirect(request.url)
 
         # === HIDE ARTWORK ===
@@ -1470,7 +1442,7 @@ def editArt(username, art_id):
             conn.commit()
             conn.close()
 
-            flash("Artwork hidden.", "success")
+            flash_translated("flash.artwork_hidden", "success")
             return redirect(url_for("shop"))
         
         if confirm_show == "SHOW":
@@ -1480,7 +1452,7 @@ def editArt(username, art_id):
             conn.commit()
             conn.close()
 
-            flash("Artwork unhidden.", "success")
+            flash_translated("flash.artwork_unhidden", "success")
             return redirect(url_for("shop"))
 
         # === NORMAL EDIT ===
@@ -1511,16 +1483,16 @@ def editArt(username, art_id):
                 size = None
 
             if size and size > MAX_FILE_SIZE:
-                flash(f"Thumbnail too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).", "error")
+                flash_translated("flash.thumbnail_too_large", "error")
                 return redirect(request.url)
 
             # --- extension/type check ---
             if not allowed_file(thumb_file.filename):
-                flash("Invalid thumbnail file type.", "error")
+                flash_translated("flash.invalid_thumbnail", "error")
                 return redirect(request.url)
 
             if not validate_image(thumb_file):
-                flash("Invalid thumbnail.", "error")
+                flash_translated("flash.invalid_thumbnail", "error")
                 return redirect(request.url)
 
             # save with watermark + metadata
@@ -1533,7 +1505,7 @@ def editArt(username, art_id):
             new_examples = []
             for ex in examples_files:
                 if not validate_image(ex):
-                    flash(f"Invalid example file: {ex.filename}", "error")
+                    flash_translated("flash.invalid_example_file", "error", filename=ex.filename)
                     return redirect(request.url)
 
                 # size check
@@ -1545,7 +1517,7 @@ def editArt(username, art_id):
                     ex_size = None
 
                 if ex_size and ex_size > MAX_FILE_SIZE:
-                    flash(f"Example file {ex.filename} is too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).", "error")
+                    flash_translated("flash.ex_file_too_large", "error", ex=ex)
                     return redirect(request.url)
 
                 ex_wm, ex_original = process_uploaded_image(ex, session['username'], prefix="example", author_name=author_name)
@@ -1569,7 +1541,7 @@ def editArt(username, art_id):
         conn.commit()
         conn.close()
 
-        flash("Artwork updated.", "success")
+        flash_translated("flash.artwork_updated", "success")
         return redirect(request.url)
 
     conn.close()
@@ -1583,12 +1555,10 @@ def editArt(username, art_id):
     )
 
 @app.route("/shop/<int:art_id>/buy", methods=["GET", "POST"])
+@login_required
 #TODO: comms chat
 #TODO: comms safe delivery  author to buyer
 def buy_art(art_id):
-    if "username" not in session:
-        flash("Login first to buy artwork.", "error")
-        return redirect(url_for("login"))
 
     conn = sqlite3.connect("beevy.db")
     cursor = conn.cursor()
@@ -1598,7 +1568,7 @@ def buy_art(art_id):
     user = cursor.fetchone()
     if not user:
         conn.close()
-        flash("User not found.", "error")
+        flash_translated("flash.user_not_found", "error")
         return redirect(url_for("shop"))
     user_id, user_points = user
 
@@ -1607,18 +1577,18 @@ def buy_art(art_id):
     art = cursor.fetchone()
     conn.close()
     if not art:
-        flash("Artwork not found.", "error")
+        flash_translated("flash.artwork_not_found", "error")
         return redirect(url_for("shop"))
     art_id, price, author_id, title = art
 
     # Prevent author buying own art
     if user_id == author_id:
-        flash("You cannot buy your own artwork.", "error")
+        flash_translated("flash.artwork_cannot_buy_own", "error")
         return redirect(url_for("art_detail", art_id=art_id))
 
     # Check ownership using helper
     if user_owns_art(user_id, art_id):
-        flash("You already own this artwork.", "info")
+        flash_translated("flash.already_owned", "info")
         return redirect(url_for("art_detail", art_id=art_id))
 
     # GET -> show confirmation
@@ -1633,7 +1603,7 @@ def buy_art(art_id):
 
     # POST -> perform purchase
     if user_points < price:
-        flash("Not enough BeePoints.", "error")
+        flash_translated("flash.insufficient_points", "error")
         return redirect(url_for("art_detail", art_id=art_id))
 
     try:
@@ -1649,10 +1619,10 @@ def buy_art(art_id):
                        (art_id, user_id, now))
 
         conn.commit()
-        flash("Artwork purchased successfully!", "success")
+        flash_translated("flash.artwork_purchased", "success")
     except Exception:
         conn.rollback()
-        flash("Purchase failed. Try again.", "error")
+        flash_translated("flash.purchase_failed", "error")
     finally:
         conn.close()
 
@@ -1720,11 +1690,11 @@ def create_art():
         examples_files = request.files.getlist("examples")
 
         if not thumb_file or not thumb_file.filename:
-            flash("Thumbnail is required.", "error")
+            flash_translated("flash.thumbnail_required", "error")
             return redirect(request.url)
 
         if not validate_image(thumb_file):
-            flash("Invalid thumbnail file.", "error")
+            flash_translated("flash.invalid_thumbnail", "error")
             return redirect(request.url)
 
         os.makedirs(os.path.join(STATIC_ROOT, UPLOAD_FOLDER), exist_ok=True)
@@ -1738,7 +1708,7 @@ def create_art():
         user_row = cursor.fetchone()
         if not user_row:
             conn.close()
-            flash("User not found.", "error")
+            flash_translated("flash.user_not_found", "error")
             return redirect(url_for("index"))
         user_id = user_row[0]
         author_name = f"{user_row[1]} {user_row[2]} - {username}"
@@ -1758,13 +1728,13 @@ def create_art():
         for ex in examples_files:
             if ex.filename:
                 if not validate_image(ex):
-                    flash(f"Invalid example file: {ex.filename}", "error")
+                    flash_translated("flash.invalid_example_file", "error", filename=ex.filename)
                     return redirect(request.url)
                 ex_wm, ex_original = process_image(ex, username, prefix="example")
                 examples_paths.append(ex_wm)    
 
         if len(examples_paths) > 5:
-            flash("Too many example images.", "error")
+            flash_translated("flash.too_many_examples", "error")
             return redirect(request.url)
 
         examples_paths_str = ",".join(examples_paths)
@@ -1790,7 +1760,7 @@ def create_art():
         conn.commit()
         conn.close()
 
-        flash("Artwork created successfully!", "success")
+        flash_translated("flash.artwork_created", "success")
         return redirect("/shop")
 
     return render_template("create_art.html")
@@ -1950,4 +1920,4 @@ def handle_draw(data):
     emit('draw', data, to=room, skip_sid=request.sid)
     
 if __name__ == "__main__":
-    socketio.run(app)#, use_reloader=False -> stranky se sami nereload
+    socketio.run(app,debug=True)#, use_reloader=False -> stranky se sami nereload

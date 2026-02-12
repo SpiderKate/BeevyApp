@@ -1,22 +1,17 @@
-{% extends "base.html" %}
+{% extends "drawJoin.html" %}
 
-{% block title %}{{ g.trans.get('draw.public_room', g.user_language) }}🐝{% endblock %}
+{% block title %}{{ t('draw.public_room') }}{% endblock %}
 
-{% block extra_css %}
-{% endblock %}
+{% block join_page %}
+<h2>{{ t('messages.room_list') }}</h2>
 
-<!-- mistnostiPublic -->
-{% block content %}
-    <h2>{{ g.trans.get('messages.room_list', g.user_language) }}:</h2>
-    {% for name, room_id, deleted in rooms %}
-        {% if not deleted %}
-            <ul>
-                <a href="{{ url_for('draw', room_ID=room_id) }}">{{ name }}</a>
-            </ul>
-        {% endif %}
-    {% endfor %}
-
-    <br>
-
-    <a href="/join" class="link">{{ g.trans.get('buttons.back', g.user_language) }}</a>
+<ul class="room-list">
+{% for name, room_id, deleted in rooms %}
+    {% if not deleted %}
+        <li>
+            <a href="{{ url_for('draw', room_ID=room_id) }}" class="room-link">{{ name }}</a>
+        </li>
+    {% endif %}
+{% endfor %}
+</ul>
 {% endblock %}

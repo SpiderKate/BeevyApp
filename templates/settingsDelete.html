@@ -1,23 +1,23 @@
 {% extends "settings.html" %}
 
-{% block title %}Log Out{% endblock %}
+{% block title %}{{ t('settings.delete_account') }}{% endblock %}
 
 {% block settings_page %}
-<h2>{{ g.trans.get('settings.delete_account', g.user_language) }}</h2>
+<h2>{{ t('settings.delete_account') }}</h2>
     <form method="POST" class="danger-zone">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <p class="warning">⚠️ {{ g.trans.get('messages.delete_confirm', g.user_language) }}</p>
+    <p class="warning">⚠️ {{ t('messages.delete_confirm') }}</p>
         <label>
-            {{ g.trans.get('messages.type_delete', g.user_language) }} <b>DELETE</b> {{ g.trans.get('messages.to_confirm', g.user_language) }}:
+            {{ t('messages.type_delete') }} <b>DELETE</b> {{ t('messages.to_confirm') }}:
             <input type="text" name="confirm" required>
         </label>
 
         <label>
-            {{ g.trans.get('auth.password', g.user_language) }}:
+            {{ t('auth.password') }}:
             <input type="password" name="password" required>
         </label>
 
-        <button type="submit" class="danger">{{ g.trans.get('settings.delete_account', g.user_language) }}</button>
+        <button type="submit" class="danger">{{ t('settings.delete_account') }}</button>
     </form>
 
 {% endblock %}

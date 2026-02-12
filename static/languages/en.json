@@ -1,11 +1,13 @@
 {
   "nav": {
-    "logout": "Logout",
+    "logout": "Log out",
     "settings": "Settings",
     "profile": "Profile",
     "shop": "Shop",
     "draw": "Draw",
-    "user_page": "My Page"
+    "user_page": "My Page",
+    "community": "Community",
+    "main_page": "Main Page"
   },
   "home": {
     "title": "Beevy",
@@ -15,11 +17,13 @@
     "draw": "Draw",
     "browse_shop": "Browse Shop",
     "my_art": "My Art",
-    "collaborations": "Collaborations"
+    "collaborations": "Collaborations",
+
+    "community": "Community"
   },
   "auth": {
-    "login_title": "Login",
-    "register_title": "Register",
+    "login_title": "Login to Beevy",
+    "register_title": "Register to Beevy",
     "username": "Username",
     "password": "Password",
     "email": "Email",
@@ -32,7 +36,8 @@
     "create_account": "Don't have an account?",
     "forgot_password": "Forgot password?",
     "password_recovery": "Password Recovery",
-    "recover_button": "Send Recovery Email"
+    "recover_button": "Send Recovery Email",
+    "recover_account": "Recover deleted account"
   },
   "settings": {
     "title": "Settings",
@@ -54,7 +59,17 @@
     "bio": "Bio",
     "social_links": "Social Links",
     "notifications": "Notifications",
-    "enable_notifications": "Enable Notifications"
+    "enable_notifications": "Enable Notifications",
+
+    "def_brush_size": "Default Brush Size",
+    "email": "Email",
+    "account_settings": "Account Settings",
+    "profile_settings": "Profile Settings",
+    "preferences_settings": "Preferences",
+    "danger_zone": "Danger Zone",
+    "security_settings": "Security Settings",
+    "choose_file": "Choose file",
+    "no_file_selected": "No file selected"
   },
   "shop": {
     "title": "Shop",
@@ -103,7 +118,16 @@
     "examples": "Example images",
     "details": "Art Details",
     "turnaround": "Turnaround time",
-    "days": "days"
+    "days": "days",
+
+    "hide_artwork": "Hide artwork in shop",
+    "show_artwork": "Show artwork in shop",
+    "max_file_size":"Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.",
+    "delete_permanent": "Delete artwork permanently",
+    "danger_zone": "Danger Zone",
+    "type_delete": "Type DELETE to confirm",
+    "action_irreversible": "This action cannot be undone.",
+    "confirm_password": "Confirm with your password"
   },
   "messages": {
     "success": "Success!",
@@ -146,39 +170,66 @@
     "update": "Update"
   },
   "flash": {
-    "login_first": "Log in first.",
     "trespass": "You shall not trespass in other's property.",
-    "already_logged_in": "You are already logged in.",
     "account_deleted": "This account has been deleted. You can restore it if you want.",
-    "login_success": "Successfully logged in.",
-    "error_occurred": "Something went wrong.",
+    "if_account_exists": "If an account with this email exists, you can recover it.",
+    "error_occurred": "Something went wrong: {e}",
     "already_registered": "You are already registered.",
     "username_too_long": "Username is too long.",
     "registration_success": "Registration was successful.",
     "username_taken": "Username is already taken.",
     "email_in_use": "Email is already in use.",
-    "enter_credentials": "Please enter your email and password.",
-    "invalid_credentials": "Invalid email or password.",
+    "account_recovery_help": "If your account was previously deleted, you can recover it using your email.",
     "account_already_active": "This account is already active.",
     "username_in_use": "Username is already in use, please choose another one.",
     "settings_saved": "Settings saved successfully.",
+    "must_type_delete": "You must type DELETE exactly.",
+    "user_not_found": "User not found.",
+    "account_deactivated": "Account and related content deactivated successfully.",
+    "ownership_removed": "Ownership removed.",
+    "ownership_removed_cleanup": "Ownership removed and artwork cleaned up.",
+
+    "_comment_log": "Log-related flash messages",
+    "login_first": "Log in first.",
+    "logout_success": "Successfully logged out.",
+    "already_logged_in": "You are already logged in.",
+    "login_success": "Successfully logged in.",
+
+    "_comment_password": "Password-related flash messages",
+    "password_required": "Password required.",
+    "wrong_password": "Wrong password.",
     "password_empty": "New password cannot be empty.",
     "password_incorrect": "Current password is incorrect.",
     "passwords_mismatch": "Passwords do not match.",
-    "logout_success": "Successfully logged out.",
-    "must_type_delete": "You must type DELETE exactly.",
-    "user_not_found": "User not found or already deleted.",
-    "wrong_password": "Wrong password.",
-    "account_deactivated": "Account and related content deactivated successfully.",
-    "not_owner": "You do not own this artwork.",
-    "ownership_removed": "Ownership removed.",
-    "ownership_removed_cleanup": "Ownership removed and artwork cleaned up.",
-    "password_required": "Password required.",
+    "enter_credentials": "Please enter your email and password.",
+    "invalid_credentials": "Invalid email or password.",
+
+    "_comment_artwork": "Artwork-related flash messages",
     "artwork_deleted": "Artwork deleted permanently.",
     "artwork_deleted_shop": "Artwork deleted from shop; owner copies preserved.",
+    "artwork_created": "Artwork created successfully.",
     "delete_failed": "Failed to delete artwork.",
     "artwork_hidden": "Artwork hidden.",
     "artwork_unhidden": "Artwork unhidden.",
-    "room_not_found": "Room not found."
+    "artwork_updated": "Artwork updated.",
+    "artwork_not_found": "Artwork not found.",
+    "artwork_cannot_buy_own": "You cannot buy your own artwork.",
+    "already_owned": "You already own this artwork.",
+    "not_owner": "You do not own this artwork.",
+
+    "room_not_found": "Room not found.",
+
+    "_comment_purchase": "Purchase-related flash messages",
+    "insufficient_points": "You do not have enough BeePoints.",
+    "purchase_failed": "Purchase failed. Try again.",
+    "artwork_purchased": "Artwork purchased successfully.",
+
+    "_comment_upload": "Upload-related flash messages",
+    "too_many_examples": "You can upload up to 5 example images.",
+    "invalid_example_file": "Invalid example file: {filename}",
+    "ex_file_too_large": "Example file {ex.filename} is too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).",
+    "thumbnail_too_large": "Thumbnail file is too large (max {(MAX_FILE_SIZE/1024/1024):.1f} MB).",
+    "invalid_thumbnail": "Invalid thumbnail file type.",
+    "thumbnail_required": "Thumbnail is required for commissions."
   }
 }

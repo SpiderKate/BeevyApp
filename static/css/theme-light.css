@@ -1,165 +1,71 @@
-/* ===========================
-   LIGHT THEME
-   =========================== */
-
 :root {
     /* Primary Colors - Light Mode */
     --primary-bg: #e8dded;
     --primary-bg-light: #f0ebf5;
     --primary-bg-dark: #dab6fc;
+
+    /* Text */
     --primary-text: #5b21b6;
+    --text-main: #5b21b6;
+    --text-muted: rgb(91 33 182 / 60%);
+
+    /* Accents */
     --accent-color: #d946ef;
     --accent-light: #e879f9;
-    
-    /* Glass & Transparency - Light */
+    --accent: var(--accent-color);
+
+    /* Backgrounds (derived) */
+    --bg-main: var(--primary-bg);
+    --bg-light: var(--primary-bg-light);
+    --bg-dark: var(--primary-bg-dark);
+
+    /* Glass & Transparency */
     --glass-bg: rgb(255 255 255 / 35%);
     --glass-bg-light: rgb(255 255 255 / 50%);
     --glass-border: rgb(217 70 239 / 30%);
     --glass-border-light: rgb(217 70 239 / 50%);
     --glass-blur: blur(10px);
-    
-    /* Secondary Colors */
-    --details: #a855f7;
-    --text-outline: transparent;
-    
-    /* Spacing & Animation */
-    --transition-speed: 0.3s;
+
+    /* Shadows */
+    --shadow-accent: 0 0 10px rgb(217 70 239 / 40%);
+
+    /* Buttons */
+    --btn-bg: linear-gradient(90deg, #d946ef, #c026d3);
+    --btn-bg-hover: linear-gradient(90deg, #e879f9, #d946ef);
+    --btn-shadow-hover: 0 0 10px rgb(217 70 239 / 40%);
+
+    /* Sidebar */
+    --sidebar-bg: rgb(232 221 237 / 50%);
+    --sidebar-border: rgb(217 70 239 / 25%);
+
+    /* Inputs */
+    --input-bg: rgb(255 255 255 / 40%);
+    --input-bg-focus: rgb(255 255 255 / 60%);
+    --input-border: rgb(217 70 239 / 40%);
+    --input-border-focus: #d946ef;
+    --input-shadow-focus: 0 0 10px rgb(217 70 239 / 40%);
+
+    /* Error */
+    --error-color: #ff4d4d;
+
+    /* Message Boxes */
+    --msg-info-bg: rgb(147 197 253 / 20%);
+    --msg-info-text: #1e3a8a;
+    --msg-info-outline: rgb(147 197 253 / 50%);
+    --msg-success-bg: rgb(111 207 151 / 20%);
+    --msg-success-text: #166534;
+    --msg-success-outline: rgb(111 207 151 / 50%);
+    --msg-error-bg: rgb(248 113 113 / 20%);
+    --msg-error-text: #7f1d1d;
+    --msg-error-outline: rgb(248 113 113 / 50%);
+
+    /* Decorative */
+    --hex-bg: rgb(217 70 239 / 10%);
+
+    /* Radius & Transition */
     --radius: 18px;
     --radius-md: 15px;
     --radius-sm: 12px;
     --radius-xs: 10px;
-}
-
-/* Light theme background */
-body {
-    background: radial-gradient(circle at top left, #f0ebf5, #e8dded 70%);
-}
-
-/* Adjust buttons for light theme */
-button {
-    background: linear-gradient(90deg, #d946ef, #c026d3);
-}
-
-button:hover {
-    background: linear-gradient(90deg, #e879f9, #d946ef);
-    box-shadow: 0 0 10px rgb(217 70 239 / 40%);
-}
-
-/* Sidebar adjustments */
-.sidebar {
-    background: rgb(232 221 237 / 50%);
-    border-right: 1px solid rgb(217 70 239 / 25%);
-}
-
-/* User menu button */
-.user-menu-button {
-    background: #d946ef;
-    color: white;
-}
-
-.user-menu-button:hover {
-    background: #e879f9;
-    color: white;
-}
-
-/* Dropdown menu */
-.dropdown {
-    background: #e8dded;
-    border: 1px solid rgb(217 70 239 / 30%);
-}
-
-/* Forms */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="file"],
-textarea,
-select,
-.input,
-.form-input {
-    background: rgb(255 255 255 / 40%) !important;
-    color: #5b21b6 !important;
-    border-color: rgb(217 70 239 / 40%) !important;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="number"]:focus,
-input[type="file"]:focus,
-textarea:focus,
-select:focus,
-.input:focus,
-.form-input:focus {
-    background: rgb(255 255 255 / 60%) !important;
-    border-color: #d946ef !important;
-    box-shadow: 0 0 10px rgb(217 70 239 / 40%) !important;
-}
-
-/* Button input styling */
-input[type="button"] {
-    background: linear-gradient(90deg, #d946ef, #e879f9) !important;
-    color: #5b21b6 !important;
-    border: 1px solid rgb(217 70 239 / 60%) !important;
-}
-
-input[type="button"]:hover {
-    background: linear-gradient(90deg, #e879f9, #f0a4ff) !important;
-    box-shadow: 0 0 15px rgb(217 70 239 / 50%) !important;
-}
-
-input[type="button"]:active {
-    background: linear-gradient(90deg, #c324d0, #d946ef) !important;
-}
-
-/* File input specific */
-input[type="file"] {
-    border-style: dashed !important;
-}
-
-input[type="file"]:hover {
-    border-color: #d946ef !important;
-    background: rgb(255 255 255 / 50%) !important;
-}
-
-/* Links */
-a, .back-link {
-    color: #d946ef;
-}
-
-a:hover, .back-link:hover {
-    color: #e879f9;
-    text-shadow: 0 0 10px rgb(217 70 239 / 50%);
-}
-
-/* Cards & containers */
-.art-container,
-.create-form,
-section,
-.settings-content,
-.shop-item {
-    background: rgb(255 255 255 / 30%) !important;
-    border-color: rgb(217 70 239 / 30%) !important;
-}
-
-/* Settings sidebar */
-.settings-link {
-    background: rgb(217 70 239 / 25%);
-}
-
-.settings-link:hover {
-    background: rgb(217 70 239 / 40%);
-}
-
-/* Info boxes */
-.info-box {
-    background: rgb(255 255 255 / 25%);
-}
-
-/* Page titles */
-.page-title,
-.shop-title,
-.art-title {
-    text-shadow: 0 0 6px rgba(217 70 239 / 30%);
+    --transition-speed: 0.3s;
 }

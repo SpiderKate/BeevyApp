@@ -21,10 +21,10 @@
 
     <!-- TABS -->
     <div class="profile-tabs">
-        <button onclick="showTab('selling')">{{ g.trans.get('nav.shop', g.user_language) }}</button>
+        <button onclick="showTab('selling')">{{ t('nav.shop') }}</button>
 
         {% if is_owner %}
-            <button onclick="showTab('owned')">{{ g.trans.get('shop.buy', g.user_language) }}</button>
+            <button onclick="showTab('owned')">{{ t('shop.buy') }}</button>
         {% endif %}
     </div>
 
@@ -44,7 +44,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p>{{ g.trans.get('messages.no_artworks', g.user_language) }} <a href="/create_art">{{ g.trans.get('art.create', g.user_language) }}</a></p>
+            <p>{{ t('messages.no_artworks') }} <a href="/create_art">{{ t('art.create') }}</a></p>
         {% endif %}
     </div>
 
@@ -64,7 +64,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p>{{ g.trans.get('messages.no_owned', g.user_language) }} <a href="/shop">{{ g.trans.get('nav.shop', g.user_language) }}</a></p>
+            <p>{{ t('messages.no_owned') }} <a href="/shop">{{ t('nav.shop') }}</a></p>
         {% endif %}
     </div>
     {% endif %}

@@ -8,16 +8,23 @@
 <div class="settings-container">
 
     <div class="settings-sidebar">
-        <a href="/{{ session.get('username') }}/settings/profile" class="settings-link">{{ g.trans.get('nav.settings', g.user_language) }} - {{ g.trans.get('settings.profile', g.user_language) }}</a>
-        <a href="/{{ session.get('username') }}/settings/account" class="settings-link">{{ g.trans.get('settings.account', g.user_language) }}</a>
-        <a href="/{{ session.get('username') }}/settings/security" class="settings-link">{{ g.trans.get('settings.security', g.user_language) }}</a>
-        <a href="/{{ session.get('username') }}/settings/logout" class="settings-link">{{ g.trans.get('nav.logout', g.user_language) }}</a>
-        <a href="/{{ session.get('username') }}/settings/delete" class="settings-link danger">{{ g.trans.get('settings.delete_account', g.user_language) }}</a>
+        <a href="/{{ session.get('username') }}/settings/profile" class="settings-link {% if active == 'profile' %}active{% endif %}">{{ t('nav.profile') }}</a>
+        <a href="/{{ session.get('username') }}/settings/preferences" class="settings-link {% if active == 'preferences' %}active{% endif %}">{{ t('settings.preferences_settings') }}</a>
+        <a href="/{{ session.get('username') }}/settings/account" class="settings-link {% if active == 'account' %}active{% endif %}">{{ t('settings.account') }}</a>
+        <a href="/{{ session.get('username') }}/settings/security" class="settings-link {% if active == 'security' %}active{% endif %}">{{ t('settings.security') }}</a>
+        <a href="/{{ session.get('username') }}/settings/logout" class="settings-link {% if active == 'logout' %}active{% endif %}">{{ t('nav.logout') }}</a>
+        <a href="/{{ session.get('username') }}/settings/delete" class="settings-link danger {% if active == 'delete' %}active{% endif %}">{{ t('settings.delete_account') }}</a>
     </div>
 
     <div class="settings-content">
         {% block settings_page %}
-        {{ g.trans.get('settings.title', g.user_language) }}
+        {{ t('settings.title') }}
+        <div class="settings-empty">
+            <img src="/static/images/beee.svg" alt="Beevy bee" class="bee-animation">
+            <h2>{{ t('settings.title') }}</h2> 
+            <p>Bzz... vyber si vlevo, co chceš upravit.</p> 
+            <p class="bee-comment">„Profil? Jako pil a chlorofyl…?“</p> 
+        </div>
         {% endblock %}
     </div>
 

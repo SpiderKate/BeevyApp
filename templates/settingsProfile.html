@@ -18,12 +18,8 @@
         <label for="avatarInput" class="file-label"> {{ t('settings.choose_file') }} </label> 
         <span id="fileName" class="file-name"> {{ t('settings.no_file_selected') }} </span> 
         <input type="file" name="avatar" id="avatarInput"> 
-    </div>
-
-
-    <img id="avatarPreview" 
-     src="{{ url_for('static', filename=user[3]) if user[3] else url_for('static', filename='images/default_avatar.png') }}" 
-     class="avatar-preview">
+    </div> 
+    <img id="avatarPreview" src="{{ url_for('static', filename=user[3]) if user[3] else url_for('static', filename='images/default_avatar.png') }}" class="avatar-preview">
 
     <script>
     const avatarInput = document.getElementById('avatarInput');
@@ -35,7 +31,7 @@
     });
 
 </script>
-
+<br>
 
     <button type="submit">{{ t('buttons.save') }}</button>
 </form>

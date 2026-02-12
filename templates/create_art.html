@@ -3,7 +3,7 @@
 {% block title %}Create Art / Commission 🐝{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="/static/css/register.css">
+<link rel="stylesheet" href="/static/css/create_art.css">
 {% endblock %}
 
 {% block content %}
@@ -44,30 +44,22 @@
     <input for="commission" type="number" name="slots" min="1" class="input">
 </div>
 
-<!--
-<script>
-    const option = document.getElementById("option").value;
-    document.getElementById("slots").classList.toggle("hidden");
-
-    if(option == "Art"){
-        document.getElementById("slots").classList.add("hidden");
-        // TODO: add class name hidden
-    }
-    else if(option == "Commission"){
-         document.getElementById("slots").classList.remove("hidden");
-    }
-</script>
--->
-
    <!-- Thumbnail -->
-<label class="form-label">Thumbnail (cover image)</label>
-<input type="file" name="thumbnail" accept="image/*" required class="input">
-<img id="thumbPreview" class="preview-img" style="display:none; width:150px; height:auto;">
+<label>{{ t('settings.thumbnail') }}</label>
+    <div class="file-wrapper"> 
+        <label for="Input" class="file-label"> {{ t('settings.choose_file') }} </label> <br>
+        <span id="fileName" class="file-name"> {{ t('settings.no_file_selected') }} </span> 
+        <input type="file" name="thumb" id="Input"> 
+    </div>
 
 <!-- Examples -->
-<label class="form-label">Example images (optional)</label>
-<input type="file" name="examples" accept="image/*" multiple class="input">
-<div id="examplesPreview" class="preview-container"></div>
+<label>{{ t('settings.examples') }}</label>
+    <div class="file-wrapper"> 
+        <label for="Input" class="file-label"> {{ t('settings.choose_file') }} </label> <br>
+        <span id="fileName" class="file-name"> {{ t('settings.no_file_selected') }} </span> 
+        <input type="file" name="examples" id="Input"> 
+    </div>
+
 
     <button type="submit" class="submit" id="submit">Create</button>
 
@@ -75,8 +67,12 @@
 
 <script>
 // Thumbnail preview (fixed to display at shop size)
-const thumbInput = document.querySelector("input[name='thumbnail']");
 const thumbPreview = document.getElementById("thumbPreview");
+const Input = document.getElementById("Input");
+Input.addEventListener('change', () => {
+        fileName.textContent = Input.files[0]?.name || "{{ t('settings.no_file') }}";
+    });
+
 
 thumbInput.addEventListener("change", () => {
     if (thumbInput.files && thumbInput.files[0]) {

@@ -80,6 +80,18 @@ input[type="file"] { padding: 12px;
     font-size: 0.95rem; 
 }
 
+input[type="number"]{
+    width: 10%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text-main);
+    margin-bottom: 20px;
+    transition: var(--transition);
+    font-size: 15px;
+}
+
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -131,13 +143,15 @@ textarea {
 
 /* AVATAR PREVIEW */
 .avatar-preview {
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     border-radius: var(--radius-md);
     margin-bottom: 15px;
-    object-fit: cover;
+    object-fit:fill;
     border: 2px solid var(--glass-border);
     margin-top: 10px;
+    display: flex;
+    float: right;
 }
 
 /* SWITCH */
@@ -304,6 +318,7 @@ input[type="file"]::file-selector-button:hover {
     align-items: center;
     gap: 12px;
     margin: 10px 0;
+    width: 60%;
 }
 
 /* Skrytý původní input */

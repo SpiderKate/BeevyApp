@@ -406,32 +406,34 @@ def login():
         try:
             conn = sqlite3.connect('beevy.db')
             cursor = conn.cursor()
+
             #hleda heslo bud pro username ci email
-            cursor.execute("SELECT password,username,last_login_at,id, deleted FROM users WHERE email=? OR username=?",(usEm, usEm))
+            cursor.execute("SELECT password,username,id, deleted FROM users WHERE email=? OR username=?",(usEm, usEm))
             #vysledek se popripadne ulozi sem
             result = cursor.fetchone()
-            cursor.execute("SELECT language FROM preferences WHERE user_id = (SELECT id FROM users WHERE username=?)", (session['username'],)) 
+            db_pass, username, id, deleted = result
+
+            cursor.execute("SELECT language FROM preferences WHERE user_id = ?", (id,)) 
             row = cursor.fetchone()
-            conn.close()
+
             if row:
                 session["user_language"] = row[0]
             
             
             #a kdyz to najde heslo k danému username ci email tak ho zkontroluje
             if result:
-                db_pass = result[0]
-                if isinstance(result[0], str): #chexks if its a string
-                    db_pass = result[0].encode('utf-8') #converts the string to bytes
+                if isinstance(db_pass, str): #chexks if its a string
+                    db_pass = db_pass.encode('utf-8') #converts the string to bytes
                     
                 #kdyz je spravne posle uzivatele na userPage
-                if result[4]:
+                if deleted:
                     flash_translated("flash.account_deleted", "info")
                     return redirect(request.url)
                 if bcrypt.checkpw(user_bytes, db_pass):
                     session.permanent = True
-                    session['username'] = result[1]
+                    session['username'] = username
                     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    cursor.execute("UPDATE users SET last_login_at=? WHERE id=?",(now,result[3]))
+                    cursor.execute("UPDATE users SET last_login_at=? WHERE id=?",(now,id))
                     conn.commit()
                     #print("Rows updated:", cursor.rowcount)
                     flash_translated("flash.login_success", "success")

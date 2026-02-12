@@ -5,13 +5,6 @@
     --transition-speed: 0.3s;
 }
 
-/* Animace */
-@keyframes floatHex {
-    0% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
-    50% { transform: translateY(-20px) rotate(20deg); opacity: 0.6; }
-    100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
-}
-
 /* Title & Description */
 #title-container {
     display: inline-flex;
@@ -37,20 +30,6 @@
     animation: bee-fly 3s ease-in-out infinite alternate;
     z-index: 2;
 }
-
-@keyframes bee-fly {
-    0% { transform: translateY(0) translateX(0) rotate(0deg); }
-    25% { transform: translateY(-5px) translateX(3px) rotate(10deg); }
-    50% { transform: translateY(0) translateX(6px) rotate(-5deg); }
-    75% { transform: translateY(-3px) translateX(3px) rotate(5deg); }
-    100% { transform: translateY(0) translateX(0) rotate(0deg); }
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
 #about {
     font-size: 1.2rem;
     margin: 0 auto;
@@ -65,10 +44,9 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: -15px;
+    gap: -15px; /* overlap for honeycomb effect */
     z-index: 5;
 }
-
 .hex {
     position: relative;
     width: 120px;
@@ -90,7 +68,7 @@
 }
 
 .hex:nth-child(odd) {
-    margin-top: 69px;
+    margin-top: 69px; /* half hex height for stagger */
     animation-delay: 0.2s;
 }
 
@@ -98,21 +76,11 @@
     animation-delay: 0.4s;
 }
 
-/* Buzzing animation */
-@keyframes buzz {
-    0% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-5px) rotate(1deg); }
-    50% { transform: translateY(0) rotate(0deg); }
-    75% { transform: translateY(-5px) rotate(-1deg); }
-    100% { transform: translateY(0) rotate(0deg); }
-}
-
-/* Hover effect */
+/* Hover effect stays on top */
 .hex:hover {
     transform: scale(1.1) rotate(5deg);
     box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 70%, transparent);
 }
-
 /* Hex Content */
 .hex-content {
     color: var(--primary-bg);
@@ -120,4 +88,13 @@
     text-decoration: none;
     text-align: center;
     padding: 5px;
+}
+footer {
+background-color: var(--primary-bg-dark 70%);
+text-align: center;
+padding: 10px;
+position: fixed;
+left: 0;
+bottom: 0;
+width: 100%;
 }

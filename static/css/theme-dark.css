@@ -25,6 +25,13 @@
     --glass-border-light: rgb(0 212 255 / 30%);
     --glass-blur: blur(6px);
 
+    /* Filters */
+    --tool-filter: invert(70%) sepia(100%) saturate(3480%) hue-rotate(245deg) brightness(43%) contrast(50%);
+    --bucket-filter: invert(70%) sepia(100%) saturate(3480%) hue-rotate(235deg) brightness(43%) contrast(50%);
+    --tool-filter-hover: invert(70%) sepia(100%) saturate(7480%) hue-rotate(205deg) brightness(183%) contrast(130%);
+    --bucket-filter-hover: invert(32%) sepia(90%) saturate(2000%) hue-rotate(165deg) brightness(90%) contrast(600%);
+    --span-muted-filter: var(--accent-color);
+
     /* Shadows */
     --shadow-accent: 0 0 10px rgb(0 212 255 / 40%);
 

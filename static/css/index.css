@@ -1,9 +1,4 @@
-:root {
-    --primary-bg: #8860cc;
-    --primary-text: rgb(247 235 78);
-    --accent-color: #f7eb4e;
-    --transition-speed: 0.3s;
-}
+
 
 /* Title & Description */
 #title-container {
@@ -30,6 +25,7 @@
     animation: bee-fly 3s ease-in-out infinite alternate;
     z-index: 2;
 }
+
 #about {
     font-size: 1.2rem;
     margin: 0 auto;
@@ -47,8 +43,10 @@
     gap: -15px; /* overlap for honeycomb effect */
     z-index: 5;
 }
+
 .hex {
     position: relative;
+    color: var(--accent-color);
     width: 120px;
     height: 138px;
     background-color: var(--accent-color);
@@ -79,8 +77,9 @@
 /* Hover effect stays on top */
 .hex:hover {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 70%, transparent);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--accent-color) 70%, transparent);
 }
+
 /* Hex Content */
 .hex-content {
     color: var(--primary-bg);
@@ -89,8 +88,10 @@
     text-align: center;
     padding: 5px;
 }
+
 footer {
 background-color: var(--primary-bg-dark 70%);
+color: var(--text-main);
 text-align: center;
 padding: 10px;
 position: fixed;

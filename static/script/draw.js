@@ -1,3 +1,4 @@
+document.addEventListener("DOMContentLoaded", () => {
 const canvas = document.getElementById('drawCanvas');
 toolBtns = document.querySelectorAll(".tool");
 const ctx = canvas.getContext('2d');
@@ -54,11 +55,11 @@ let currentColor = '#000';
 let brushSize = document.getElementById("size").value;
 let slider = document.getElementById("sizeSlider");
 let clearcanvas = document.getElementById("clearCanvas");
-let fillColor = document.getElementById("fillColor");
 let canvasSnapshot = null;
-fillColor.addEventListener("checked", ()=>{
-    currentTool = "bucket";
-    fill(data);
+
+clearcanvas.addEventListener("click", () => { // Clear locally 
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Sync to others 
+    sendDrawData({ type: "clear" }); 
 });
 
 //odposlouchava slider a meni velikost stetce
@@ -73,14 +74,24 @@ toolBtns.forEach(btn => {
     btn.addEventListener("click", () => {
         currentTool = btn.id; // ulozi aktivni nastroj
         console.log("Selected tool:", currentTool);
+        showTool(btn.id);
         //currentTool.classList.add('active');
         //!currentTool.classList.remove('active')
     });
 });
 
 canvas.addEventListener("mousedown", (e) => {
-    drawing = true;
     const pos = getNormalizedPos(e);
+    if (currentTool === "bucket") { 
+        const data = {
+            x: pos.x, y: pos.y, color: currentColor 
+        }; // local fill 
+        bucketFillAtNormalized(data); // sync to others 
+        sendDrawData({ type: "bucket", ...data }); 
+        return; 
+    }
+    drawing = true;
+    
     lastX = pos.x;
     lastY = pos.y;
 
@@ -187,16 +198,6 @@ canvas.addEventListener("mousemove", (e) => {
         };
         circle(data);
     }
-    if (currentTool === "bucket") {
-        const data = { 
-            fromX: 0,
-            fromY: 0,
-            toX: 1000,
-            toY: 1000,
-            color: currentColor
-        };
-        fill(data);
-    }
 });
 
 function saveCanvasState() {
@@ -294,16 +295,68 @@ function circle(data){
     ctx.arc(x1, y1, c, 0, 2 * Math.PI);
     ctx.stroke();
 };
-// FIXME: fix it :3
-function fill(data){
-    const { fromX, fromY, toX, toY, color, width } = data;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    rectangle(data);
-    fill();
 
-};
+function bucketFillAtNormalized(data) { 
+    const x = Math.floor(denormX(data.x)); 
+    const y = Math.floor(denormY(data.y)); 
+    bucketFill(canvas, x, y, data.color); 
+} 
+
+function bucketFill(canvas, x, y, fillColor, tolerance = 0) {
+    const ctx = canvas.getContext("2d"); 
+    const width = canvas.width; 
+    const height = canvas.height; 
+    const imgData = ctx.getImageData(0, 0, width, height); 
+    const data = imgData.data; 
+    const startPos = (y * width + x) * 4; 
+    const targetColor = [ 
+        data[startPos], 
+        data[startPos + 1], 
+        data[startPos + 2], 
+        data[startPos + 3] 
+    ]; 
+    const newColor = hexToRgba(fillColor); 
+    if (colorsMatch(targetColor, newColor)) 
+        return; 
+    const stack = [[x, y]]; 
+    while (stack.length) { 
+        const [cx, cy] = stack.pop(); 
+        if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue; 
+        const pos = (cy * width + cx) * 4; 
+        const current = [ 
+            data[pos], 
+            data[pos + 1], 
+            data[pos + 2], 
+            data[pos + 3] 
+        ]; 
+        if (!colorsMatch(current, targetColor, tolerance)) continue; 
+        data[pos] = newColor[0]; 
+        data[pos + 1] = newColor[1]; 
+        data[pos + 2] = newColor[2]; 
+        data[pos + 3] = newColor[3]; 
+        stack.push([cx + 1, cy]); 
+        stack.push([cx - 1, cy]); 
+        stack.push([cx, cy + 1]); 
+        stack.push([cx, cy - 1]); 
+    } ctx.putImageData(imgData, 0, 0); 
+} 
+
+function colorsMatch(a, b, tolerance = 0) { return ( 
+    Math.abs(a[0] - b[0]) <= tolerance && 
+    Math.abs(a[1] - b[1]) <= tolerance && 
+    Math.abs(a[2] - b[2]) <= tolerance && 
+    Math.abs(a[3] - b[3]) <= tolerance ); 
+
+} function hexToRgba(hex) { 
+    hex = hex.replace("#", ""); 
+    const bigint = parseInt(hex, 16); 
+    return [ 
+        (bigint >> 16) & 255, 
+        (bigint >> 8) & 255, 
+        bigint & 255, 
+        255 
+    ]; 
+}
 
 const colorPicker = new iro.ColorPicker("#colorPicker", { //vytvori novy color picker
     width: 150,
@@ -322,7 +375,11 @@ socket.on('draw_history', (history) => {
         break;
         case "circ": circle(data);
         break;
-    }
+        case "bucket": bucketFillAtNormalized(data); 
+        break;
+        case "clear": ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        break;
+        }
     });
 });
 
@@ -336,6 +393,10 @@ socket.on('draw', (data) => {
         case "tri": triangle(data);
         break;
         case "circ": circle(data);
+        break;
+        case "bucket": bucketFillAtNormalized(data); 
+        break;
+        case "clear": ctx.clearRect(0, 0, canvas.width, canvas.height); 
         break;
     }
 }); 
@@ -357,6 +418,7 @@ addEventListener("click", ()=>{
     link.click();
     document.body.removeChild(link);
 })  
+});
 
 // TODO: users history on the canvas so undo can work for the user and not the canvas
 // TODO: layers

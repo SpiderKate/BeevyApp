@@ -1614,6 +1614,7 @@ def buy_art(art_id):
 
         # Subtract points
         cursor.execute("UPDATE users SET bee_points = bee_points - ? WHERE id=?", (price, user_id))
+        cursor.execute("UPDATE users SET bee_points = bee_points + ? WHERE id=?", (price, author_id))
 
         # Add ownership
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1680,16 +1681,21 @@ def download_art(art_id):
 def create_art():
     if request.method == "POST":
         username = session["username"]
-
+        
         # --- Form data ---
         title = request.form.get("title")
         description = request.form.get("description")
-        tat = request.form.get("tat")
         price = int(request.form.get("price", 0))
+        thumb_file = request.files.get("thumb")
         art_type = request.form.get("type")
-        slots = request.form.get("slots")
-        thumb_file = request.files.get("thumbnail")
-        examples_files = request.files.getlist("examples")
+        if art_type == "commission":
+            tat = request.form.get("tat")
+            slots = request.form.get("slots")
+            examples_files = request.files.getlist("examples")
+        else:
+            tat = 1
+            slots = None
+            examples_files = []
 
         if not thumb_file or not thumb_file.filename:
             flash_translated("flash.thumbnail_required", "error")

@@ -96,15 +96,19 @@
     "options": "Možnosti",
     "brush": "Kartáč",
     "eraser": "Guma",
-    "canvas": "plátno"
+    "canvas": "plátno",
+    "bucket": "Kyblík"
   },
   "art": {
     "title": "Název",
     "description": "Popis",
     "price": "Cena",
     "type": "Typ",
+    "createTitle": "Vytvořit Kresbu / Zakázku",
+    "art": "Kresba",
     "commission": "Zakázka",
-    "create": "Vytvořit kresbu",
+    "createArt": "Vytvořit kresbu",
+    "createCommission": "Vytvořit zakázku",
     "edit": "Upravit kresbu",
     "edit_artwork": "Upravit kresbu",
     "delete": "Smazat kresbu",

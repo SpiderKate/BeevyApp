@@ -4,7 +4,7 @@
     "block-no-empty": null,
     "color-hex-length": "short",
     "max-empty-lines": null,
-    "unit-allowed-list": ["em", "rem", "s", "%", "px", "vh", "vw", "deg"],
+    "unit-allowed-list": ["em", "rem", "s", "%", "px", "vh", "vw", "deg","fr"],
     "selector-class-pattern": null,
     "selector-id-pattern": null,
     "keyframes-name-pattern": null,

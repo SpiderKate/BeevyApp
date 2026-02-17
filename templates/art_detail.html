@@ -7,50 +7,89 @@
 
 {% block content %}
 <div class="art-detail">
-    <h2>{{ item[2] }}</h2>
-    <p>{{ t('shop.artist') }} {{ item[1] }}</p>
-    {% if item[3] %}
-        <p>{{ t('art.description') }}: {{ item[3] }}</p>
-    {% endif %}
-    {% if is_active %}
-        <p>{{ t('shop.price') }}: {{ item[5] }} BP</p>
-        {% if item[6] == "commission" %}
-            <p>{{ t('art.turnaround') }}: {{ item[4] }} {{ t('art.days') }}</p>
-        {% endif %}
-    {% if item[11] %}
-        <p>{{ t('art.slots') }}: {{ item[11] }}</p>
-    {% endif %}
-    {% endif %}
-    
 
+    <div class="info-box">
+
+        <!-- HEADER -->
+        <div class="header">
+            <h2>{{ item[2] }}</h2>
+            <span class="author">
+                {{ t('shop.artist') }} {{ item[1] }}
+            </span>
+        </div>
+
+        <!-- DESCRIPTION -->
+        {% if item[3] %}
+            <div class="description">
+                <p>
+                    <span class="label">{{ t('art.description') }}:</span>
+                    {{ item[3] }}
+                </p>
+            </div>
+        {% endif %}
+
+        {% if is_active %}
+
+            <!-- PRICE (odděleně) -->
+            <div class="price">
+                <span class="label">{{ t('shop.price') }}:</span>
+                {{ item[5] }} BP
+            </div>
+
+            <!-- META GRID -->
+            <div class="meta">
+                {% if item[6] == "commission" %}
+                    <span class="label">{{ t('art.turnaround') }}:</span>
+                    <span>{{ item[4] }} {{ t('art.days') }}</span>
+                {% endif %}
+
+                {% if item[11] %}
+                    <span class="label">{{ t('art.slots') }}:</span>
+                    <span>{{ item[11] }}</span>
+                {% endif %}
+            </div>
+
+        {% endif %}
+    </div>
+
+    <!-- MAIN IMAGE -->
     {% if item[6] %}
-        <div style="position: relative; display: inline-block;">
-            <img src="{{ url_for('static', filename=item[7]) }}" alt="Thumbnail" class="preview-img" oncontextmenu="return false;">
-            <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        <div class="thumbnail-container">
+            <img src="{{ url_for('static', filename=item[7]) }}"
+                 alt="Thumbnail"
+                 class="preview-img"
+                 oncontextmenu="return false;">
         </div>
     {% endif %}
 
+    <!-- EXAMPLES -->
     {% if examples_list %}
         <h3>{{ g.trans.get('art.examples', g.user_language) }}</h3>
-        {% for ex in examples_list %}
-            <div style="position: relative; display: inline-block;">
-                <img src="{{ url_for('static', filename=ex) }}" alt="Example" class="preview-img" oncontextmenu="return false;">
-                <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
-            </div>
-        {% endfor %}
+
+        <div class="examples-container">
+            {% for ex in examples_list %}
+                <img src="{{ url_for('static', filename=ex) }}"
+                     alt="Example"
+                     class="example-img"
+                     oncontextmenu="return false;">
+            {% endfor %}
+        </div>
     {% endif %}
-    <br>
-    
-    {% if is_author %}
-        <a href="{{ url_for('editArt', username = session.get('username'), art_id=item[0]) }}" class="btn">
-            {{ t('art.edit_artwork') }}
-        </a>
-    {% elif is_active %}
-        <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn buy">
-            {{ t('shop.buy_for') }} {{ item[5] }} BP
-        </a>
-    {% else %}
-        <p><em>{{ t('messages.removed_from_shop') }}</em></p>
-    {% endif %}
+
+    <!-- ACTION BUTTON -->
+    <div class="action-section">
+        {% if is_author %}
+            <a href="{{ url_for('editArt', username=session.get('username'), art_id=item[0]) }}" class="btn">
+                {{ t('art.edit_artwork') }}
+            </a>
+        {% elif is_active %}
+            <a href="{{ url_for('buy_art', art_id=item[0]) }}" class="btn buy">
+                {{ t('shop.buy_for') }} {{ item[5] }} BP
+            </a>
+        {% else %}
+            <p><em>{{ t('messages.removed_from_shop') }}</em></p>
+        {% endif %}
+    </div>
+
 </div>
 {% endblock %}

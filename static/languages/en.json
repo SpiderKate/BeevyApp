@@ -40,40 +40,51 @@
     "recover_account": "Recover deleted account"
   },
   "settings": {
+    "_comment_sidebar": "Sidebar-related translations",
     "title": "Settings",
     "account": "Account",
     "profile": "Profile",
     "security": "Security",
     "logout_all": "Logout",
     "delete_account": "Delete Account",
-    "theme": "Theme",
-    "language": "Language",
-    "english": "English",
-    "czech": "Czech",
-    "bee_theme": "Bee (Original)",
-    "dark_theme": "Dark",
-    "light_theme": "Light",
+    
     "save": "Save Changes",
-    "avatar": "Avatar",
+
+    "_comment_art": "Art-related translations",
     "thumbnail":"Thumbnail (cover image)",
     "examples":"Example images (optional)",
     "tat":"Turnaround Time (days)",
-    "upload_avatar": "Upload Avatar",
-    "bio": "Bio",
+    "choose_file": "Choose file",
+    "no_file_selected": "No file selected",
+    
     "bee_talk1": "Bzz... choose what you want to change...",
     "bee_talk2": "Profile? Is there also a noob file and even a god file..?",
+
+    "account_settings": "Account Settings",
+    "email": "Email",
+
+    "profile_settings": "Profile Settings",
+    "upload_avatar": "Upload Avatar",
+    "bio": "Bio",
+    "avatar": "Avatar",
+
+    "preferences_settings": "Preferences",
     "social_links": "Social Links",
     "notifications": "Notifications",
     "enable_notifications": "Enable Notifications",
     "def_brush_size": "Default Brush Size",
-    "email": "Email",
-    "account_settings": "Account Settings",
-    "profile_settings": "Profile Settings",
-    "preferences_settings": "Preferences",
-    "danger_zone": "Danger Zone",
+    "theme": "Theme",
+    "bee_theme": "Bee (Original)",
+    "dark_theme": "Dark",
+    "light_theme": "Light",
+    "language": "Language",
+    "english": "English",
+    "czech": "Czech",
+    
     "security_settings": "Security Settings",
-    "choose_file": "Choose file",
-    "no_file_selected": "No file selected"
+    "new_password": "Repeat your password",
+
+    "danger_zone": "Danger Zone"    
   },
   "shop": {
     "title": "Shop",

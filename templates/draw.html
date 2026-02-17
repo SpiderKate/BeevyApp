@@ -14,19 +14,15 @@
                 <ul class="options">
                     <li class="option tool" id="rectangle">
                         <img src="{{ url_for('static', filename='images/icons/rectangle.svg') }}">
-                        <span>{{ t('draw.rectangle') }}</span>
+                        <span onclick="showTool('rectangle')">{{ t('draw.rectangle') }}</span>
                     </li>
                      <li class="option tool" id="circle">
                         <img src="{{ url_for('static', filename='images/icons/circle.svg') }}">
-                        <span>{{ t('draw.circle') }}</span>
+                        <span onclick="showTool('circle')">{{ t('draw.circle') }}</span>
                     </li>
                     <li class="option tool" id="triangle">
                         <img src="{{ url_for('static', filename='images/icons/triangle.svg') }}">
-                        <span>{{ t('draw.triangle') }}</span>
-                    </li>
-                     <li class="option tool" id="fillcolor">
-                        <input type="checkbox" id="fillColor">
-                        <label for="fillColor">{{ t('draw.color') }}</label>
+                        <span onclick="showTool('triangle')">{{ t('draw.triangle') }}</span>
                     </li>
                 </ul>
             </div>
@@ -42,6 +38,10 @@
                         <img src="{{ url_for('static', filename='images/icons/eraser.svg') }}"> 
                         <span onclick="showTool('eraser')">{{ t('draw.eraser') }}</span> 
                     </li>
+                    <li class="option tool bucket" id="bucket">
+                        <img src="{{ url_for('static', filename='images/icons/bucket.svg') }}">
+                        <span onclick="showTool('bucket')">{{ t('draw.bucket') }}</span>
+                    </li>
                     <li class="option">
                         <div id="size">{{ brush[0] }}</div>
                     </li>
@@ -52,13 +52,14 @@
             </div>
 
             <div id="colorPicker"></div>
-                <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
-
+            <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+            <script src="{{ url_for('static', filename='script/draw.js') }}"></script>
 <br>
             <div class="row buttons">
-                <button class="clearCanvas">{{ t('buttons.clear') }} {{ t('draw.canvas') }}</button><br><br>
+                <button id="clearCanvas" class="clearCanvas">{{ t('buttons.clear') }} {{ t('draw.canvas') }}</button><br><br>
                 <button class="saveImg" id="saveImg">{{ t('buttons.save') }}</button>
 <!--TODO: save image to db to userpage-->
+<!--TODO: bucket on brush bush stoke filled canavs -> bucket doesnt go over it -->
             </div>
         </section>
     
@@ -68,6 +69,6 @@
         </section>
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
         <!--<script src="/socket.io/socket.io.js"></script>-->
-        <script src="{{ url_for('static', filename='script/draw.js') }}"></script>
+        
     </div>
 {% endblock %}

@@ -1,106 +1,176 @@
 /* ===========================
-   ART DETAIL PAGE - Page Specific Styles
+   ART DETAIL PAGE
    =========================== */
 
-/* Main container for art detail */
-.art-container {
+.art-detail {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 28px 32px;
     background: var(--glass-bg);
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 18px var(--glass-border);
     backdrop-filter: var(--glass-blur);
-    padding: 30px;
-    border-radius: var(--radius);
-    max-width: 900px;
-    width: 100%;
-    box-shadow: 0 4px 20px color-mix(in srgb, var(--bg-dark) 25%, transparent);
-    position: relative;
-    z-index: 5;
-    animation: fadeIn 0.5s ease-out;
+    color: var(--text-main);
+    text-align: left; /* důležité pro čitelnost */
 }
 
 /* Title */
-.art-title {
-    font-size: 2.7rem;
-    font-weight: bold;
+.art-detail h2 {
+    font-size: 2rem;
     margin-bottom: 10px;
     color: var(--text-main);
-    text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 40%, transparent);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--accent 40%), transparent);
 }
 
-/* Author  */
-.art-author {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin-bottom: 25px;
-    color: var(--text-main);
+/* Subtext */
+.art-detail p strong {
+    color: var(--accent);
 }
 
-/* Artwork image */
-.art-image {
-    width: 100%;
-    border-radius: var(--radius);
-    box-shadow: 0 3px 18px color-mix(in srgb, var(--bg-dark) 35%, transparent);
-    margin: 20px 0;
-    animation: float 6s ease-in-out infinite;
-}
-
-/* Info boxes */
-.info-box {
-    background: var(--glass-bg);
-    padding: 18px;
-    border-radius: var(--radius);
-    margin: 20px 0;
-    box-shadow: 0 3px 10px color-mix(in srgb, var(--bg-dark) 15%, transparent);
-    text-align: left;
-    line-height: 1.55;
-    color: var(--text-main);
-}
-
-/* Labels */
-.label {
-    font-weight: bold;
-    color: var(--accent-color);
-    text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 50%, transparent);
-}
-
-/* Buy button */
-.buy-btn {
-    display: block;
-    width: 100%;
+/* Section headers */
+.art-detail h3 {
     margin-top: 25px;
-    padding: 14px;
+    margin-bottom: 10px;
+    font-size: 1.4rem;
+    color: var(--accent);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--accent 40%), transparent);
+}
+
+/* ===========================
+   MAIN IMAGE (větší)
+   =========================== */
+
+.thumbnail-container {
+    display: flex;
+    justify-content: center;
+    margin: 32px 0;
+}
+
+.preview-img {
+    width: 100%;
+    max-width: 900px;
+    max-height: 650px;
+    object-fit: contain;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 35px rgb(0 0 0 / 35%);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.preview-img:hover {
+    transform: scale(1.015);
+    box-shadow: 0 18px 50px rgb(0 0 0 / 45%);
+}
+
+/* ===========================
+   EXAMPLE IMAGES (menší)
+   =========================== */
+
+.examples-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.example-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
     border-radius: var(--radius-sm);
-    background: var(--btn-bg);
-    color: var(--text-main);
-    font-weight: bold;
-    text-align: center;
-    font-size: 1.3rem;
-    transition: var(--transition-speed);
-    text-decoration: none;
-    box-shadow: 0 3px 10px color-mix(in srgb, var(--bg-dark) 25%, transparent);
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 25%);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.buy-btn:hover {
-    transform: scale(1.05);
-    background: var(--btn-bg-hover);
-    box-shadow: var(--btn-shadow-hover);
+.example-img:hover {
+    transform: scale(1.04);
+    box-shadow: 0 12px 28px rgb(0 0 0 / 40%);
 }
 
-/* Back link */
-.back-link {
+/* ===========================
+   INFO BOXES (upravené)
+   =========================== */
+
+.info-box { 
+    background: var(--glass-bg-light); 
+    padding: 18px 22px; 
+    border-radius: var(--radius-md); 
+    margin: 22px 0; 
+    border: 1px solid var(--glass-border-light); 
+    box-shadow: 0 3px 14px color-mix(in srgb, var(--accent 15%), transparent); 
+    backdrop-filter: var(--glass-blur); 
+    line-height: 1.55; 
+    text-align: left;
+}
+
+.info-box .label { 
+    font-weight: 600; 
+    color: var(--accent); 
+    margin-right: 6px; 
+    text-shadow: 0 0 4px color-mix(in srgb, var(--accent 50%), transparent);
+}
+
+.info-box h2 {
+    margin: 0 0 6px;
+}
+
+.info-box .author {
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    display: block;
+}
+
+.info-box .header {
+    margin-bottom: 16px;
+}
+
+.info-box .meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    margin-top: 14px;
+}
+
+.info-box .price {
+    margin-top: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* ===========================
+   BUTTONS
+   =========================== */
+
+.btn {
     display: inline-block;
     margin-top: 20px;
-    font-weight: bold;
-    color: var(--text-main);
-    transition: var(--transition-speed);
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    background-image: var(--btn-bg);
+    color: var(--primary-text);
+    font-weight: 600;
     text-decoration: none;
+    box-shadow: var(--shadow-accent);
+    transition: background-image var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 
-.back-link:hover {
-    color: var(--accent-light);
-    text-shadow: 0 0 10px color-mix(in srgb, var(--accent-light) 70%, transparent);
-    transform: scale(1.05);
+.btn:hover {
+    background-image: var(--btn-bg-hover);
+    box-shadow: var(--btn-shadow-hover);
+    transform: translateY(-1px);
 }
 
-.art-detail {
-    position: relative;
-    z-index: 10;
+/* Buy button variant */
+.btn.buy {
+    background-image: linear-gradient(90deg, #00a0cc, #007aa3);
+}
+
+.btn.buy:hover {
+    background-image: linear-gradient(90deg, #00c8ff, #0090c7);
+}
+
+/* Removed from shop text */
+.art-detail em {
+    color: var(--text-muted);
+    font-style: italic;
 }

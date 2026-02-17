@@ -67,7 +67,6 @@
     </div>
     <div id="user-dropdown" class="dropdown hidden">
         <a href="/{{ session.get('username') }}">{{ t('nav.profile') }}</a>
-        <a href="/create_art">{{ t('art.create') }}</a>
         <a href="/{{ session.get('username') }}/settings">{{ t('nav.settings') }}</a>
     </div>
 </div>
@@ -80,6 +79,7 @@
         <nav>
             <a href="/">{{ t('home.title') }}</a>
             <a href="/shop">{{ t('nav.shop') }}</a>
+            <a href="/create_art">{{ t('art.createTitle') }}</a>
             <a href="/option">{{ t('nav.draw') }}</a>
         </nav>
     </aside>

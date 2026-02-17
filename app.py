@@ -791,7 +791,6 @@ def private():
 @app.route('/option')
 @login_required
 def option():
-    #FIXME: if click button render dif template then redirect
     return render_template('drawOption.html')
 
 #settings...
@@ -1094,7 +1093,7 @@ def shop():
     conn.close()
 
     return render_template("shop.html", items=items)
-
+# TODO: css buy art
 @app.route('/shop/<int:art_id>')
 @login_required
 def art_detail(art_id):
@@ -1104,7 +1103,7 @@ def art_detail(art_id):
 
     # Fetch artwork and optional author (allow author to be NULL after deletion)
     cursor.execute("""
-        SELECT art.*, users.username
+        SELECT art.*,users.bee_points, users.username
         FROM art
         LEFT JOIN users ON art.author_id = users.id
         WHERE art.id = ?
@@ -1595,6 +1594,9 @@ def buy_art(art_id):
 
     # GET -> show confirmation
     if request.method == "GET":
+        if user_points < price:
+            flash_translated("flash.insufficient_points", "error")
+            return redirect(url_for("art_detail", art_id=art_id))
         return render_template(
             "buy_confirm.html",
             art_id=art_id,
@@ -1603,17 +1605,13 @@ def buy_art(art_id):
             user_points=user_points
         )
 
-    # POST -> perform purchase
-    if user_points < price:
-        flash_translated("flash.insufficient_points", "error")
-        return redirect(url_for("art_detail", art_id=art_id))
-
     try:
         conn = sqlite3.connect("beevy.db")
         cursor = conn.cursor()
 
         # Subtract points
         cursor.execute("UPDATE users SET bee_points = bee_points - ? WHERE id=?", (price, user_id))
+        cursor.execute("UPDATE users SET bee_points = bee_points + ? WHERE id=?", (price, author_id))
 
         # Add ownership
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1680,16 +1678,21 @@ def download_art(art_id):
 def create_art():
     if request.method == "POST":
         username = session["username"]
-
+        
         # --- Form data ---
         title = request.form.get("title")
         description = request.form.get("description")
-        tat = request.form.get("tat")
         price = int(request.form.get("price", 0))
+        thumb_file = request.files.get("thumb")
         art_type = request.form.get("type")
-        slots = request.form.get("slots")
-        thumb_file = request.files.get("thumbnail")
-        examples_files = request.files.getlist("examples")
+        if art_type == "commission":
+            tat = request.form.get("tat")
+            slots = request.form.get("slots")
+            examples_files = request.files.getlist("examples")
+        else:
+            tat = 1
+            slots = None
+            examples_files = []
 
         if not thumb_file or not thumb_file.filename:
             flash_translated("flash.thumbnail_required", "error")

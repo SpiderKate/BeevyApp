@@ -133,9 +133,41 @@ select {
     padding: 12px 14px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--glass-border);
-    background: var(--glass);
+    background: var(--glass-bg-light);
+    background-color: var(--primary-bg);
     color: var(--text-main);
     margin-bottom: 20px;
     transition: var(--transition);
-    font-size: 15px;
+    font-size: 15px; 
+    appearance: none;
 }
+
+select:hover { 
+    border-color: var(--accent); 
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent); 
+} 
+
+select:focus { 
+    outline: none; 
+    border-color: var(--accent); 
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); 
+}
+
+select option { 
+    background: var(--glass-bg); 
+    color: var(--text-main); 
+} 
+
+select option:hover { 
+    background: var(--accent); 
+    color: white; 
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.comms {
+    display: none;
+}
+

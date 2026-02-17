@@ -1,0 +1,77 @@
+/* Page container */
+.content {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 24px 28px;
+    background: var(--glass-bg);
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 18px var(--glass-border);
+    backdrop-filter: var(--glass-blur);
+}
+
+/* Heading */
+.content h2 {
+    margin-bottom: 16px;
+    font-size: 1.8rem;
+    color: var(--text-main);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--accent 40%), transparent);
+}
+
+/* Text */
+.content p {
+    margin: 8px 0;
+    color: var(--text-main);
+}
+
+.content p strong {
+    color: var(--accent);
+}
+
+/* Error message */
+.error {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--msg-error-bg);
+    color: var(--msg-error-text);
+    border: 1px solid var(--msg-error-outline);
+}
+
+/* Links */
+.content a {
+    display: inline-block;
+    margin-top: 18px;
+    margin-right: 10px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition), text-shadow var(--transition);
+}
+
+.content a:hover {
+    color: var(--accent-light);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--accent 60%), transparent);
+}
+
+/* Buttons */
+.content form {
+    margin-top: 18px;
+}
+
+.content button {
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--primary-text);
+    background-image: var(--btn-bg);
+    box-shadow: var(--shadow-accent);
+    transition: transform var(--transition), box-shadow var(--transition), background-image var(--transition);
+}
+
+.content button:hover {
+    background-image: var(--btn-bg-hover);
+    box-shadow: var(--btn-shadow-hover);
+    transform: translateY(-1px);
+}

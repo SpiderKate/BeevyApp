@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Create Art / Commission 🐝{% endblock %}
+{% block title %}{{ t('art.createTitle') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/create_art.css">
@@ -8,10 +8,19 @@
 
 {% block content %}
 
-<h1 class="page-title">{{ t('art.create') }}</h1>
+<h1 class="page-title art-only">{{ t('art.createArt') }}</h1>
+<h1 class="page-title comms">{{ t('art.createCommission') }}</h1>
 
 <form action="/create_art" method="POST" enctype="multipart/form-data" class="create-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <!-- Type -->
+    <div class="type">
+        <label class="form-label">{{ t('art.type') }}</label><br><br>
+        <select name="type" class="input" required>
+            <option id="option" value="art">{{ t('art.art') }}</option>
+            <option id="option" value="commission">{{ t('art.commission') }}</option>
+        </select>
+    </div>
     <!-- Title -->
     <label class="form-label">{{ t('art.title') }}</label>
     <input type="text" name="title" required class="input">
@@ -21,82 +30,111 @@
     <textarea name="description" rows="4" class="input"></textarea>
 
     <!-- TAT -->
-    <label class="form-label">Turnaround Time (days)</label>
-    <input type="number" name="tat" min="1" required class="input">
+    <div class="tat comms">
+        <label class="form-label">Turnaround Time (days)</label>
+        <input type="number" name="tat" min="1" class="input">
+    </div>
 
     <!-- Price -->
     <label class="form-label">{{ t('art.price') }} (Beevy Points)</label>
     <input type="number" name="price" min="1" required class="input">
 
-    <!-- Type -->
-    <label class="form-label">{{ t('art.type') }}</label>
-    <select name="type" class="input" required>
-        <option id="option" value="art">{{ t('art.selling') }}</option>
-        <option id="option" value="commission" selected>{{ t('art.commission') }}</option>
-    </select>
-
-<!--TODO: art/comms rozdeleni-->
-<!--TODO: slots pouze v comms-->
 <!--TODO: save metadata in the file directly-->
-<div class="slots">
+<div class="slots comms">
     <!-- Slots -->
     <label for="commission" class="form-label">{{ t('art.commission_slots') }} (optional)</label>
     <input for="commission" type="number" name="slots" min="1" class="input">
 </div>
 
-   <!-- Thumbnail -->
+<!-- Thumbnail -->
+<div class="thumbs">
 <label>{{ t('settings.thumbnail') }}</label>
     <div class="file-wrapper"> 
-        <label for="Input" class="file-label"> {{ t('settings.choose_file') }} </label> <br>
-        <span id="fileName" class="file-name"> {{ t('settings.no_file_selected') }} </span> 
-        <input type="file" name="thumb" id="Input"> 
+        <label for="thumbInput" class="file-label">{{ t('settings.choose_file') }}</label>
+        <span id="thumbFileName" class="file-name">{{ t('settings.no_file_selected') }}</span>
+        <input type="file" name="thumb" id="thumbInput">
     </div>
+</div>
+
+<img id="thumbPreview" class="preview-img" style="display:none">
+
 
 <!-- Examples -->
-<label>{{ t('settings.examples') }}</label>
+<div class="examples comms">
+    <label>{{ t('settings.examples') }}</label>
     <div class="file-wrapper"> 
-        <label for="Input" class="file-label"> {{ t('settings.choose_file') }} </label> <br>
-        <span id="fileName" class="file-name"> {{ t('settings.no_file_selected') }} </span> 
-        <input type="file" name="examples" id="Input"> 
+        <label for="examplesInput" class="file-label">{{ t('settings.choose_file') }}</label>
+        <span id="examplesFileName" class="file-name">{{ t('settings.no_file_selected') }}</span>
+        <input type="file" name="examples" id="examplesInput" multiple>
     </div>
+</div>
 
+<div id="examplesPreview"></div>
 
     <button type="submit" class="submit" id="submit">Create</button>
 
 </form>
 
 <script>
-// Thumbnail preview (fixed to display at shop size)
+// Thumbnail preview
+const thumbInput = document.getElementById("thumbInput");
+const thumbFileName = document.getElementById("thumbFileName");
 const thumbPreview = document.getElementById("thumbPreview");
-const Input = document.getElementById("Input");
-Input.addEventListener('change', () => {
-        fileName.textContent = Input.files[0]?.name || "{{ t('settings.no_file') }}";
-    });
-
 
 thumbInput.addEventListener("change", () => {
-    if (thumbInput.files && thumbInput.files[0]) {
-        thumbPreview.src = URL.createObjectURL(thumbInput.files[0]);
+    const file = thumbInput.files[0];
+    thumbFileName.textContent = file ? file.name : "{{ t('settings.no_file_selected') }}";
+
+    if (file) {
+        thumbPreview.src = URL.createObjectURL(file);
         thumbPreview.style.display = "block";
-        thumbPreview.style.width = "150px";  // match shop thumbnail width
-        thumbPreview.style.height = "auto";  // maintain aspect ratio
+        thumbPreview.style.width = "150px";
+        thumbPreview.style.height = "auto";
     }
 });
 
+
+
 // Example images preview
-const examplesInput = document.querySelector("input[name='examples']");
+const examplesInput = document.getElementById("examplesInput");
+const examplesFileName = document.getElementById("examplesFileName");
 const examplesPreview = document.getElementById("examplesPreview");
 
 examplesInput.addEventListener("change", () => {
-    examplesPreview.innerHTML = ""; // clear previous previews
-    Array.from(examplesInput.files).forEach(file => {
+    const files = Array.from(examplesInput.files);
+
+    examplesFileName.textContent =
+        files.length > 0 ? `${files.length} file(s)` : "{{ t('settings.no_file_selected') }}";
+
+    examplesPreview.innerHTML = "";
+
+    files.forEach(file => {
         const img = document.createElement("img");
         img.src = URL.createObjectURL(file);
+        img.classList.add("preview-img");
         img.style.maxWidth = "150px";
         img.style.margin = "5px";
         examplesPreview.appendChild(img);
     });
 });
+
+const typeSelect = document.querySelector("select[name='type']");
+const commsFields = document.querySelectorAll(".comms");
+const artTitle = document.querySelector(".art-only"); 
+function updateFormVisibility() {
+    const isCommission = typeSelect.value === "commission";
+
+    commsFields.forEach(el => {
+        el.style.display = isCommission ? "block" : "none";
+    });
+    artTitle.style.display = isCommission ? "none" : "block";
+}
+
+typeSelect.addEventListener("change", updateFormVisibility);
+
+// Run once on page load
+updateFormVisibility(); 
+
 </script>
 
 

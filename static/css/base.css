@@ -30,6 +30,13 @@
     --glass: var(--glass-bg);
     --glass-light: var(--glass-bg-light);
 
+    /* Filters */
+    --tool-filter: invert(86%) sepia(94%) saturate(2470%) hue-rotate(355deg) brightness(103%) contrast(1020%);
+    --tool-filter-hover: invert(96%) sepia(84%) saturate(70%) hue-rotate(245deg) brightness(110%) contrast(170%);
+    --bucket-filter: invert(76%) sepia(84%) saturate(2200%) hue-rotate(357deg) brightness(88%) contrast(700%);
+    --bucket-filter-hover: invert(56%) sepia(24%) saturate(1070%) hue-rotate(245deg) brightness(40%) contrast(70%);
+    --span-muted-filter: rgb(92 69 107);
+
     /* Shadows */
     --shadow-accent: 0 0 10px var(--accent-color);
 
@@ -79,11 +86,11 @@
     50% { transform: translateY(-8px); }
 }
 
-/*@keyframes floatHex {
+/* @keyframes floatHex {
     0% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
     50% { transform: translateY(-20px) rotate(20deg); opacity: 0.6; }
     100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
-}*/
+} */
 
 @keyframes float {
     0%, 100% { transform: translateY(0); }
@@ -286,7 +293,7 @@ button:hover {
 }
 
 .user-menu-button {
-    background: #a17cf4;
+    background: var(--primary-bg-light);
     color: var(--primary-text);
     padding: 10px 15px;
     border-radius: var(--radius-sm);
@@ -303,8 +310,8 @@ button:hover {
 }
 
 .user-menu-button:hover {
-    background: #b391ff;
-    color: white;
+    background: var(--primary-bg);
+    color: var(--text-muted);
 }
 
 .dropdown {
@@ -331,7 +338,7 @@ button:hover {
 
 .dropdown a:hover {
     background: var(--primary-bg-light);
-    color: white;
+    color: var(--text-main);
     border-radius: var(--radius-xs);
 }
 

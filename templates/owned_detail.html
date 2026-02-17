@@ -8,10 +8,10 @@
 {% block content %}
 <div class="art-detail">
     <h2>{{ item[2] }}</h2>
-    <p>{{ g.trans.get('shop.artist', g.user_language) }}: {{ item[1] }}</p>
+    <p>{{ t('shop.artist') }}: {{ item[1] }}</p>
     
     {% if item[3] %}
-        <p>{{ g.trans.get('art.description', g.user_language) }}: {{ item[3] }}</p>
+        <p>{{ t('art.description') }}: {{ item[3] }}</p>
     {% endif %}
 
     {% if owned_image %}
@@ -20,11 +20,11 @@
             <div style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
         </div>
     {% else %}
-        <p><em>{{ g.trans.get('messages.no_preview', g.user_language) }}</em></p>
+        <p><em>{{ t('messages.no_preview') }}</em></p>
     {% endif %}
 
     {% if examples_list %}
-        <h3>{{ g.trans.get('art.selling', g.user_language) }}</h3>
+        <h3>{{ t('art.selling') }}</h3>
         {% for ex in examples_list %}
             <div style="position: relative; display: inline-block;">
                 <img src="{{ url_for('static', filename=ex) }}" alt="Example" class="preview-img" oncontextmenu="return false;">
@@ -35,7 +35,7 @@
     <br>
     
     <a href="{{ url_for('download_art', art_id=item[0]) }}" class="btn download">
-        {{ g.trans.get('messages.download_original', g.user_language) }}
+        {{ t('messages.download_original') }}
     </a>
     
     <!-- TODO:later enable viewing on shop again and the whole logic
@@ -49,7 +49,7 @@
 
     <form method="POST" action="{{ url_for('remove_ownership', art_id=item[0]) }}" style="display:inline;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn delete" onclick="return confirm('{{ g.trans.get('messages.remove_from_library', g.user_language) }}');">{{ g.trans.get('messages.remove_from_library', g.user_language) }}</button>
+        <button type="submit" class="btn delete" onclick="return confirm('{{ t('messages.remove_from_library') }}');">{{ t('messages.remove_from_library') }}</button>
     </form>
 </div>
 {% endblock %}

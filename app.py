@@ -791,7 +791,6 @@ def private():
 @app.route('/option')
 @login_required
 def option():
-    #FIXME: if click button render dif template then redirect
     return render_template('drawOption.html')
 
 #settings...
@@ -1094,7 +1093,7 @@ def shop():
     conn.close()
 
     return render_template("shop.html", items=items)
-
+# TODO: css buy art
 @app.route('/shop/<int:art_id>')
 @login_required
 def art_detail(art_id):
@@ -1104,7 +1103,7 @@ def art_detail(art_id):
 
     # Fetch artwork and optional author (allow author to be NULL after deletion)
     cursor.execute("""
-        SELECT art.*, users.username
+        SELECT art.*,users.bee_points, users.username
         FROM art
         LEFT JOIN users ON art.author_id = users.id
         WHERE art.id = ?
@@ -1595,6 +1594,9 @@ def buy_art(art_id):
 
     # GET -> show confirmation
     if request.method == "GET":
+        if user_points < price:
+            flash_translated("flash.insufficient_points", "error")
+            return redirect(url_for("art_detail", art_id=art_id))
         return render_template(
             "buy_confirm.html",
             art_id=art_id,
@@ -1602,11 +1604,6 @@ def buy_art(art_id):
             price=price,
             user_points=user_points
         )
-
-    # POST -> perform purchase
-    if user_points < price:
-        flash_translated("flash.insufficient_points", "error")
-        return redirect(url_for("art_detail", art_id=art_id))
 
     try:
         conn = sqlite3.connect("beevy.db")

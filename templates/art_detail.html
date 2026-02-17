@@ -14,7 +14,9 @@
     {% endif %}
     {% if is_active %}
         <p>{{ t('shop.price') }}: {{ item[5] }} BP</p>
-        <p>{{ t('art.turnaround') }}: {{ item[4] }} {{ t('art.days') }}</p>
+        {% if item[6] == "commission" %}
+            <p>{{ t('art.turnaround') }}: {{ item[4] }} {{ t('art.days') }}</p>
+        {% endif %}
     {% if item[11] %}
         <p>{{ t('art.slots') }}: {{ item[11] }}</p>
     {% endif %}

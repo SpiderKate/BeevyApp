@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: beevyapp
+    name: beevy
     runtime: python
     plan: free
     region: frankfurt

@@ -1,0 +1,77 @@
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.Image:Image.py:388 Importing AvifImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing BlpImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing BmpImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing BufrStubImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing CurImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing DcxImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing DdsImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing EpsImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing FitsImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing FliImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing FpxImagePlugin
+DEBUG    PIL.Image:Image.py:391 Image: failed to import FpxImagePlugin: No module named 'olefile'
+DEBUG    PIL.Image:Image.py:388 Importing FtexImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing GbrImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing GifImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing GribStubImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing Hdf5StubImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing IcnsImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing IcoImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing ImImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing ImtImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing IptcImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing JpegImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing Jpeg2KImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing McIdasImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing MicImagePlugin
+DEBUG    PIL.Image:Image.py:391 Image: failed to import MicImagePlugin: No module named 'olefile'
+DEBUG    PIL.Image:Image.py:388 Importing MpegImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing MpoImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing MspImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PalmImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PcdImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PcxImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PdfImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PixarImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PngImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PpmImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing PsdImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing QoiImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing SgiImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing SpiderImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing SunImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing TgaImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing TiffImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing WebPImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing WmfImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing XbmImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing XpmImagePlugin
+DEBUG    PIL.Image:Image.py:388 Importing XVThumbImagePlugin
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'tEXt' 41 18
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'tEXt' 71 37
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'tEXt' 120 41
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 173 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'tEXt' 41 18
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'tEXt' 71 37
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'tEXt' 120 41
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 173 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 58575
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IHDR' 16 13
+DEBUG    PIL.PngImagePlugin:PngImagePlugin.py:204 STREAM b'IDAT' 41 229

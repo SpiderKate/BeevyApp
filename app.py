@@ -390,6 +390,11 @@ def inject_t():
 def index():
     return render_template("index.html", page="index")
 
+
+@app.route('/health')
+def health():
+    return {"status": "ok"}, 200
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     login_errors = []
@@ -1925,4 +1930,5 @@ def handle_draw(data):
     emit('draw', data, to=room, skip_sid=request.sid)
     
 if __name__ == "__main__":
-    socketio.run(app,debug=True)#, use_reloader=False -> stranky se sami nereload
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, port=port)#, use_reloader=False -> stranky se sami nereload

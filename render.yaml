@@ -3,6 +3,7 @@ services:
     name: beevyapp
     runtime: python
     plan: free
+    region: frankfurt
     healthCheckPath: /health
     buildCommand: pip install -r requirements.txt
     startCommand: python scripts/init_db.py ; gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:$PORT app:app

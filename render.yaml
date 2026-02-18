@@ -9,7 +9,3 @@ services:
     envVars:
       - key: SECRET_KEY
         generateValue: true
-    disk:
-      name: beevy-data
-      mountPath: /var/data
-      sizeGB: 1

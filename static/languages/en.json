@@ -141,7 +141,7 @@
 
     "hide_artwork": "Hide artwork in shop",
     "show_artwork": "Show artwork in shop",
-    "max_file_size":"Max file size per file: {{ (max_file_size/1024/1024)|round(1) }} MB. Allowed: {{ allowed_extensions | join(', ') }}.",
+    "max_file_size":"Max file size per file: 10 MB. Allowed extensions: .jpg and .png.",
     "delete_permanent": "Delete artwork permanently",
     "danger_zone": "Danger Zone",
     "type_delete": "Type DELETE to confirm",

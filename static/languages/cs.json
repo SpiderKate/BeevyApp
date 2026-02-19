@@ -125,15 +125,17 @@
     "details": "Detaily o kresbě",
     "turnaround": "Doba zpracování",
     "days": "dní",
+
     "hide_artwork": "Stáhnout kresbu z prodeje",
     "show_artwork": "Dát kresbu k prodeji",
     "max_file_size":"Maximální velkost souboru na soubor: 10 MB. Povolené přípony: .jpg a .png.",
+
+    
     "delete_permanent": "Delete artwork permanently",
     "danger_zone": "Nebezpečná zóna",
     "type_delete": "Napište DELETE přesně",
     "action_irreversible": "Tato akce nemůže být vrácena.",
     "confirm_password": "Potvrďte tuto akci Vašim heslem"
-    
   },
   "messages": {
     "success": "Úspěch!",

@@ -147,6 +147,7 @@
     "type_delete": "Type DELETE to confirm",
     "action_irreversible": "This action cannot be undone.",
     "confirm_password": "Confirm with your password"
+    
   },
   "messages": {
     "success": "Success!",

@@ -100,7 +100,7 @@
     "title": "Draw",
     "create_room": "Create Room",
     "join_room": "Join Room",
-    "room_name": "Enter password for room.",
+    "room_name": "Name",
     "public_room": "Join a public room",
     "private_room": "Private room",
     "start_drawing": "Start Drawing",

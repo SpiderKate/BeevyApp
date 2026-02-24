@@ -55,6 +55,7 @@ scheduler.start()
 
 #TODO: create canvas folder for saved collab drawings
 STATIC_ROOT = "static"
+CANVAS_UPLOAD_FOLDER = "uploads/canvas"
 AVATAR_UPLOAD_FOLDER = "uploads/avatar"
 UPLOAD_FOLDER = "uploads/shop"
 THUMB_FOLDER = "thumbs"
@@ -1357,7 +1358,7 @@ def editArt(username, art_id):
                     flash_translated("flash.artwork_deleted", "success")
                     return redirect(url_for("shop"))
 
-                # Owners exist: copy original (or best available) for each owner and update art_ownership.source
+                #TODO: Owners exist: copy original (or best available) for each owner and update art_ownership.source
                 owned_dir = os.path.join(STATIC_ROOT, UPLOAD_FOLDER, "owned")
                 os.makedirs(owned_dir, exist_ok=True)
 

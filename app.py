@@ -778,7 +778,7 @@ def public():
 
 #vypisuje vytvorene private rooms jako linky
 @app.route('/join/private')
-    print("wrrwrwr")
+print("wrrwrwr")
 @login_required
 def private():
     try:

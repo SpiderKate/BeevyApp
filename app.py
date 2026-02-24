@@ -1,13 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash as flask_flash, g, send_file, abort, send_from_directory
-import bcrypt
-import sqlite3
-import sys
-import secrets
-import string
-import os
-import shutil
-import uuid
-import json
 from io import BytesIO
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
@@ -20,6 +11,7 @@ from functools import wraps
 from flask_apscheduler import APScheduler
 from backup_utils import backup_database, cleanup_old_backups
 from translations import translations
+import bcrypt, sqlite3, sys, secrets, string, os, shutil, uuid, json
 
 load_dotenv()
 now = datetime.now()
@@ -58,8 +50,7 @@ scheduler.add_job(
     hour=2,
     minute=0,
     id='weekly_backup',
-    name='Weekly Database Backup'
-)
+    name='Weekly Database Backup';)
 scheduler.start()
 
 #TODO: create canvas folder for saved collab drawings
@@ -266,7 +257,6 @@ def read_png_metadata(file_path):
     except Exception as e:
         print(f"Failed to read metadata from {file_path}: {e}")
         return {}
-
 
 def process_uploaded_image(file, username, prefix="", save_original=True, author_name=None):
     """Saves an original PNG (optional), creates a watermarked PNG with metadata.
@@ -605,9 +595,6 @@ def recover_account():
 
     return render_template("recover.html")
 
-    
-
-
 #userpage
 @app.route('/<username>')
 def userPage(username):
@@ -662,7 +649,6 @@ def userPage(username):
         owned=owned,
         is_owner=is_owner
     )
-
 
 @app.route('/join/<room_ID>', methods=['GET','POST'])
 @login_required
@@ -805,7 +791,6 @@ def option():
 def settings(username):
     return render_template("settings.html")
 
-
 @app.route("/<username>/settings/profile", methods=["GET", "POST"])
 @login_required
 @no_trespass
@@ -862,7 +847,6 @@ def settingsProfile(username):
     finally:
         conn.close()
     return render_template("settingsProfile.html", user=user)
-
 
 @app.route("/<username>/settings/preferences", methods=["GET", "POST"])
 @login_required
@@ -924,7 +908,6 @@ def settingsPreferences(username):
         conn.close()
     return render_template("settingsPreferences.html", user=user)
 
-
 @app.route("/<username>/settings/account", methods=["GET","POST"])
 @login_required
 @no_trespass
@@ -963,8 +946,6 @@ def settingsAccount(username):
         conn.close()
     return render_template("settingsAccount.html", user=user)
     
-
-
 @app.route("/<username>/settings/security", methods=["GET","POST"])
 @login_required
 @no_trespass
@@ -1078,10 +1059,7 @@ def settingsDelete(username):
 
     return render_template("settingsDelete.html")
 
-
-
 @app.route('/shop')
-
 #TODO only max 15 on page then click next (smth like carousel) and randomly mix them up to refersh the content
 @login_required
 def shop():
@@ -1098,7 +1076,7 @@ def shop():
     conn.close()
 
     return render_template("shop.html", items=items)
-# TODO: css buy art
+
 @app.route('/shop/<int:art_id>')
 @login_required
 def art_detail(art_id):
@@ -1160,7 +1138,6 @@ def art_detail(art_id):
     conn.close()
     return render_template("art_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active)
 
-
 @app.route('/owned/<int:art_id>', methods=['GET'])
 @login_required
 def owned_view(art_id):
@@ -1214,7 +1191,6 @@ def owned_view(art_id):
 
     conn.close()
     return render_template("owned_detail.html", item=item, examples_list=examples_list, owns=owns, owned_image=owned_image, is_author=is_author, is_active=is_active)
-
 
 @app.route('/owned/<int:art_id>/remove', methods=['POST'])
 @login_required
@@ -1303,7 +1279,6 @@ def remove_ownership(art_id):
     conn.close()
     flash_translated("flash.ownership_removed", "success")
     return redirect(url_for('userPage', username=session.get('username')))
-
 
 @app.route("/<username>/<int:art_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -1635,9 +1610,6 @@ def buy_art(art_id):
     owns = user_owns_art(user_id, art_id)
     return redirect(url_for("art_detail", art_id=art_id, owns=owns))
 
-
-
-
 @app.route("/download/<int:art_id>")
 @login_required
 def download_art(art_id):
@@ -1672,9 +1644,6 @@ def download_art(art_id):
     print("Metadata:", metadata)
 
     return send_from_directory(full_dir, file_name, as_attachment=True,download_name=download_name)
-
-
-
 
 @app.route("/create_art", methods=["GET", "POST"])
 @login_required
@@ -1775,7 +1744,6 @@ def create_art():
 
     return render_template("create_art.html")
 
-
 @app.route("/preview/<int:art_id>")
 @login_required
 def preview_art(art_id):
@@ -1844,7 +1812,6 @@ def preview_art(art_id):
         STATIC_ROOT,
         os.path.relpath(real_path, STATIC_ROOT)
     )
-
 
 @app.route('/owned/<int:art_id>/preview')
 @login_required

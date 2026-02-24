@@ -791,7 +791,7 @@ def private():
         rooms = cursor.fetchall()
     finally:
         conn.close()
-    return render_template("drawJoinPrivate.html", rooms=rooms)
+    return render_template("drawJoinPrivate.html", roomsP=rooms)
 
 @app.route('/option')
 @login_required

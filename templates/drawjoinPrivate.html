@@ -6,7 +6,7 @@
 <h2>{{ t('messages.room_list') }}</h2>
 
 <ul class="room-list">
-{% for name, room_id, deleted in rooms %}
+{% for name, room_id, deleted in roomsP %}
     {% if not deleted %}
         <li>
             <a href="{{ url_for('join_room_page', room_ID=room_id) }}" class="room-link">{{ name }}</a>

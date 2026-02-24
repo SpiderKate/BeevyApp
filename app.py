@@ -778,9 +778,9 @@ def public():
 
 #vypisuje vytvorene private rooms jako linky
 @app.route('/join/private')
+    print("wrrwrwr")
 @login_required
 def private():
-    print("wrrwrwr")
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()

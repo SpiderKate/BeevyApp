@@ -786,13 +786,9 @@ def private():
         cursor.execute("""
             SELECT r.name, r.room_ID, u.deleted
             FROM rooms r
-            JOIN users u ON r.user_id = u.id AND r.is_public = 0
+            JOIN users u ON r.user_id = u.id AND r.is_public = FALSE
         """)
         rooms = cursor.fetchall()
-    except Exception as e:
-        flash_translated("flash.error_occurred", "error", e=str(e))
-        return redirect(url_for("index"))   
-
     finally:
         conn.close()
     return render_template("drawJoinPrivate.html", rooms=rooms)

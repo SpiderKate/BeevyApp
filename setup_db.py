@@ -21,10 +21,8 @@ cursor = conn.cursor()
 #cursor.execute("DROP table rooms;")
 #cursor.execute("DROP table art_ownership;")
 
-cursor.execute("ALTER TABLE ")
-
 #cursor.execute("DELETE FROM art;")
-#cursor.execute("DELETE FROM users WHERE id=13;")
+cursor.execute("DELETE FROM art WHERE id=25;")
 #cursor.execute("DELETE FROM rooms;")
 #cursor.execute("DELETE FROM art_ownership;")
 

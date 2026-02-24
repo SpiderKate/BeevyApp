@@ -780,6 +780,7 @@ def public():
 @app.route('/join/private')
 @login_required
 def private():
+    print("wrrwrwr")
     try:
         conn = sqlite3.connect('beevy.db')
         cursor = conn.cursor()

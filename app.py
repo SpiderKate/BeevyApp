@@ -19,7 +19,7 @@ now = datetime.now()
 #print('some debug', file=sys.stderr)
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode="threading")
 csrf = CSRFProtect(app)
 
 # ===== Database Backup Scheduler =====

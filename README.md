@@ -21,7 +21,7 @@ This repository now includes a Render Blueprint config in `render.yaml`.
 If you prefer to create the service manually, use:
 
 - Build command: `pip install -r requirements.txt`
-- Start command: `python scripts/init_db.py ; gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:$PORT app:app`
+- Start command: `python scripts/init_db.py ; gunicorn -w 1 --threads 8 -b 0.0.0.0:$PORT app:app`
 
 ### Required environment variables
 

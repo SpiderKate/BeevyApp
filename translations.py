@@ -28,7 +28,7 @@ class Translations:
         """Get friendly name for language code"""
         names = {
             'en': 'English',
-            'cs': 'Čeština (Czech)'
+            'cs': 'Čeština'
         }
         return names.get(lang_code, lang_code.upper())
     

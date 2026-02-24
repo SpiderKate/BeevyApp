@@ -50,7 +50,8 @@ scheduler.add_job(
     hour=2,
     minute=0,
     id='weekly_backup',
-    name='Weekly Database Backup';)
+    name='Weekly Database Backup'
+)
 scheduler.start()
 
 #TODO: create canvas folder for saved collab drawings
